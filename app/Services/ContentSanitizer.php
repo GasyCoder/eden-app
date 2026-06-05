@@ -20,6 +20,31 @@ class ContentSanitizer
             return trim($value);
         }
 
-        return trim(strip_tags($value));
+        $value = trim(strip_tags($value));
+
+        if (in_array($type, ['image', 'link'], true)) {
+            $value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? $value;
+
+            if (preg_match('/^\s*(javascript|data):/i', $value)) {
+                return '#';
+            }
+        }
+
+        if ($type === 'number') {
+            $value = preg_replace('/[^0-9.,+\-\s]/', '', $value) ?? $value;
+        }
+
+        return trim($value);
+    }
+
+    public function cleanMixed(mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return collect($value)
+                ->map(fn ($item) => $this->cleanMixed($item))
+                ->all();
+        }
+
+        return is_string($value) ? $this->clean($value) : $value;
     }
 }

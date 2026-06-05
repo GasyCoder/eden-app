@@ -1,10 +1,15 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import EditableText from '@/Components/Editable/EditableText.vue';
 
 const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
+    },
+    canEdit: {
+        type: Boolean,
+        default: false,
     },
 });
 const blocks = props.blocks;
@@ -102,14 +107,38 @@ onBeforeUnmount(() => {
     <section id="chiffres">
         <div class="container">
             <div class="section-header reveal">
-                <span class="eyebrow">{{ blocks?.eyebrow ?? 'EDEN en chiffres' }}</span>
-                <h2>{{ blocks?.title ?? "L'École Doctorale en Données" }}</h2>
+                <span class="eyebrow"><EditableText :value="blocks?.eyebrow" fallback="EDEN en chiffres" content-key="stats.eyebrow" :can-edit="canEdit" /></span>
+                <h2><EditableText :value="blocks?.title" fallback="L'École Doctorale en Données" content-key="stats.title" :can-edit="canEdit" /></h2>
             </div>
             <div class="chiffres-grid">
-                <div class="chiffre-i reveal"><span class="n" :data-target="blocks?.doctorants ?? fallbackTargets.doctorants">{{ counts.doctorants }}</span><p class="lbl">{{ blocks?.doctorants_label ?? 'Doctorants actifs' }}</p></div>
-                <div class="chiffre-i reveal"><span class="n" :data-target="blocks?.theses ?? fallbackTargets.theses">{{ counts.theses }}</span><p class="lbl">{{ blocks?.theses_label ?? 'Thèses soutenues' }}</p></div>
-                <div class="chiffre-i reveal"><span class="n" :data-target="blocks?.partnerships ?? fallbackTargets.partnerships">{{ counts.partnerships }}</span><p class="lbl">{{ blocks?.partnerships_label ?? 'Partenariats actifs' }}</p></div>
-                <div class="chiffre-i reveal"><span class="n" :data-target="blocks?.publications ?? fallbackTargets.publications">{{ counts.publications }}</span><p class="lbl">{{ blocks?.publications_label ?? 'Publications scientifiques' }}</p></div>
+                <div class="chiffre-i reveal">
+                    <span class="n" :data-target="blocks?.doctorants ?? fallbackTargets.doctorants">
+                        <EditableText v-if="canEdit" :value="blocks?.doctorants" fallback="52" content-key="stats.doctorants" :can-edit="canEdit" type="number" />
+                        <template v-else>{{ counts.doctorants }}</template>
+                    </span>
+                    <p class="lbl"><EditableText :value="blocks?.doctorants_label" fallback="Doctorants actifs" content-key="stats.doctorants_label" :can-edit="canEdit" /></p>
+                </div>
+                <div class="chiffre-i reveal">
+                    <span class="n" :data-target="blocks?.theses ?? fallbackTargets.theses">
+                        <EditableText v-if="canEdit" :value="blocks?.theses" fallback="31" content-key="stats.theses" :can-edit="canEdit" type="number" />
+                        <template v-else>{{ counts.theses }}</template>
+                    </span>
+                    <p class="lbl"><EditableText :value="blocks?.theses_label" fallback="Thèses soutenues" content-key="stats.theses_label" :can-edit="canEdit" /></p>
+                </div>
+                <div class="chiffre-i reveal">
+                    <span class="n" :data-target="blocks?.partnerships ?? fallbackTargets.partnerships">
+                        <EditableText v-if="canEdit" :value="blocks?.partnerships" fallback="14" content-key="stats.partnerships" :can-edit="canEdit" type="number" />
+                        <template v-else>{{ counts.partnerships }}</template>
+                    </span>
+                    <p class="lbl"><EditableText :value="blocks?.partnerships_label" fallback="Partenariats actifs" content-key="stats.partnerships_label" :can-edit="canEdit" /></p>
+                </div>
+                <div class="chiffre-i reveal">
+                    <span class="n" :data-target="blocks?.publications ?? fallbackTargets.publications">
+                        <EditableText v-if="canEdit" :value="blocks?.publications" fallback="78" content-key="stats.publications" :can-edit="canEdit" type="number" />
+                        <template v-else>{{ counts.publications }}</template>
+                    </span>
+                    <p class="lbl"><EditableText :value="blocks?.publications_label" fallback="Publications scientifiques" content-key="stats.publications_label" :can-edit="canEdit" /></p>
+                </div>
             </div>
         </div>
     </section>

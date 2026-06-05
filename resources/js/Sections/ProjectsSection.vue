@@ -46,6 +46,7 @@ const projects = computed(() => (props.items?.length ? props.items : fallbackPro
 const editingId = ref(null);
 const creating = ref(false);
 const form = ref(blankProject());
+const uploadError = ref('');
 
 function blankProject() {
     return {
@@ -57,11 +58,13 @@ function blankProject() {
         ead: 'EAD 1',
         funding: 'Financement : ',
         period: '',
+        image: '',
         badge_class: 'badge-active',
     };
 }
 
 function editProject(project) {
+    uploadError.value = '';
     form.value = {
         title: project.title ?? '',
         subtitle: project.subtitle ?? '',
@@ -71,6 +74,7 @@ function editProject(project) {
         ead: project.meta?.ead ?? '',
         funding: project.meta?.funding ?? '',
         period: project.meta?.period ?? '',
+        image: project.image ?? '',
         badge_class: project.meta?.badge_class ?? 'badge-active',
     };
     creating.value = false;
@@ -78,12 +82,14 @@ function editProject(project) {
 }
 
 function startCreate() {
+    uploadError.value = '';
     form.value = blankProject();
     editingId.value = null;
     creating.value = true;
 }
 
 function cancelEdit() {
+    uploadError.value = '';
     editingId.value = null;
     creating.value = false;
     form.value = blankProject();
@@ -94,6 +100,7 @@ function payload() {
         title: form.value.title,
         subtitle: form.value.subtitle,
         description: form.value.description,
+        image: form.value.image,
         meta: {
             icon: form.value.icon,
             image_label: form.value.image_label,
@@ -147,6 +154,43 @@ function reorderProject(index, direction) {
         preserveScroll: true,
     });
 }
+
+async function uploadProjectImage(event) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    uploadError.value = '';
+
+    try {
+        const data = new FormData();
+        data.append('image', file);
+
+        const response = await fetch('/admin/uploads/images', {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                Accept: 'application/json',
+            },
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.path) {
+            uploadError.value = payload.message ?? 'Image refusée.';
+            return;
+        }
+
+        form.value.image = payload.path;
+    } catch {
+        uploadError.value = 'Téléversement impossible.';
+    } finally {
+        event.target.value = '';
+    }
+}
 </script>
 
 <template>
@@ -175,8 +219,11 @@ function reorderProject(index, direction) {
                 <div class="grid-3">
                 <div v-if="creating" class="proj-card reveal visible">
                     <div class="proj-img img-ph">
-                        <div class="ic">{{ form.icon }}</div>
-                        <span>{{ form.image_label }}</span>
+                        <img v-if="form.image" :src="form.image" alt="">
+                        <template v-else>
+                            <div class="ic">{{ form.icon }}</div>
+                            <span>{{ form.image_label }}</span>
+                        </template>
                     </div>
                     <div class="proj-body">
                         <div class="eden-project-edit">
@@ -186,6 +233,9 @@ function reorderProject(index, direction) {
                             <textarea v-model="form.description" class="eden-collection-textarea" placeholder="Description"></textarea>
                             <input v-model="form.icon" class="eden-collection-input" type="text" placeholder="Icône">
                             <input v-model="form.image_label" class="eden-collection-input" type="text" placeholder="Libellé image">
+                            <input v-model="form.image" class="eden-collection-input" type="text" placeholder="URL image">
+                            <input type="file" accept="image/*" @change="uploadProjectImage">
+                            <span v-if="uploadError" class="eden-edit-error">{{ uploadError }}</span>
                             <input v-model="form.funding" class="eden-collection-input" type="text" placeholder="Financement">
                             <input v-model="form.period" class="eden-collection-input" type="text" placeholder="Période">
                             <select v-model="form.badge_class" class="eden-collection-input">
@@ -201,9 +251,12 @@ function reorderProject(index, direction) {
                 </div>
 
                 <div v-for="(project, index) in projects" :key="project.id ?? project.title" class="proj-card reveal">
-                    <div class="proj-img img-ph">
-                        <div class="ic">{{ project.meta?.icon ?? '🌿' }}</div>
-                        <span>{{ project.meta?.image_label ?? 'Terrain — forêt endémique Boeny' }}</span>
+                    <div class="proj-img img-ph" :class="{ 'has-image': project.image }">
+                        <img v-if="project.image" :src="project.image" :alt="project.title ?? 'Projet'">
+                        <template v-else>
+                            <div class="ic">{{ project.meta?.icon ?? '🌿' }}</div>
+                            <span>{{ project.meta?.image_label ?? 'Terrain — forêt endémique Boeny' }}</span>
+                        </template>
                     </div>
                     <div class="proj-body">
                         <template v-if="editingId === project.id">
@@ -214,6 +267,9 @@ function reorderProject(index, direction) {
                                 <textarea v-model="form.description" class="eden-collection-textarea"></textarea>
                                 <input v-model="form.icon" class="eden-collection-input" type="text">
                                 <input v-model="form.image_label" class="eden-collection-input" type="text">
+                                <input v-model="form.image" class="eden-collection-input" type="text" placeholder="URL image">
+                                <input type="file" accept="image/*" @change="uploadProjectImage">
+                                <span v-if="uploadError" class="eden-edit-error">{{ uploadError }}</span>
                                 <input v-model="form.funding" class="eden-collection-input" type="text">
                                 <input v-model="form.period" class="eden-collection-input" type="text">
                                 <select v-model="form.badge_class" class="eden-collection-input">

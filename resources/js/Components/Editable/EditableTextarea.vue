@@ -28,6 +28,8 @@ const props = defineProps({
 
 const editing = ref(false);
 const draft = ref(props.value ?? props.fallback ?? '');
+const saving = ref(false);
+const error = ref('');
 
 watch(() => props.value, (value) => {
     if (!editing.value) {
@@ -37,15 +39,20 @@ watch(() => props.value, (value) => {
 
 const start = () => {
     draft.value = props.value ?? props.fallback ?? '';
+    error.value = '';
     editing.value = true;
 };
 
 const cancel = () => {
     draft.value = props.value ?? props.fallback ?? '';
+    error.value = '';
     editing.value = false;
 };
 
 const save = () => {
+    saving.value = true;
+    error.value = '';
+
     router.patch(`/admin/content-blocks/${props.contentKey}`, {
         value: draft.value,
         type: props.type,
@@ -53,6 +60,12 @@ const save = () => {
         preserveScroll: true,
         onSuccess: () => {
             editing.value = false;
+        },
+        onError: () => {
+            error.value = 'Enregistrement impossible.';
+        },
+        onFinish: () => {
+            saving.value = false;
         },
     });
 };
@@ -65,11 +78,12 @@ const save = () => {
             <AdminEditButton v-if="canEdit" @click="start" />
         </template>
         <template v-else>
-            <textarea v-model="draft" class="eden-edit-textarea" rows="4" @keydown.esc.prevent="cancel"></textarea>
+            <textarea v-model="draft" class="eden-edit-textarea" rows="4" :disabled="saving" @keydown.esc.prevent="cancel"></textarea>
             <span class="eden-edit-actions">
-                <button type="button" @click="save">Enregistrer</button>
-                <button type="button" @click="cancel">Annuler</button>
+                <button type="button" :disabled="saving" @click="save">{{ saving ? 'Enregistrement...' : 'Enregistrer' }}</button>
+                <button type="button" :disabled="saving" @click="cancel">Annuler</button>
             </span>
+            <span v-if="error" class="eden-edit-error">{{ error }}</span>
         </template>
     </span>
 </template>

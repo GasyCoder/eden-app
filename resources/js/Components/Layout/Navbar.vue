@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import EditableText from '@/Components/Editable/EditableText.vue';
 
 const isOpen = ref(false);
 
@@ -7,6 +8,14 @@ defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
+    },
+    nav: {
+        type: Object,
+        default: () => ({}),
+    },
+    canEdit: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -30,21 +39,30 @@ const closeNav = () => {
                     </svg>
                 </div>
                 <div class="logo-text">
-                    <span class="logo-name">{{ blocks?.name ?? 'EDEN-UMG' }}</span>
-                    <span class="logo-caption">{{ blocks?.caption ?? 'Université de Mahajanga' }}</span>
+                    <span class="logo-name">
+                        <EditableText :value="blocks?.name" fallback="EDEN-UMG" content-key="site.name" :can-edit="canEdit" />
+                    </span>
+                    <span class="logo-caption">
+                        <EditableText :value="blocks?.caption" fallback="Université de Mahajanga" content-key="site.caption" :can-edit="canEdit" />
+                    </span>
                 </div>
             </a>
 
             <nav id="mainNav" :class="{ open: isOpen }">
-                <a href="#about" @click="closeNav">À propos</a>
-                <a href="#organisation" @click="closeNav">Organisation</a>
-                <a href="#formation" @click="closeNav">Formation</a>
-                <a href="#recherche" @click="closeNav">Recherche</a>
-                <a href="#projets" @click="closeNav">Projets</a>
-                <a href="#contact" @click="closeNav">Contact</a>
+                <a href="#about" @click="closeNav"><EditableText :value="nav?.about_label" fallback="À propos" content-key="nav.about_label" :can-edit="canEdit" /></a>
+                <a href="#organisation" @click="closeNav"><EditableText :value="nav?.organisation_label" fallback="Organisation" content-key="nav.organisation_label" :can-edit="canEdit" /></a>
+                <a href="#formation" @click="closeNav"><EditableText :value="nav?.formation_label" fallback="Formation" content-key="nav.formation_label" :can-edit="canEdit" /></a>
+                <a href="#recherche" @click="closeNav"><EditableText :value="nav?.recherche_label" fallback="Recherche" content-key="nav.recherche_label" :can-edit="canEdit" /></a>
+                <a href="#projets" @click="closeNav"><EditableText :value="nav?.projets_label" fallback="Projets" content-key="nav.projets_label" :can-edit="canEdit" /></a>
+                <a href="#contact" @click="closeNav"><EditableText :value="nav?.contact_label" fallback="Contact" content-key="nav.contact_label" :can-edit="canEdit" /></a>
             </nav>
 
-            <a href="#contact" class="nav-cta">Nous contacter</a>
+            <a :href="nav?.cta_url ?? '#contact'" class="nav-cta">
+                <EditableText :value="nav?.cta_label" fallback="Nous contacter" content-key="nav.cta_label" :can-edit="canEdit" />
+            </a>
+            <span v-if="canEdit" class="eden-admin-link-edit">
+                <EditableText :value="nav?.cta_url" fallback="#contact" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
+            </span>
             <button class="menu-btn" id="menuBtn" aria-label="Menu" type="button" @click="toggleNav">
                 <span></span><span></span><span></span>
             </button>

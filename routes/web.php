@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ContentBlockController;
 use App\Http\Controllers\Admin\ContentItemController;
+use App\Http\Controllers\Admin\ContentRevisionController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Public\HomeController;
@@ -39,4 +40,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::post('/uploads/images', [ImageUploadController::class, 'store'])
         ->name('uploads.images.store');
+
+    Route::get('/content-revisions', [ContentRevisionController::class, 'index'])
+        ->name('content-revisions.index');
+
+    Route::post('/content-revisions/{contentRevision}/restore', [ContentRevisionController::class, 'restore'])
+        ->name('content-revisions.restore');
 });

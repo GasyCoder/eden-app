@@ -88,6 +88,16 @@ section { padding: 5rem 0; }
   border: 1px solid var(--border);
 }
 .img-ph .ic { font-size: 1.75rem; opacity: 0.38; }
+.img-ph { position: relative; }
+.img-ph.has-image {
+  background: transparent;
+  padding: 0;
+}
+.img-ph.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 /* ── Animations reveal ───────────────────────── */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
@@ -465,4 +475,273 @@ footer { background: var(--g800); padding: 4rem 0 2rem; }
 .eden-project-edit {
   display: grid;
   gap: 0.65rem;
+}
+.eden-edit-image {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 3;
+}
+.eden-edit-image .admin-edit-button {
+  margin-left: 0;
+}
+.eden-project-edit input[type="file"] {
+  font-size: 0.8rem;
+  color: var(--g500);
+}
+.eden-admin-link-edit {
+  display: inline-flex;
+  align-items: center;
+  max-width: 220px;
+  font-size: 0.72rem;
+  color: var(--g500);
+}
+.eden-edit-error {
+  display: block;
+  margin-top: 0.35rem;
+  color: #b91c1c;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+.eden-edit-actions button:disabled,
+.eden-collection-actions button:disabled,
+.eden-collection-toolbar button:disabled,
+.eden-edit-input:disabled,
+.eden-edit-textarea:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+.eden-admin-toolbar {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--sh-md);
+  backdrop-filter: blur(10px);
+}
+.eden-admin-toolbar > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+.eden-admin-toolbar strong {
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 0.82rem;
+}
+.eden-admin-toolbar span {
+  color: var(--g500);
+  font-size: 0.72rem;
+}
+.eden-admin-toggle,
+.eden-admin-logout {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 0.48rem 0.7rem;
+  background: var(--white);
+  color: var(--g700);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.eden-admin-toggle {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--white);
+}
+.eden-admin-logout:hover,
+.eden-admin-toggle:hover {
+  box-shadow: var(--sh);
+}
+.eden-admin-flash {
+  position: fixed;
+  top: 5.25rem;
+  right: 1rem;
+  z-index: 230;
+  max-width: min(360px, calc(100vw - 2rem));
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--g800);
+  box-shadow: var(--sh-md);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.eden-admin-flash-success {
+  border-color: rgba(20, 83, 45, 0.28);
+  color: var(--green);
+}
+.eden-admin-flash-error {
+  border-color: rgba(185, 28, 28, 0.28);
+  color: #b91c1c;
+}
+.eden-history-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(17, 24, 39, 0.32);
+}
+.eden-history-panel {
+  width: min(560px, calc(100vw - 2rem));
+  height: 100%;
+  overflow: auto;
+  border-left: 1px solid var(--border);
+  background: var(--white);
+  box-shadow: var(--sh-md);
+}
+.eden-history-panel header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.eden-history-panel header div {
+  display: flex;
+  flex-direction: column;
+}
+.eden-history-panel header strong {
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 1rem;
+}
+.eden-history-panel header span,
+.eden-history-list li span,
+.eden-history-empty {
+  color: var(--g500);
+  font-size: 0.82rem;
+}
+.eden-history-panel header button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g700);
+  font-size: 1.1rem;
+}
+.eden-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.eden-history-list li {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.eden-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+.eden-history-list li strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 0.9rem;
+}
+.eden-history-list li button {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 0.42rem 0.65rem;
+  background: var(--green);
+  color: var(--white);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.eden-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+.eden-history-list li button.eden-history-secondary {
+  background: var(--white);
+  color: var(--g700);
+}
+.eden-history-list li button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.eden-history-details {
+  margin-top: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--g50);
+  overflow: hidden;
+}
+.eden-history-details dl {
+  margin: 0;
+}
+.eden-history-details dt {
+  padding: 0.7rem 0.8rem 0.25rem;
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.eden-history-details dd {
+  margin: 0;
+  padding: 0 0.8rem 0.7rem;
+}
+.eden-history-details dd + dd {
+  border-bottom: 1px solid var(--border);
+}
+.eden-history-details span {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--g400);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.eden-history-details p {
+  color: var(--g700);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+.eden-history-empty {
+  padding: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .eden-admin-toolbar {
+    right: 1rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .eden-admin-toolbar > div {
+    flex-basis: 100%;
+  }
+  .eden-history-row {
+    grid-template-columns: 1fr;
+  }
+  .eden-history-actions {
+    justify-content: flex-start;
+  }
+  .eden-history-panel {
+    width: 100vw;
+    border-left: none;
+  }
 }

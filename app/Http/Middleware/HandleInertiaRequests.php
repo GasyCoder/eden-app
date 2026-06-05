@@ -46,6 +46,10 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'canEdit' => (bool) $request->user()?->is_admin,
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+            ],
         ];
     }
 }

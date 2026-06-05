@@ -1,6 +1,8 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import AdminFlash from '@/Components/Admin/AdminFlash.vue';
+import AdminToolbar from '@/Components/Admin/AdminToolbar.vue';
 import Footer from '@/Components/Layout/Footer.vue';
 import Navbar from '@/Components/Layout/Navbar.vue';
 import AboutSection from '@/Sections/AboutSection.vue';
@@ -15,7 +17,7 @@ import ResearchThemesSection from '@/Sections/ResearchThemesSection.vue';
 import StatsSection from '@/Sections/StatsSection.vue';
 import TeamsSection from '@/Sections/TeamsSection.vue';
 
-defineProps({
+const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
@@ -31,6 +33,7 @@ defineProps({
 });
 
 const showScrollTop = ref(false);
+const editMode = ref(props.canEdit);
 let revealObserver = null;
 
 const handleScroll = () => {
@@ -40,6 +43,10 @@ const handleScroll = () => {
 const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+
+watch(() => props.canEdit, (canEdit) => {
+    editMode.value = canEdit;
+});
 
 onMounted(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -71,37 +78,44 @@ onBeforeUnmount(() => {
 <template>
     <Head title="École Doctorale Écosystèmes Naturels" />
 
-    <Navbar :blocks="blocks.site" />
-    <HeroSection :blocks="blocks.hero" :can-edit="canEdit" />
-    <AboutSection :blocks="blocks.about" :stats="blocks.stats" />
-    <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" />
-    <DirectorMessageSection :blocks="blocks.direction" />
-    <TeamsSection :blocks="blocks.organisation" :items="collections.ead_teams" />
+    <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
+    <AdminFlash />
+
+    <Navbar :blocks="blocks.site" :nav="blocks.nav" :can-edit="editMode" />
+    <HeroSection :blocks="blocks.hero" :can-edit="editMode" />
+    <AboutSection :blocks="blocks.about" :stats="blocks.stats" :can-edit="editMode" />
+    <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" :can-edit="editMode" />
+    <DirectorMessageSection :blocks="blocks.direction" :can-edit="editMode" />
+    <TeamsSection :blocks="blocks.organisation" :items="collections.ead_teams" :can-edit="editMode" />
     <DoctoralPathSection
         :blocks="blocks.formation"
         :conditions="collections.formation_conditions"
         :steps="collections.formation_steps"
         :units="collections.formation_units"
+        :can-edit="editMode"
     />
     <ResearchThemesSection
         :blocks="blocks.recherche"
         :ead-one-themes="collections.research_themes_ead_1"
         :ead-two-themes="collections.research_themes_ead_2"
+        :can-edit="editMode"
     />
-    <StatsSection :blocks="blocks.stats" />
+    <StatsSection :blocks="blocks.stats" :can-edit="editMode" />
     <PartnersSection
         :blocks="blocks.partenaires"
         :national-partners="collections.partners_national"
         :international-partners="collections.partners_international"
+        :can-edit="editMode"
     />
-    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :can-edit="canEdit" />
-    <ContactSection :blocks="blocks.contact" />
+    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :can-edit="editMode" />
+    <ContactSection :blocks="blocks.contact" :can-edit="editMode" />
     <Footer
         :site="blocks.site"
         :blocks="blocks.footer"
         :navigation-links="collections.footer_navigation"
         :research-links="collections.footer_research"
         :information-links="collections.footer_information"
+        :can-edit="editMode"
     />
 
     <button id="scrollTop" title="Retour en haut" type="button" :class="{ visible: showScrollTop }" @click="scrollToTop">↑</button>

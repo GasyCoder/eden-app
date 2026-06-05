@@ -1,6 +1,7 @@
 <script setup>
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
+import EditableImage from '@/Components/Editable/EditableImage.vue';
 
 defineProps({
     blocks: {
@@ -36,21 +37,35 @@ defineProps({
                     />
                 </p>
                 <div class="hero-actions">
-                    <a :href="blocks?.button_primary_url ?? '#about'" class="btn btn-primary">{{ blocks?.button_primary_label ?? "Découvrir l'EDEN" }}</a>
-                    <a :href="blocks?.button_secondary_url ?? '#formation'" class="btn btn-secondary">{{ blocks?.button_secondary_label ?? 'Candidater' }}</a>
+                    <a :href="blocks?.button_primary_url ?? '#about'" class="btn btn-primary">
+                        <EditableText :value="blocks?.button_primary_label" fallback="Découvrir l'EDEN" content-key="hero.button_primary_label" :can-edit="canEdit" />
+                    </a>
+                    <span v-if="canEdit" class="eden-admin-link-edit">
+                        <EditableText :value="blocks?.button_primary_url" fallback="#about" content-key="hero.button_primary_url" :can-edit="canEdit" type="link" />
+                    </span>
+                    <a :href="blocks?.button_secondary_url ?? '#formation'" class="btn btn-secondary">
+                        <EditableText :value="blocks?.button_secondary_label" fallback="Candidater" content-key="hero.button_secondary_label" :can-edit="canEdit" />
+                    </a>
+                    <span v-if="canEdit" class="eden-admin-link-edit">
+                        <EditableText :value="blocks?.button_secondary_url" fallback="#formation" content-key="hero.button_secondary_url" :can-edit="canEdit" type="link" />
+                    </span>
                 </div>
             </div>
             <div class="hero-visual">
-                <div class="hero-img img-ph">
-                    <div class="ic">
-                        <EditableText :value="blocks?.image_icon" fallback="🌿" content-key="hero.image_icon" :can-edit="canEdit" />
-                    </div>
-                    <span>
-                        <EditableText :value="blocks?.image_label" fallback="Photo de terrain ou de recherche" content-key="hero.image_label" :can-edit="canEdit" />
-                    </span>
-                    <span style="font-size:0.72rem;opacity:.6;">
-                        <EditableText :value="blocks?.image_caption" fallback="Région Boeny — Madagascar" content-key="hero.image_caption" :can-edit="canEdit" />
-                    </span>
+                <div class="hero-img img-ph" :class="{ 'has-image': blocks?.image }">
+                    <img v-if="blocks?.image" :src="blocks.image" alt="Terrain de recherche">
+                    <template v-else>
+                        <div class="ic">
+                            <EditableText :value="blocks?.image_icon" fallback="🌿" content-key="hero.image_icon" :can-edit="canEdit" />
+                        </div>
+                        <span>
+                            <EditableText :value="blocks?.image_label" fallback="Photo de terrain ou de recherche" content-key="hero.image_label" :can-edit="canEdit" />
+                        </span>
+                        <span style="font-size:0.72rem;opacity:.6;">
+                            <EditableText :value="blocks?.image_caption" fallback="Région Boeny — Madagascar" content-key="hero.image_caption" :can-edit="canEdit" />
+                        </span>
+                    </template>
+                    <EditableImage content-key="hero.image" :can-edit="canEdit" />
                 </div>
                 <div class="hero-img-meta">
                     <span>
