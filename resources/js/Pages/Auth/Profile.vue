@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import Toast from '@/Components/Toast.vue';
 
 const props = defineProps({
     seo: {
@@ -64,7 +65,7 @@ const submitSettings = () => settingsForm.post('/me/settings', {
     <Head title="Mon profil" />
 
     <main class="min-h-screen" style="background: var(--beige); padding: 4.5rem 1.25rem;">
-        <div style="max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+        <div style="max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
                 <div>
                     <span class="eyebrow">Mon compte</span>
@@ -73,9 +74,7 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                 <Link href="/" class="btn btn-secondary" style="padding:.55rem 1.1rem;">← Retour au site</Link>
             </div>
 
-            <div v-if="flash.success" class="eden-admin-flash eden-admin-flash-success" style="position:static;max-width:none;">
-                {{ flash.success }}
-            </div>
+            <Toast />
 
             <!-- Rôle (lecture seule) -->
             <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">

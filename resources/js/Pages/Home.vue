@@ -1,7 +1,7 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import AdminFlash from '@/Components/Admin/AdminFlash.vue';
+import Toast from '@/Components/Toast.vue';
 import AdminToolbar from '@/Components/Admin/AdminToolbar.vue';
 import Footer from '@/Components/Layout/Footer.vue';
 import Navbar from '@/Components/Layout/Navbar.vue';
@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
     <Head title="École Doctorale Écosystèmes Naturels" />
 
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
-    <AdminFlash />
+    <Toast />
 
     <Navbar :blocks="blocks.site" :nav="blocks.nav" :can-edit="editMode" />
     <HeroSection :blocks="blocks.hero" :can-edit="editMode" />
