@@ -1,6 +1,6 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
 
 const props = defineProps({
@@ -26,25 +26,36 @@ const props = defineProps({
     },
 });
 
+// Renvoie le fallback si la valeur est absente OU vide (corrige l'affichage quand la BD ne contient pas la clé)
+const resolve = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return props.fallback;
+    }
+
+    return value;
+};
+
+const display = computed(() => resolve(props.value));
+
 const editing = ref(false);
-const draft = ref(String(props.value ?? props.fallback ?? ''));
+const draft = ref(String(resolve(props.value)));
 const saving = ref(false);
 const error = ref('');
 
 watch(() => props.value, (value) => {
     if (!editing.value) {
-        draft.value = String(value ?? props.fallback ?? '');
+        draft.value = String(resolve(value));
     }
 });
 
 const start = () => {
-    draft.value = String(props.value ?? props.fallback ?? '');
+    draft.value = String(resolve(props.value));
     error.value = '';
     editing.value = true;
 };
 
 const cancel = () => {
-    draft.value = String(props.value ?? props.fallback ?? '');
+    draft.value = String(resolve(props.value));
     error.value = '';
     editing.value = false;
 };
@@ -74,7 +85,7 @@ const save = () => {
 <template>
     <span class="eden-edit-wrap">
         <template v-if="!editing">
-            <span>{{ value ?? fallback }}</span>
+            <span>{{ display }}</span>
             <AdminEditButton v-if="canEdit" @click="start" />
         </template>
         <template v-else>
