@@ -14,6 +14,8 @@
         "vite": "^8.0.0"
     },
     "dependencies": {
+        "@fontsource/libre-baskerville": "^5.2.10",
+        "@fontsource/source-sans-3": "^5.2.9",
         "@inertiajs/vue3": "^3.3.0",
         "@vitejs/plugin-vue": "^6.0.7",
         "vue": "^3.5.35"

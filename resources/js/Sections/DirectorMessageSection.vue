@@ -38,7 +38,9 @@ defineProps({
             <div class="dir-photo img-ph reveal" :class="{ 'has-image': blocks?.photo }">
                 <img v-if="blocks?.photo" :src="blocks.photo" alt="Portrait du Directeur">
                 <template v-else>
-                    <div class="ic"><EditableText :value="blocks?.photo_icon" fallback="👤" content-key="direction.photo_icon" :can-edit="canEdit" /></div>
+                    <div class="ic" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
+                    </div>
                     <span><EditableText :value="blocks?.photo_label" fallback="Portrait du Directeur" content-key="direction.photo_label" :can-edit="canEdit" /></span>
                     <span style="font-size:0.7rem;opacity:.55;"><EditableText :value="blocks?.photo_caption" fallback="Photo officielle" content-key="direction.photo_caption" :can-edit="canEdit" /></span>
                 </template>

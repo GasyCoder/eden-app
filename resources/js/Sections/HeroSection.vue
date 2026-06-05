@@ -23,7 +23,7 @@ defineProps({
                     <EditableText :value="blocks?.eyebrow" fallback="École Doctorale — Université de Mahajanga" content-key="hero.eyebrow" :can-edit="canEdit" />
                 </p>
                 <h1>
-                    <EditableText :value="blocks?.title" fallback="Former les Chercheurs de Demain au Cœur des" content-key="hero.title" :can-edit="canEdit" />
+                    <EditableText :value="blocks?.title" fallback="Former les Chercheurs de Demain au Cœur des" content-key="hero.title" :can-edit="canEdit" />{{ ' ' }}
                     <span class="hero-highlight">
                         <EditableText :value="blocks?.title_highlight" fallback="Écosystèmes Naturels" content-key="hero.title_highlight" :can-edit="canEdit" />
                     </span>
@@ -55,8 +55,8 @@ defineProps({
                 <div class="hero-img img-ph" :class="{ 'has-image': blocks?.image }">
                     <img v-if="blocks?.image" :src="blocks.image" alt="Terrain de recherche">
                     <template v-else>
-                        <div class="ic">
-                            <EditableText :value="blocks?.image_icon" fallback="🌿" content-key="hero.image_icon" :can-edit="canEdit" />
+                        <div class="ic" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m4 16 4.5-4.5a2 2 0 0 1 2.8 0L16 16"/><path d="m14 14 1.5-1.5a2 2 0 0 1 2.8 0L21 15"/><circle cx="8.5" cy="9" r="1.4"/></svg>
                         </div>
                         <span>
                             <EditableText :value="blocks?.image_label" fallback="Photo de terrain ou de recherche" content-key="hero.image_label" :can-edit="canEdit" />

@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
+import EditableImage from '@/Components/Editable/EditableImage.vue';
 
 const isOpen = ref(false);
 
@@ -33,10 +34,14 @@ const closeNav = () => {
         <div class="container">
             <a href="#" class="logo" @click="closeNav">
                 <div class="logo-mark">
-                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-                        <path d="M11 2C7 4.5 3 10 6 17C8 21 11.5 22 15 19.5C20 16 20 6 11 2Z" fill="rgba(255,255,255,0.9)" />
-                        <path d="M11 2C12.5 7.5 13 14 10 20" stroke="#3f6212" stroke-width="1.2" fill="none" stroke-linecap="round" />
+                    <img v-if="blocks?.logo" :src="blocks.logo" alt="Logo EDEN-UMG">
+                    <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                         stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21V9" />
+                        <path d="M12 12.5C12 8.5 9 6.2 4.5 6.2c0 4 3 6.3 7.5 6.3Z" />
+                        <path d="M12 10c0-3.6 3-5.8 7.5-5.8 0 3.6-3 5.8-7.5 5.8Z" />
                     </svg>
+                    <EditableImage content-key="site.logo" :can-edit="canEdit" />
                 </div>
                 <div class="logo-text">
                     <span class="logo-name">
@@ -57,11 +62,11 @@ const closeNav = () => {
                 <a href="#contact" @click="closeNav"><EditableText :value="nav?.contact_label" fallback="Contact" content-key="nav.contact_label" :can-edit="canEdit" /></a>
             </nav>
 
-            <a :href="nav?.cta_url ?? '#contact'" class="nav-cta">
-                <EditableText :value="nav?.cta_label" fallback="Nous contacter" content-key="nav.cta_label" :can-edit="canEdit" />
+            <a :href="nav?.cta_url ?? '#'" class="nav-cta">
+                <EditableText :value="nav?.cta_label" fallback="Banque de thèse" content-key="nav.cta_label" :can-edit="canEdit" />
             </a>
             <span v-if="canEdit" class="eden-admin-link-edit">
-                <EditableText :value="nav?.cta_url" fallback="#contact" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
+                <EditableText :value="nav?.cta_url" fallback="#" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
             </span>
             <button class="menu-btn" id="menuBtn" aria-label="Menu" type="button" @click="toggleNav">
                 <span></span><span></span><span></span>

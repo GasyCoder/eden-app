@@ -19,6 +19,7 @@ class ContentSeeder extends Seeder
         $blocks = [
             ['key' => 'site.name', 'group' => 'site', 'value' => 'EDEN-UMG'],
             ['key' => 'site.caption', 'group' => 'site', 'value' => 'Université de Mahajanga'],
+            ['key' => 'site.logo', 'group' => 'site', 'type' => 'image', 'value' => null],
 
             ['key' => 'nav.about_label', 'group' => 'nav', 'value' => 'À propos'],
             ['key' => 'nav.organisation_label', 'group' => 'nav', 'value' => 'Organisation'],
@@ -26,8 +27,8 @@ class ContentSeeder extends Seeder
             ['key' => 'nav.recherche_label', 'group' => 'nav', 'value' => 'Recherche'],
             ['key' => 'nav.projets_label', 'group' => 'nav', 'value' => 'Projets'],
             ['key' => 'nav.contact_label', 'group' => 'nav', 'value' => 'Contact'],
-            ['key' => 'nav.cta_label', 'group' => 'nav', 'value' => 'Nous contacter'],
-            ['key' => 'nav.cta_url', 'group' => 'nav', 'type' => 'link', 'value' => '#contact'],
+            ['key' => 'nav.cta_label', 'group' => 'nav', 'value' => 'Banque de thèse'],
+            ['key' => 'nav.cta_url', 'group' => 'nav', 'type' => 'link', 'value' => '#'],
 
             ['key' => 'hero.eyebrow', 'group' => 'hero', 'value' => 'École Doctorale — Université de Mahajanga'],
             ['key' => 'hero.title', 'group' => 'hero', 'value' => 'Former les Chercheurs de Demain au Cœur des'],
