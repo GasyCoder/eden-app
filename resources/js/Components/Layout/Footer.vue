@@ -134,8 +134,8 @@ const informationEditor = useContentItemEditor(
                             {{ link.title }}
                             <AdminEditButton v-if="canEdit && link.id" @click.prevent="navigationEditor.editItem(link)" />
                             <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, -1)">Monter</button>
-                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, 1)">Descendre</button>
+                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                             </span>
                         </a>
                     </template>
@@ -165,8 +165,8 @@ const informationEditor = useContentItemEditor(
                             {{ link.title }}
                             <AdminEditButton v-if="canEdit && link.id" @click.prevent="researchEditor.editItem(link)" />
                             <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, -1)">Monter</button>
-                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, 1)">Descendre</button>
+                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                             </span>
                         </a>
                     </template>
@@ -196,8 +196,8 @@ const informationEditor = useContentItemEditor(
                             {{ link.title }}
                             <AdminEditButton v-if="canEdit && link.id" @click.prevent="informationEditor.editItem(link)" />
                             <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, -1)">Monter</button>
-                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, 1)">Descendre</button>
+                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                             </span>
                         </a>
                     </template>

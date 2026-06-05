@@ -131,8 +131,8 @@ const unitEditor = useContentItemEditor(
                                 {{ condition.title }}
                                 <AdminEditButton v-if="canEdit && condition.id" @click="conditionEditor.editItem(condition)" />
                                 <span v-if="canEdit && condition.id" class="eden-collection-actions">
-                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, -1)">Monter</button>
-                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, 1)">Descendre</button>
+                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                                 </span>
                             </template>
                         </div>
@@ -178,8 +178,8 @@ const unitEditor = useContentItemEditor(
                                     <p class="step-t">{{ step.title }}</p>
                                     <p class="step-d">{{ step.description }}</p>
                                     <div v-if="canEdit && step.id" class="eden-collection-actions">
-                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, -1)">Monter</button>
-                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, 1)">Descendre</button>
+                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                                     </div>
                                 </template>
                             </div>
@@ -216,8 +216,8 @@ const unitEditor = useContentItemEditor(
                                 {{ unit.title }}
                                 <AdminEditButton v-if="canEdit && unit.id" @click="unitEditor.editItem(unit)" />
                                 <span v-if="canEdit && unit.id" class="eden-collection-actions">
-                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, -1)">Monter</button>
-                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, 1)">Descendre</button>
+                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
+                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
                                 </span>
                             </template>
                         </div>

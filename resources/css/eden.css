@@ -608,6 +608,31 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
   margin: -1rem 0 1.5rem;
   justify-content: flex-end;
 }
+/* Boutons icône de réordonnancement (↑ / ↓) */
+.eden-collection-actions button:has(svg) {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+}
+.eden-collection-actions button:first-child:has(svg) {
+  background: var(--white);
+  border-color: var(--border);
+  color: var(--green);
+}
+.eden-collection-actions button:has(svg):hover,
+.eden-collection-actions button:first-child:has(svg):hover {
+  border-color: var(--green);
+  background: var(--green-lt);
+}
+.eden-collection-actions button:has(svg) svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
 .eden-project-edit {
   display: grid;
   gap: 0.65rem;
