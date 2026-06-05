@@ -43,6 +43,9 @@ const settingsForm = useForm({
     og_image: null,
 });
 
+const isUploadingFavicon = computed(() => settingsForm.processing && !!settingsForm.favicon);
+const isUploadingOgImage = computed(() => settingsForm.processing && !!settingsForm.og_image);
+
 const onFavicon = (event) => {
     settingsForm.favicon = event.target.files?.[0] ?? null;
 };
@@ -102,7 +105,9 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                         <span v-if="profileForm.errors.email" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ profileForm.errors.email }}</span>
                     </label>
                     <div>
-                        <button class="btn btn-primary" type="submit" :disabled="profileForm.processing" style="justify-content:center;">Enregistrer</button>
+                        <button class="btn btn-primary" type="submit" :disabled="profileForm.processing" style="justify-content:center;">
+                            {{ profileForm.processing ? 'Enregistrement...' : 'Enregistrer' }}
+                        </button>
                     </div>
                 </div>
             </form>
@@ -126,7 +131,9 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                         <input v-model="passwordForm.password_confirmation" type="password" autocomplete="new-password" required class="eden-edit-input" style="min-width:0;">
                     </label>
                     <div>
-                        <button class="btn btn-primary" type="submit" :disabled="passwordForm.processing" style="justify-content:center;">Mettre à jour le mot de passe</button>
+                        <button class="btn btn-primary" type="submit" :disabled="passwordForm.processing" style="justify-content:center;">
+                            {{ passwordForm.processing ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+                        </button>
                     </div>
                 </div>
             </form>
@@ -158,21 +165,38 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                     <div>
                         <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Favicon (PNG carré recommandé)</span>
                         <div style="display:flex;align-items:center;gap:1rem;">
-                            <img :src="seo.favicon" alt="Favicon actuel" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
-                            <input type="file" accept="image/png,image/jpeg,image/webp" @change="onFavicon">
+                            <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingFavicon }" style="width:40px;height:40px;">
+                                <img :src="seo.favicon" alt="Favicon actuel" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
+                                <span v-if="isUploadingFavicon" class="eden-upload-skeleton small" role="status" aria-live="polite">
+                                    <span class="eden-upload-content">
+                                        <span class="eden-upload-spinner"></span>
+                                    </span>
+                                </span>
+                            </span>
+                            <input type="file" accept="image/png,image/jpeg,image/webp" :disabled="settingsForm.processing" @change="onFavicon">
                         </div>
                         <span v-if="settingsForm.errors.favicon" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.favicon }}</span>
                     </div>
 
                     <div>
                         <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Image de partage (Open Graph — 1200×630 conseillé)</span>
-                        <img :src="seo.ogImage" alt="Image de partage actuelle" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
-                        <input type="file" accept="image/png,image/jpeg,image/webp" style="margin-top:.6rem;" @change="onOgImage">
+                        <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingOgImage }" style="width:100%;max-width:340px;">
+                            <img :src="seo.ogImage" alt="Image de partage actuelle" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
+                            <span v-if="isUploadingOgImage" class="eden-upload-skeleton" role="status" aria-live="polite">
+                                <span class="eden-upload-content">
+                                    <span class="eden-upload-spinner"></span>
+                                    <span>Téléversement...</span>
+                                </span>
+                            </span>
+                        </span>
+                        <input type="file" accept="image/png,image/jpeg,image/webp" style="margin-top:.6rem;" :disabled="settingsForm.processing" @change="onOgImage">
                         <span v-if="settingsForm.errors.og_image" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.og_image }}</span>
                     </div>
 
                     <div>
-                        <button class="btn btn-primary" type="submit" :disabled="settingsForm.processing" style="justify-content:center;">Enregistrer le référencement</button>
+                        <button class="btn btn-primary" type="submit" :disabled="settingsForm.processing" style="justify-content:center;">
+                            {{ settingsForm.processing ? 'Enregistrement...' : 'Enregistrer le référencement' }}
+                        </button>
                     </div>
                 </div>
             </form>

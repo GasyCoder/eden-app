@@ -48,6 +48,7 @@ const editingId = ref(null);
 const creating = ref(false);
 const form = ref(blankProject());
 const uploadError = ref('');
+const uploadingProjectImage = ref(false);
 
 function blankProject() {
     return {
@@ -66,6 +67,7 @@ function blankProject() {
 
 function editProject(project) {
     uploadError.value = '';
+    uploadingProjectImage.value = false;
     form.value = {
         title: project.title ?? '',
         subtitle: project.subtitle ?? '',
@@ -84,6 +86,7 @@ function editProject(project) {
 
 function startCreate() {
     uploadError.value = '';
+    uploadingProjectImage.value = false;
     form.value = blankProject();
     editingId.value = null;
     creating.value = true;
@@ -91,6 +94,7 @@ function startCreate() {
 
 function cancelEdit() {
     uploadError.value = '';
+    uploadingProjectImage.value = false;
     editingId.value = null;
     creating.value = false;
     form.value = blankProject();
@@ -111,6 +115,16 @@ function payload() {
             badge_class: form.value.badge_class,
         },
     };
+}
+
+function projectDisplayImage(project) {
+    return editingId.value === project.id ? form.value.image : project.image;
+}
+
+function projectDisplayImageLabel(project) {
+    return editingId.value === project.id
+        ? form.value.image_label
+        : project.meta?.image_label ?? 'Terrain — forêt endémique Boeny';
 }
 
 function saveProject(project) {
@@ -164,6 +178,7 @@ async function uploadProjectImage(event) {
     }
 
     uploadError.value = '';
+    uploadingProjectImage.value = true;
 
     try {
         const data = new FormData();
@@ -189,6 +204,7 @@ async function uploadProjectImage(event) {
     } catch {
         uploadError.value = 'Téléversement impossible.';
     } finally {
+        uploadingProjectImage.value = false;
         event.target.value = '';
     }
 }
@@ -219,12 +235,18 @@ async function uploadProjectImage(event) {
             <EditableCollection :can-edit="canEdit">
                 <div class="grid-3">
                 <div v-if="creating" class="proj-card reveal visible">
-                    <div class="proj-img img-ph">
+                    <div class="proj-img img-ph" :class="{ 'has-image': form.image, 'is-uploading': uploadingProjectImage }">
                         <img v-if="form.image" :src="form.image" alt="">
                         <template v-else>
                             <div class="ic">{{ form.icon }}</div>
                             <span>{{ form.image_label }}</span>
                         </template>
+                        <span v-if="uploadingProjectImage" class="eden-upload-skeleton" role="status" aria-live="polite">
+                            <span class="eden-upload-content">
+                                <span class="eden-upload-spinner"></span>
+                                <span>Téléversement...</span>
+                            </span>
+                        </span>
                     </div>
                     <div class="proj-body">
                         <div class="eden-project-edit">
@@ -235,7 +257,7 @@ async function uploadProjectImage(event) {
                             <input v-model="form.icon" class="eden-collection-input" type="text" placeholder="Icône">
                             <input v-model="form.image_label" class="eden-collection-input" type="text" placeholder="Libellé image">
                             <input v-model="form.image" class="eden-collection-input" type="text" placeholder="URL image">
-                            <input type="file" accept="image/*" @change="uploadProjectImage">
+                            <input type="file" accept="image/*" :disabled="uploadingProjectImage" @change="uploadProjectImage">
                             <span v-if="uploadError" class="eden-edit-error">{{ uploadError }}</span>
                             <input v-model="form.funding" class="eden-collection-input" type="text" placeholder="Financement">
                             <input v-model="form.period" class="eden-collection-input" type="text" placeholder="Période">
@@ -244,7 +266,7 @@ async function uploadProjectImage(event) {
                                 <option value="badge-new">Démarrage</option>
                             </select>
                             <div class="eden-collection-actions">
-                                <button type="button" @click="createProject">Enregistrer</button>
+                                <button type="button" :disabled="uploadingProjectImage" @click="createProject">Enregistrer</button>
                                 <button type="button" @click="cancelEdit">Annuler</button>
                             </div>
                         </div>
@@ -252,12 +274,18 @@ async function uploadProjectImage(event) {
                 </div>
 
                 <div v-for="(project, index) in projects" :key="project.id ?? project.title" class="proj-card reveal">
-                    <div class="proj-img img-ph" :class="{ 'has-image': project.image }">
-                        <img v-if="project.image" :src="project.image" :alt="project.title ?? 'Projet'">
+                    <div class="proj-img img-ph" :class="{ 'has-image': projectDisplayImage(project), 'is-uploading': editingId === project.id && uploadingProjectImage }">
+                        <img v-if="projectDisplayImage(project)" :src="projectDisplayImage(project)" :alt="project.title ?? 'Projet'">
                         <template v-else>
                             <div class="ic">{{ project.meta?.icon ?? '🌿' }}</div>
-                            <span>{{ project.meta?.image_label ?? 'Terrain — forêt endémique Boeny' }}</span>
+                            <span>{{ projectDisplayImageLabel(project) }}</span>
                         </template>
+                        <span v-if="editingId === project.id && uploadingProjectImage" class="eden-upload-skeleton" role="status" aria-live="polite">
+                            <span class="eden-upload-content">
+                                <span class="eden-upload-spinner"></span>
+                                <span>Téléversement...</span>
+                            </span>
+                        </span>
                     </div>
                     <div class="proj-body">
                         <template v-if="editingId === project.id">
@@ -269,7 +297,7 @@ async function uploadProjectImage(event) {
                                 <input v-model="form.icon" class="eden-collection-input" type="text">
                                 <input v-model="form.image_label" class="eden-collection-input" type="text">
                                 <input v-model="form.image" class="eden-collection-input" type="text" placeholder="URL image">
-                                <input type="file" accept="image/*" @change="uploadProjectImage">
+                                <input type="file" accept="image/*" :disabled="uploadingProjectImage" @change="uploadProjectImage">
                                 <span v-if="uploadError" class="eden-edit-error">{{ uploadError }}</span>
                                 <input v-model="form.funding" class="eden-collection-input" type="text">
                                 <input v-model="form.period" class="eden-collection-input" type="text">
@@ -278,7 +306,7 @@ async function uploadProjectImage(event) {
                                     <option value="badge-new">Démarrage</option>
                                 </select>
                                 <div class="eden-collection-actions">
-                                    <button type="button" @click="saveProject(project)">Enregistrer</button>
+                                    <button type="button" :disabled="uploadingProjectImage" @click="saveProject(project)">Enregistrer</button>
                                     <button type="button" @click="cancelEdit">Annuler</button>
                                     <button type="button" @click="deleteProject(project)">Supprimer</button>
                                 </div>

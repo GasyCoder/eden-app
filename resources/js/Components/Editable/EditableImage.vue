@@ -19,11 +19,16 @@ const uploading = ref(false);
 const error = ref('');
 
 const choose = () => {
+    if (uploading.value) {
+        return;
+    }
+
     input.value?.click();
 };
 
 const upload = async (event) => {
     const file = event.target.files?.[0];
+    let waitsForContentSave = false;
 
     if (!file) {
         return;
@@ -52,6 +57,7 @@ const upload = async (event) => {
             return;
         }
 
+        waitsForContentSave = true;
         adminPatch(`/admin/content-blocks/${props.contentKey}`, {
             value: data.path,
             type: 'image',
@@ -60,20 +66,32 @@ const upload = async (event) => {
             onError: () => {
                 error.value = 'Image non enregistrée.';
             },
+            onFinish: () => {
+                uploading.value = false;
+                event.target.value = '';
+            },
         });
     } catch {
         error.value = 'Téléversement impossible.';
     } finally {
-        uploading.value = false;
-        event.target.value = '';
+        if (!waitsForContentSave) {
+            uploading.value = false;
+            event.target.value = '';
+        }
     }
 };
 </script>
 
 <template>
     <span v-if="canEdit" class="eden-edit-image">
-        <AdminEditButton :title="uploading ? 'Téléversement...' : 'Remplacer l’image'" @click="choose" />
+        <AdminEditButton :title="uploading ? 'Téléversement...' : 'Remplacer l’image'" :disabled="uploading" @click="choose" />
         <input ref="input" type="file" accept="image/*" hidden @change="upload">
         <span v-if="error" class="eden-edit-error">{{ error }}</span>
+    </span>
+    <span v-if="canEdit && uploading" class="eden-upload-skeleton" role="status" aria-live="polite">
+        <span class="eden-upload-content">
+            <span class="eden-upload-spinner"></span>
+            <span>Téléversement...</span>
+        </span>
     </span>
 </template>

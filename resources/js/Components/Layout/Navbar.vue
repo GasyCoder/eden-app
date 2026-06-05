@@ -2,6 +2,7 @@
 import { onBeforeUnmount, ref, watch } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableImage from '@/Components/Editable/EditableImage.vue';
+import ThemeToggle from '@/Components/Layout/ThemeToggle.vue';
 
 const isOpen = ref(false);
 
@@ -66,19 +67,6 @@ onBeforeUnmount(() => {
                 </div>
             </a>
 
-            <button
-                class="menu-btn"
-                :class="{ open: isOpen }"
-                id="menuBtn"
-                aria-label="Menu"
-                aria-controls="mainNav"
-                :aria-expanded="isOpen ? 'true' : 'false'"
-                type="button"
-                @click="toggleNav"
-            >
-                <span></span><span></span><span></span>
-            </button>
-
             <nav id="mainNav" :class="{ open: isOpen }">
                 <a href="#about" @click="closeNav"><EditableText :value="nav?.about_label" fallback="À propos" content-key="nav.about_label" :can-edit="canEdit" /></a>
                 <a href="#organisation" @click="closeNav"><EditableText :value="nav?.organisation_label" fallback="Organisation" content-key="nav.organisation_label" :can-edit="canEdit" /></a>
@@ -94,6 +82,21 @@ onBeforeUnmount(() => {
                     <EditableText :value="nav?.cta_url" fallback="#" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
                 </span>
             </nav>
+
+            <ThemeToggle />
+
+            <button
+                class="menu-btn"
+                :class="{ open: isOpen }"
+                id="menuBtn"
+                aria-label="Menu"
+                aria-controls="mainNav"
+                :aria-expanded="isOpen ? 'true' : 'false'"
+                type="button"
+                @click="toggleNav"
+            >
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </header>
 </template>

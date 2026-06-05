@@ -10,9 +10,10 @@ import '@fontsource/libre-baskerville/400.css';
 import '@fontsource/libre-baskerville/400-italic.css';
 import '@fontsource/libre-baskerville/700.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, h } from 'vue';
+import { createApp, h, onBeforeUnmount, ref } from 'vue';
+import PageLoadingSkeleton from '@/Components/Layout/PageLoadingSkeleton.vue';
 
 createInertiaApp({
     title: (title) => `${title} - EDEN-UMG`,
@@ -22,7 +23,72 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const Root = {
+            setup() {
+                const loading = ref(false);
+                const progress = ref(null);
+                let delayTimer = null;
+                let finishTimer = null;
+
+                const shouldShowSkeleton = (event) => {
+                    const visitUrl = event.detail?.visit?.url?.toString?.() ?? '';
+                    const path = new URL(visitUrl, window.location.origin).pathname;
+
+                    return !path.startsWith('/admin/content-')
+                        && !path.startsWith('/admin/uploads')
+                        && path !== '/me/settings';
+                };
+
+                const clearTimers = () => {
+                    clearTimeout(delayTimer);
+                    clearTimeout(finishTimer);
+                };
+
+                const removeStart = router.on('start', (event) => {
+                    clearTimers();
+                    progress.value = null;
+
+                    if (!shouldShowSkeleton(event)) {
+                        loading.value = false;
+                        return;
+                    }
+
+                    delayTimer = setTimeout(() => {
+                        loading.value = true;
+                    }, 120);
+                });
+
+                const removeProgress = router.on('progress', (event) => {
+                    progress.value = event.detail?.progress?.percentage ?? null;
+                });
+
+                const removeFinish = router.on('finish', () => {
+                    clearTimeout(delayTimer);
+                    progress.value = 100;
+                    finishTimer = setTimeout(() => {
+                        loading.value = false;
+                        progress.value = null;
+                    }, 180);
+                });
+
+                onBeforeUnmount(() => {
+                    clearTimers();
+                    removeStart();
+                    removeProgress();
+                    removeFinish();
+                });
+
+                return () => [
+                    h(App, props),
+                    h(PageLoadingSkeleton, {
+                        show: loading.value,
+                        progress: progress.value,
+                    }),
+                ];
+            },
+        };
+
+        createApp(Root)
             .use(plugin)
             .mount(el);
     },

@@ -41,7 +41,7 @@ const submit = () => {
                 </label>
 
                 <button class="btn btn-primary" type="submit" :disabled="form.processing" style="justify-content:center;">
-                    Se connecter
+                    {{ form.processing ? 'Connexion...' : 'Se connecter' }}
                 </button>
             </div>
         </form>
