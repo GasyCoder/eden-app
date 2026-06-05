@@ -124,6 +124,7 @@ class ContentSeeder extends Seeder
             ['key' => 'contact.website_icon', 'group' => 'contact', 'value' => '🌐'],
             ['key' => 'contact.website_label', 'group' => 'contact', 'value' => "Site Web de l'Université"],
             ['key' => 'contact.website', 'group' => 'contact', 'value' => 'www.univ-mahajanga.mg'],
+            ['key' => 'contact.map_embed_url', 'group' => 'contact', 'type' => 'link', 'value' => null],
             ['key' => 'contact.map_image', 'group' => 'contact', 'type' => 'image', 'value' => null],
             ['key' => 'contact.map_icon', 'group' => 'contact', 'value' => '🗺️'],
             ['key' => 'contact.map_label', 'group' => 'contact', 'value' => 'Carte de localisation'],

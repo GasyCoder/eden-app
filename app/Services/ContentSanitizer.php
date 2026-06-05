@@ -12,6 +12,10 @@ class ContentSanitizer
 
         $value = trim($value);
 
+        if (in_array($type, ['image', 'link'], true) && preg_match('/\bsrc\s*=\s*(["\'])(.*?)\1/i', $value, $matches)) {
+            $value = $matches[2];
+        }
+
         if ($type === 'html') {
             $value = strip_tags($value, '<p><br><strong><em><b><i><ul><ol><li><a>');
             $value = preg_replace('/\s+on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $value) ?? $value;

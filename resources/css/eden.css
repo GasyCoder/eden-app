@@ -170,7 +170,8 @@ section { padding: 6rem 0; position: relative; }
 .img-ph .ic { color: var(--g400); opacity: 0.85; }
 .img-ph .ic svg { width: 30px; height: 30px; }
 .img-ph.has-image { background: transparent; padding: 0; }
-.img-ph.has-image picture { display: block; width: 100%; height: 100%; }
+.img-ph.has-image picture,
+.img-ph.has-image iframe { display: block; width: 100%; height: 100%; }
 .img-ph.has-image img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ── Animations reveal ───────────────────────── */
@@ -649,6 +650,24 @@ html[data-theme="dark"] #header .logo-mark.has-logo img {
 .c-item a { color: var(--green); border-bottom: 1px solid transparent; transition: border-color 0.18s; }
 .c-item a:hover { border-bottom-color: var(--green); }
 .map-ph { height: 440px; border-radius: var(--rl); overflow: hidden; box-shadow: var(--sh-md); }
+.map-ph iframe { border: 0; background: var(--beige-d); }
+.eden-map-url-edit {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 6;
+}
+.eden-map-url-edit .eden-edit-wrap > span:first-child {
+  display: none;
+}
+.eden-map-url-edit .admin-edit-button {
+  margin-left: 0;
+}
+.eden-map-url-edit .eden-edit-pop {
+  left: auto;
+  right: 0;
+  min-width: min(440px, calc(100vw - 2rem));
+}
 
 /* ════════════════════════════════════════════
    FOOTER

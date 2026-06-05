@@ -1,9 +1,9 @@
 <script setup>
-import EditableImage from '@/Components/Editable/EditableImage.vue';
+import { computed } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
 
-defineProps({
+const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
@@ -17,6 +17,41 @@ defineProps({
         default: () => ({}),
     },
 });
+
+const trustedMapUrl = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    try {
+        const url = new URL(value);
+        const host = url.hostname.toLowerCase();
+        const path = url.pathname.toLowerCase();
+
+        if (url.protocol !== 'https:') {
+            return '';
+        }
+
+        if ((host === 'www.google.com' || host === 'maps.google.com') && path.startsWith('/maps')) {
+            if (!url.searchParams.has('output') && !path.startsWith('/maps/embed')) {
+                url.searchParams.set('output', 'embed');
+            }
+
+            return url.toString();
+        }
+
+        if (host === 'www.openstreetmap.org' && path === '/export/embed.html') {
+            return url.toString();
+        }
+    } catch {
+        return '';
+    }
+
+    return '';
+};
+
+const mapEmbedUrl = computed(() => trustedMapUrl(props.blocks?.map_embed_url));
+const hasMapMedia = computed(() => Boolean(mapEmbedUrl.value || props.blocks?.map_image));
 </script>
 
 <template>
@@ -79,8 +114,16 @@ defineProps({
                     </div>
                 </div>
             </div>
-            <div class="map-ph img-ph reveal" :class="{ 'has-image': blocks?.map_image }">
-                <picture v-if="blocks?.map_image">
+            <div class="map-ph img-ph reveal" :class="{ 'has-image': hasMapMedia }">
+                <iframe
+                    v-if="mapEmbedUrl"
+                    :src="mapEmbedUrl"
+                    title="Carte de localisation de l’Université de Mahajanga"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    allowfullscreen
+                ></iframe>
+                <picture v-else-if="blocks?.map_image">
                     <source
                         v-for="source in imageVariants?.sources ?? []"
                         :key="source.type"
@@ -104,7 +147,15 @@ defineProps({
                     <span><EditableText :value="blocks?.map_label" fallback="Carte de localisation" content-key="contact.map_label" :can-edit="canEdit" /></span>
                     <span style="font-size:0.72rem;margin-top:0.25rem;opacity:.6;"><EditableText :value="blocks?.map_caption" fallback="Université de Mahajanga — Madagascar" content-key="contact.map_caption" :can-edit="canEdit" /></span>
                 </template>
-                <EditableImage content-key="contact.map_image" :can-edit="canEdit" />
+                <span v-if="canEdit" class="eden-map-url-edit">
+                    <EditableText
+                        :value="blocks?.map_embed_url"
+                        fallback="URL carte"
+                        content-key="contact.map_embed_url"
+                        :can-edit="canEdit"
+                        type="link"
+                    />
+                </span>
             </div>
         </div>
     </section>
