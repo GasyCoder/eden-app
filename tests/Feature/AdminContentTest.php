@@ -41,6 +41,53 @@ test('admin can update content blocks', function () {
         ->exists())->toBeTrue();
 });
 
+test('admin can update content blocks through post method spoofing', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+
+    ContentBlock::create([
+        'key' => 'site.logo',
+        'type' => 'image',
+        'value' => null,
+    ]);
+
+    $this->actingAs($admin)
+        ->post('/admin/content-blocks/site.logo', [
+            '_method' => 'PATCH',
+            'value' => '/storage/content/logo.png',
+            'type' => 'image',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'site.logo')->value('value'))->toBe('/storage/content/logo.png');
+});
+
+test('admin can reorder repeatable content items through post method spoofing', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $first = ContentItem::create([
+        'collection_key' => 'projects',
+        'title' => 'Premier',
+        'position' => 0,
+    ]);
+    $second = ContentItem::create([
+        'collection_key' => 'projects',
+        'title' => 'Second',
+        'position' => 1,
+    ]);
+
+    $this->actingAs($admin)
+        ->post('/admin/content-items/projects/reorder', [
+            '_method' => 'PATCH',
+            'items' => [
+                ['id' => $second->id, 'position' => 0],
+                ['id' => $first->id, 'position' => 1],
+            ],
+        ])
+        ->assertRedirect();
+
+    expect($first->refresh()->position)->toBe(1)
+        ->and($second->refresh()->position)->toBe(0);
+});
+
 test('non admin cannot update content blocks', function () {
     $user = User::factory()->create(['is_admin' => false]);
 

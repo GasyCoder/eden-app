@@ -1,7 +1,7 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import { adminPatch } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     contentKey: {
@@ -52,7 +52,7 @@ const upload = async (event) => {
             return;
         }
 
-        router.patch(`/admin/content-blocks/${props.contentKey}`, {
+        adminPatch(`/admin/content-blocks/${props.contentKey}`, {
             value: data.path,
             type: 'image',
         }, {

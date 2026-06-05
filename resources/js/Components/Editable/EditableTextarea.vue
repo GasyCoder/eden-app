@@ -1,7 +1,7 @@
 <script setup>
-import { router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import { adminPatch } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     value: {
@@ -64,7 +64,7 @@ const save = () => {
     saving.value = true;
     error.value = '';
 
-    router.patch(`/admin/content-blocks/${props.contentKey}`, {
+    adminPatch(`/admin/content-blocks/${props.contentKey}`, {
         value: draft.value,
         type: props.type,
     }, {

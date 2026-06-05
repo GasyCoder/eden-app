@@ -1,5 +1,5 @@
 /* Service worker EDEN-UMG — PWA */
-const CACHE = 'eden-cache-v1';
+const CACHE = 'eden-cache-v2';
 const APP_SHELL = ['/'];
 
 self.addEventListener('install', (event) => {

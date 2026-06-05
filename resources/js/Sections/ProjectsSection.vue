@@ -5,6 +5,7 @@ import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
 import EditableCollection from '@/Components/Editable/EditableCollection.vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
+import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     blocks: {
@@ -113,7 +114,7 @@ function payload() {
 }
 
 function saveProject(project) {
-    router.patch(`/admin/content-items/${project.id}`, payload(), {
+    adminPatch(`/admin/content-items/${project.id}`, payload(), {
         preserveScroll: true,
         onSuccess: cancelEdit,
     });
@@ -131,7 +132,7 @@ function deleteProject(project) {
         return;
     }
 
-    router.delete(`/admin/content-items/${project.id}`, {
+    adminDelete(`/admin/content-items/${project.id}`, {}, {
         preserveScroll: true,
     });
 }
@@ -148,7 +149,7 @@ function reorderProject(index, direction) {
     const [project] = reordered.splice(index, 1);
     reordered.splice(targetIndex, 0, project);
 
-    router.patch('/admin/content-items/projects/reorder', {
+    adminPatch('/admin/content-items/projects/reorder', {
         items: reordered.map((item, position) => ({ id: item.id, position })),
     }, {
         preserveScroll: true,

@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
 
 export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload) {
     const editingId = ref(null);
@@ -32,7 +33,7 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
     }
 
     function saveItem(item) {
-        router.patch(`/admin/content-items/${item.id}`, toPayload(form.value), {
+        adminPatch(`/admin/content-items/${item.id}`, toPayload(form.value), {
             preserveScroll: true,
             onSuccess: cancelEdit,
         });
@@ -43,7 +44,7 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
             return;
         }
 
-        router.delete(`/admin/content-items/${item.id}`, {
+        adminDelete(`/admin/content-items/${item.id}`, {}, {
             preserveScroll: true,
         });
     }
@@ -60,7 +61,7 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
         const [item] = reordered.splice(index, 1);
         reordered.splice(targetIndex, 0, item);
 
-        router.patch(`/admin/content-items/${collectionKey}/reorder`, {
+        adminPatch(`/admin/content-items/${collectionKey}/reorder`, {
             items: reordered.map((item, position) => ({ id: item.id, position })),
         }, {
             preserveScroll: true,
