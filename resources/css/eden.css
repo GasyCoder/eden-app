@@ -465,6 +465,27 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
 .ft-bottom { border-top: 1px solid rgba(255,255,255,0.12); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .ft-bottom p { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
 
+/* Réseaux sociaux */
+.ft-socials { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 1.4rem; }
+.ft-social-item { display: inline-flex; align-items: center; gap: 0.3rem; }
+.ft-social {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+  color: rgba(255,255,255,0.85); transition: background 0.18s, color 0.18s, transform 0.18s, border-color 0.18s;
+}
+.ft-social svg { width: 18px; height: 18px; display: block; }
+.ft-social:hover { background: var(--accent); border-color: var(--accent); color: #fff; transform: translateY(-2px); }
+.ft-social-add {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: transparent; border: 1px dashed rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.8); font-size: 1.3rem; line-height: 1;
+  transition: border-color 0.18s, color 0.18s;
+}
+.ft-social-add:hover { border-color: var(--accent); color: var(--accent); }
+.ft-socials .eden-collection-actions { margin-top: 0; gap: 0.3rem; }
+
 /* ── Scroll Top ──────────────────────────────── */
 #scrollTop {
   position: fixed; bottom: 2rem; right: 2rem; z-index: 99;

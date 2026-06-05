@@ -278,6 +278,9 @@ class ContentSeeder extends Seeder
                 ['title' => 'Bibliothèque numérique', 'link_url' => '#'],
                 ['title' => 'Espace doctorant', 'link_url' => '#'],
             ],
+            'footer_socials' => [
+                ['title' => 'Facebook', 'link_url' => '#'],
+            ],
         ];
 
         foreach ($collections as $collectionKey => $items) {

@@ -115,6 +115,7 @@ onBeforeUnmount(() => {
         :navigation-links="collections.footer_navigation"
         :research-links="collections.footer_research"
         :information-links="collections.footer_information"
+        :social-links="collections.footer_socials"
         :can-edit="editMode"
     />
 
