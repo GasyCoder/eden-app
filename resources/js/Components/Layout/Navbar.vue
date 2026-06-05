@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableImage from '@/Components/Editable/EditableImage.vue';
 
@@ -27,6 +27,19 @@ const toggleNav = () => {
 const closeNav = () => {
     isOpen.value = false;
 };
+
+// Verrouille le défilement de la page quand le menu mobile est ouvert
+watch(isOpen, (open) => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = open ? 'hidden' : '';
+    }
+});
+
+onBeforeUnmount(() => {
+    if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+    }
+});
 </script>
 
 <template>
@@ -53,6 +66,19 @@ const closeNav = () => {
                 </div>
             </a>
 
+            <button
+                class="menu-btn"
+                :class="{ open: isOpen }"
+                id="menuBtn"
+                aria-label="Menu"
+                aria-controls="mainNav"
+                :aria-expanded="isOpen ? 'true' : 'false'"
+                type="button"
+                @click="toggleNav"
+            >
+                <span></span><span></span><span></span>
+            </button>
+
             <nav id="mainNav" :class="{ open: isOpen }">
                 <a href="#about" @click="closeNav"><EditableText :value="nav?.about_label" fallback="À propos" content-key="nav.about_label" :can-edit="canEdit" /></a>
                 <a href="#organisation" @click="closeNav"><EditableText :value="nav?.organisation_label" fallback="Organisation" content-key="nav.organisation_label" :can-edit="canEdit" /></a>
@@ -60,17 +86,14 @@ const closeNav = () => {
                 <a href="#recherche" @click="closeNav"><EditableText :value="nav?.recherche_label" fallback="Recherche" content-key="nav.recherche_label" :can-edit="canEdit" /></a>
                 <a href="#projets" @click="closeNav"><EditableText :value="nav?.projets_label" fallback="Projets" content-key="nav.projets_label" :can-edit="canEdit" /></a>
                 <a href="#contact" @click="closeNav"><EditableText :value="nav?.contact_label" fallback="Contact" content-key="nav.contact_label" :can-edit="canEdit" /></a>
-            </nav>
 
-            <a :href="nav?.cta_url ?? '#'" class="nav-cta">
-                <EditableText :value="nav?.cta_label" fallback="Banque de thèse" content-key="nav.cta_label" :can-edit="canEdit" />
-            </a>
-            <span v-if="canEdit" class="eden-admin-link-edit">
-                <EditableText :value="nav?.cta_url" fallback="#" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
-            </span>
-            <button class="menu-btn" id="menuBtn" aria-label="Menu" type="button" @click="toggleNav">
-                <span></span><span></span><span></span>
-            </button>
+                <a :href="nav?.cta_url ?? '#'" class="nav-cta" @click="closeNav">
+                    <EditableText :value="nav?.cta_label" fallback="Banque de thèse" content-key="nav.cta_label" :can-edit="canEdit" />
+                </a>
+                <span v-if="canEdit" class="eden-admin-link-edit">
+                    <EditableText :value="nav?.cta_url" fallback="#" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
+                </span>
+            </nav>
         </div>
     </header>
 </template>

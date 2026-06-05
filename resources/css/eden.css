@@ -164,22 +164,25 @@ section { padding: 6rem 0; position: relative; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
 .logo-name { font-family: var(--fh); font-size: 1.2rem; font-weight: 700; color: var(--green); letter-spacing: -0.01em; }
 .logo-caption { font-size: 0.6rem; font-weight: 600; color: var(--g400); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
-nav { margin-left: auto; display: flex; align-items: stretch; gap: 0; }
-nav a {
+nav { margin-left: auto; display: flex; align-items: center; gap: 0; }
+nav a:not(.nav-cta) {
   padding: 0 0.95rem; height: 72px; display: flex; align-items: center;
   font-size: 0.88rem; font-weight: 500; color: var(--g700);
   border-bottom: 2px solid transparent; transition: color 0.18s, border-color 0.18s; white-space: nowrap;
 }
-nav a:hover { color: var(--green); border-bottom-color: var(--accent); }
+nav a:not(.nav-cta):hover { color: var(--green); border-bottom-color: var(--accent); }
 .nav-cta {
   margin-left: 1.1rem; padding: 0.6rem 1.4rem; background: var(--green);
   color: var(--white); border-radius: var(--r); font-size: 0.86rem;
   font-weight: 600; transition: background 0.18s, box-shadow 0.18s; flex-shrink: 0;
-  display: flex; align-items: center; box-shadow: var(--sh);
+  display: inline-flex; align-items: center; box-shadow: var(--sh); white-space: nowrap;
 }
 .nav-cta:hover { background: var(--green-3); box-shadow: var(--sh-md); }
-.menu-btn { display: none; flex-direction: column; gap: 5px; padding: 6px; margin-left: auto; background: none; border: none; }
-.menu-btn span { display: block; width: 24px; height: 2px; background: var(--g700); border-radius: 2px; transition: all 0.3s; }
+.menu-btn { display: none; flex-direction: column; gap: 6px; padding: 6px; margin-left: auto; background: none; border: none; z-index: 160; }
+.menu-btn span { display: block; width: 24px; height: 2px; background: var(--g800); border-radius: 2px; transition: transform 0.3s ease, opacity 0.2s ease; }
+.menu-btn.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+.menu-btn.open span:nth-child(2) { opacity: 0; }
+.menu-btn.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
 /* ════════════════════════════════════════════
    HERO
@@ -494,15 +497,24 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
 @media (max-width: 768px) {
   section { padding: 3.75rem 0; }
   .container { padding: 0 1.25rem; }
-  nav, .nav-cta { display: none; }
   .menu-btn { display: flex; }
-  nav.open {
-    display: flex; flex-direction: column; position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0; background: var(--green-3);
-    align-items: center; justify-content: center; gap: 1.75rem; z-index: 150;
+  nav#mainNav {
+    position: fixed; top: 72px; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
+    gap: 0; padding: 1.5rem; background: var(--white);
+    border-top: 1px solid var(--border);
+    transform: translateX(100%); transition: transform 0.28s ease;
+    overflow-y: auto; z-index: 150;
   }
-  nav.open a { font-size: 1.25rem; color: rgba(255,255,255,0.92); border-bottom: none; height: auto; padding: 0.5rem 1rem; }
-  nav.open a:hover { color: var(--white); border-bottom: none; }
+  nav#mainNav.open { transform: translateX(0); }
+  nav#mainNav a:not(.nav-cta) {
+    height: auto; width: 100%; justify-content: flex-start;
+    padding: 1.05rem 0.5rem; font-size: 1.1rem; color: var(--g800);
+    border-bottom: 1px solid var(--border);
+  }
+  nav#mainNav a:not(.nav-cta):hover { color: var(--green); border-bottom-color: var(--border); }
+  nav#mainNav .nav-cta { margin: 1.5rem 0 0; width: 100%; justify-content: center; padding: 0.95rem; font-size: 1rem; }
+  nav#mainNav .eden-admin-link-edit { margin-top: 0.75rem; }
   #hero { margin-top: 72px; padding: 3.5rem 0; }
   #hero .container, #about .container, #direction .container, #contact .container { grid-template-columns: 1fr; gap: 3rem; }
   .hero-visual::after { display: none; }
