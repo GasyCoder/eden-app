@@ -14,6 +14,7 @@ class HomeController extends Controller
         return Inertia::render('Home', [
             'blocks' => $contentRepository->blocks(),
             'collections' => $contentRepository->collections(),
+            'canEdit' => (bool) request()->user()?->is_admin,
         ]);
     }
 }

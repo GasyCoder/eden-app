@@ -24,6 +24,10 @@ defineProps({
         type: Object,
         default: () => ({}),
     },
+    canEdit: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const showScrollTop = ref(false);
@@ -68,7 +72,7 @@ onBeforeUnmount(() => {
     <Head title="École Doctorale Écosystèmes Naturels" />
 
     <Navbar :blocks="blocks.site" />
-    <HeroSection :blocks="blocks.hero" />
+    <HeroSection :blocks="blocks.hero" :can-edit="canEdit" />
     <AboutSection :blocks="blocks.about" :stats="blocks.stats" />
     <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" />
     <DirectorMessageSection :blocks="blocks.direction" />
@@ -90,7 +94,7 @@ onBeforeUnmount(() => {
         :national-partners="collections.partners_national"
         :international-partners="collections.partners_international"
     />
-    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" />
+    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :can-edit="canEdit" />
     <ContactSection :blocks="blocks.contact" />
     <Footer
         :site="blocks.site"

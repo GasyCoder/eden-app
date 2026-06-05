@@ -144,7 +144,7 @@ nav a:hover { color: var(--green); border-bottom-color: var(--green); }
 }
 .hero-eyebrow::before { content: ''; display: inline-block; width: 1.5rem; height: 1.5px; background: var(--green-2); flex-shrink: 0; }
 #hero h1 { color: var(--g800); margin-bottom: 1.1rem; }
-#hero h1 span { color: var(--green); }
+#hero h1 .hero-highlight { color: var(--green); }
 .hero-desc { color: var(--g500); font-size: 1.05rem; max-width: 520px; margin-bottom: 2rem; }
 .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 .hero-visual { position: relative; }
@@ -378,4 +378,91 @@ footer { background: var(--g800); padding: 4rem 0 2rem; }
   .hero-actions { flex-direction: column; align-items: flex-start; }
   .chiffres-grid { grid-template-columns: 1fr 1fr; }
   .about-stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Inline admin editing ───────────────────── */
+.eden-edit-wrap,
+.eden-edit-block {
+  position: relative;
+  display: inline;
+}
+.eden-edit-block {
+  display: inline-block;
+  width: 100%;
+}
+.admin-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--green);
+  font-size: 0.82rem;
+  line-height: 1;
+  box-shadow: var(--sh);
+  vertical-align: middle;
+}
+.admin-edit-button:hover {
+  border-color: var(--green);
+}
+.eden-edit-input,
+.eden-edit-textarea,
+.eden-collection-input,
+.eden-collection-textarea {
+  width: 100%;
+  border: 1px solid var(--green);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding: 0.55rem 0.65rem;
+  box-shadow: 0 0 0 2px rgba(20, 83, 45, 0.08);
+}
+.eden-edit-input {
+  min-width: min(520px, 80vw);
+}
+.eden-edit-textarea,
+.eden-collection-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+.eden-edit-actions,
+.eden-collection-actions,
+.eden-collection-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+}
+.eden-edit-actions button,
+.eden-collection-actions button,
+.eden-collection-toolbar button {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g700);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.eden-edit-actions button:first-child,
+.eden-collection-actions button:first-child,
+.eden-collection-toolbar button:first-child {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--white);
+}
+.eden-collection-toolbar {
+  margin: -1rem 0 1.5rem;
+  justify-content: flex-end;
+}
+.eden-project-edit {
+  display: grid;
+  gap: 0.65rem;
 }

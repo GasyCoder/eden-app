@@ -1,5 +1,12 @@
 <script setup>
-defineProps({
+import { router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import EditableCollection from '@/Components/Editable/EditableCollection.vue';
+import EditableText from '@/Components/Editable/EditableText.vue';
+import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
+
+const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
@@ -7,6 +14,10 @@ defineProps({
     items: {
         type: Array,
         default: () => [],
+    },
+    canEdit: {
+        type: Boolean,
+        default: false,
     },
 });
 
@@ -30,36 +41,213 @@ const fallbackProjects = [
         meta: { icon: '🌊', image_label: 'Terrain — mangroves et zone côtière', ead: 'EAD 1 & 2', funding: 'Financement : GEF', period: '2025 – 2028', badge_class: 'badge-new' },
     },
 ];
+
+const projects = computed(() => (props.items?.length ? props.items : fallbackProjects));
+const editingId = ref(null);
+const creating = ref(false);
+const form = ref(blankProject());
+
+function blankProject() {
+    return {
+        title: '',
+        subtitle: 'En cours',
+        description: '',
+        icon: '🌿',
+        image_label: 'Terrain — recherche',
+        ead: 'EAD 1',
+        funding: 'Financement : ',
+        period: '',
+        badge_class: 'badge-active',
+    };
+}
+
+function editProject(project) {
+    form.value = {
+        title: project.title ?? '',
+        subtitle: project.subtitle ?? '',
+        description: project.description ?? '',
+        icon: project.meta?.icon ?? '🌿',
+        image_label: project.meta?.image_label ?? '',
+        ead: project.meta?.ead ?? '',
+        funding: project.meta?.funding ?? '',
+        period: project.meta?.period ?? '',
+        badge_class: project.meta?.badge_class ?? 'badge-active',
+    };
+    creating.value = false;
+    editingId.value = project.id;
+}
+
+function startCreate() {
+    form.value = blankProject();
+    editingId.value = null;
+    creating.value = true;
+}
+
+function cancelEdit() {
+    editingId.value = null;
+    creating.value = false;
+    form.value = blankProject();
+}
+
+function payload() {
+    return {
+        title: form.value.title,
+        subtitle: form.value.subtitle,
+        description: form.value.description,
+        meta: {
+            icon: form.value.icon,
+            image_label: form.value.image_label,
+            ead: form.value.ead,
+            funding: form.value.funding,
+            period: form.value.period,
+            badge_class: form.value.badge_class,
+        },
+    };
+}
+
+function saveProject(project) {
+    router.patch(`/admin/content-items/${project.id}`, payload(), {
+        preserveScroll: true,
+        onSuccess: cancelEdit,
+    });
+}
+
+function createProject() {
+    router.post('/admin/content-items/projects', payload(), {
+        preserveScroll: true,
+        onSuccess: cancelEdit,
+    });
+}
+
+function deleteProject(project) {
+    if (!window.confirm('Supprimer ce projet ?')) {
+        return;
+    }
+
+    router.delete(`/admin/content-items/${project.id}`, {
+        preserveScroll: true,
+    });
+}
+
+function reorderProject(index, direction) {
+    const editableProjects = projects.value.filter((project) => project.id);
+    const targetIndex = index + direction;
+
+    if (targetIndex < 0 || targetIndex >= editableProjects.length) {
+        return;
+    }
+
+    const reordered = [...editableProjects];
+    const [project] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, project);
+
+    router.patch('/admin/content-items/projects/reorder', {
+        items: reordered.map((item, position) => ({ id: item.id, position })),
+    }, {
+        preserveScroll: true,
+    });
+}
 </script>
 
 <template>
     <section id="projets">
         <div class="container">
             <div class="section-header reveal">
-                <span class="eyebrow">{{ blocks?.eyebrow ?? 'Projets' }}</span>
-                <h2>{{ blocks?.title ?? 'Projets de Recherche en Cours' }}</h2>
-                <p>{{ blocks?.description ?? "L'EDEN pilote et co-pilote plusieurs projets d'envergure financés par des institutions nationales et internationales." }}</p>
+                <span class="eyebrow">
+                    <EditableText :value="blocks?.eyebrow" fallback="Projets" content-key="projets.eyebrow" :can-edit="canEdit" />
+                </span>
+                <h2>
+                    <EditableText :value="blocks?.title" fallback="Projets de Recherche en Cours" content-key="projets.title" :can-edit="canEdit" />
+                </h2>
+                <p>
+                    <EditableTextarea
+                        :value="blocks?.description"
+                        fallback="L'EDEN pilote et co-pilote plusieurs projets d'envergure financés par des institutions nationales et internationales."
+                        content-key="projets.description"
+                        :can-edit="canEdit"
+                    />
+                </p>
             </div>
-            <div class="grid-3">
-                <div v-for="project in (items?.length ? items : fallbackProjects)" :key="project.title" class="proj-card reveal">
+            <div v-if="canEdit" class="eden-collection-toolbar">
+                <button type="button" @click="startCreate">Ajouter un projet</button>
+            </div>
+            <EditableCollection :can-edit="canEdit">
+                <div class="grid-3">
+                <div v-if="creating" class="proj-card reveal visible">
+                    <div class="proj-img img-ph">
+                        <div class="ic">{{ form.icon }}</div>
+                        <span>{{ form.image_label }}</span>
+                    </div>
+                    <div class="proj-body">
+                        <div class="eden-project-edit">
+                            <input v-model="form.title" class="eden-collection-input" type="text" placeholder="Titre du projet">
+                            <input v-model="form.subtitle" class="eden-collection-input" type="text" placeholder="Statut">
+                            <input v-model="form.ead" class="eden-collection-input" type="text" placeholder="EAD">
+                            <textarea v-model="form.description" class="eden-collection-textarea" placeholder="Description"></textarea>
+                            <input v-model="form.icon" class="eden-collection-input" type="text" placeholder="Icône">
+                            <input v-model="form.image_label" class="eden-collection-input" type="text" placeholder="Libellé image">
+                            <input v-model="form.funding" class="eden-collection-input" type="text" placeholder="Financement">
+                            <input v-model="form.period" class="eden-collection-input" type="text" placeholder="Période">
+                            <select v-model="form.badge_class" class="eden-collection-input">
+                                <option value="badge-active">En cours</option>
+                                <option value="badge-new">Démarrage</option>
+                            </select>
+                            <div class="eden-collection-actions">
+                                <button type="button" @click="createProject">Enregistrer</button>
+                                <button type="button" @click="cancelEdit">Annuler</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-for="(project, index) in projects" :key="project.id ?? project.title" class="proj-card reveal">
                     <div class="proj-img img-ph">
                         <div class="ic">{{ project.meta?.icon ?? '🌿' }}</div>
                         <span>{{ project.meta?.image_label ?? 'Terrain — forêt endémique Boeny' }}</span>
                     </div>
                     <div class="proj-body">
-                        <div class="proj-meta">
-                            <span class="badge" :class="project.meta?.badge_class ?? 'badge-active'">{{ project.subtitle ?? 'En cours' }}</span>
-                            <span class="proj-ead">{{ project.meta?.ead ?? 'EAD 1' }}</span>
-                        </div>
-                        <h4>{{ project.title ?? 'BIODIVERS-BOENY' }}</h4>
-                        <p>{{ project.description ?? "Conservation et valorisation des espèces endémiques de la Région Boeny : inventaires, suivis fauniques et réseau d'aires protégées communautaires." }}</p>
-                        <div class="proj-foot">
-                            <span>{{ project.meta?.funding ?? 'Financement : AFD' }}</span>
-                            <span>{{ project.meta?.period ?? '2023 – 2026' }}</span>
-                        </div>
+                        <template v-if="editingId === project.id">
+                            <div class="eden-project-edit">
+                                <input v-model="form.title" class="eden-collection-input" type="text">
+                                <input v-model="form.subtitle" class="eden-collection-input" type="text">
+                                <input v-model="form.ead" class="eden-collection-input" type="text">
+                                <textarea v-model="form.description" class="eden-collection-textarea"></textarea>
+                                <input v-model="form.icon" class="eden-collection-input" type="text">
+                                <input v-model="form.image_label" class="eden-collection-input" type="text">
+                                <input v-model="form.funding" class="eden-collection-input" type="text">
+                                <input v-model="form.period" class="eden-collection-input" type="text">
+                                <select v-model="form.badge_class" class="eden-collection-input">
+                                    <option value="badge-active">En cours</option>
+                                    <option value="badge-new">Démarrage</option>
+                                </select>
+                                <div class="eden-collection-actions">
+                                    <button type="button" @click="saveProject(project)">Enregistrer</button>
+                                    <button type="button" @click="cancelEdit">Annuler</button>
+                                    <button type="button" @click="deleteProject(project)">Supprimer</button>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="proj-meta">
+                                <span class="badge" :class="project.meta?.badge_class ?? 'badge-active'">{{ project.subtitle ?? 'En cours' }}</span>
+                                <span class="proj-ead">{{ project.meta?.ead ?? 'EAD 1' }}</span>
+                                <AdminEditButton v-if="canEdit && project.id" @click="editProject(project)" />
+                            </div>
+                            <h4>{{ project.title ?? 'BIODIVERS-BOENY' }}</h4>
+                            <p>{{ project.description ?? "Conservation et valorisation des espèces endémiques de la Région Boeny : inventaires, suivis fauniques et réseau d'aires protégées communautaires." }}</p>
+                            <div class="proj-foot">
+                                <span>{{ project.meta?.funding ?? 'Financement : AFD' }}</span>
+                                <span>{{ project.meta?.period ?? '2023 – 2026' }}</span>
+                            </div>
+                            <div v-if="canEdit && project.id" class="eden-collection-actions">
+                                <button type="button" @click="reorderProject(index, -1)">Monter</button>
+                                <button type="button" @click="reorderProject(index, 1)">Descendre</button>
+                            </div>
+                        </template>
                     </div>
                 </div>
-            </div>
+                </div>
+            </EditableCollection>
         </div>
     </section>
 </template>
