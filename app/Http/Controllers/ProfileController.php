@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\SeoSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,7 +15,9 @@ class ProfileController extends Controller
 {
     public function edit(): Response
     {
-        return Inertia::render('Auth/Profile');
+        return Inertia::render('Auth/Profile', [
+            'seo' => SeoSettings::all(),
+        ]);
     }
 
     public function update(Request $request): RedirectResponse

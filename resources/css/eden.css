@@ -145,9 +145,11 @@ section { padding: 6rem 0; position: relative; }
 ════════════════════════════════════════════ */
 #header {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-  background: rgba(255,255,255,0.92); backdrop-filter: blur(10px);
+  background: var(--white);
   border-bottom: 1px solid var(--border);
 }
+/* NB : pas de backdrop-filter/filter/transform sur #header — sinon le menu mobile
+   (nav#mainNav en position:fixed) se positionnerait par rapport au header et non à la fenêtre. */
 #header .container { display: flex; align-items: center; height: 72px; gap: 0.5rem; }
 .logo { display: flex; align-items: center; gap: 0.8rem; flex-shrink: 0; margin-right: 0.5rem; }
 .logo-mark {

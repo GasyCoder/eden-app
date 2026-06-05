@@ -6,11 +6,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title inertia>EDEN-UMG — École Doctorale Écosystèmes Naturels</title>
+        @php($ogImage = \Illuminate\Support\Str::startsWith($seo['ogImage'], 'http') ? $seo['ogImage'] : $appUrl.$seo['ogImage'])
+        <title inertia>{{ $seo['title'] }}</title>
 
-        {{-- Référencement (SEO) --}}
-        <meta name="description" content="École Doctorale Écosystèmes Naturels (EDEN) de l'Université de Mahajanga : formation doctorale et recherche sur la biodiversité de Madagascar — équipes d'accueil, parcours doctoral, thématiques, projets et partenariats.">
-        <meta name="keywords" content="EDEN, École Doctorale, Université de Mahajanga, UMG, Écosystèmes Naturels, doctorat Madagascar, recherche biodiversité, thèse, Boeny, formation doctorale, écologie, conservation, récifs coralliens, mangroves">
+        {{-- Référencement (SEO) — modifiable par le superadmin --}}
+        <meta name="description" content="{{ $seo['description'] }}">
+        <meta name="keywords" content="{{ $seo['keywords'] }}">
         <meta name="author" content="École Doctorale EDEN — Université de Mahajanga">
         <meta name="robots" content="index, follow">
         <meta name="theme-color" content="#0F5132">
@@ -19,22 +20,21 @@
         {{-- Open Graph / réseaux sociaux --}}
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="École Doctorale EDEN — Université de Mahajanga">
-        <meta property="og:title" content="École Doctorale EDEN — Écosystèmes Naturels">
-        <meta property="og:description" content="Formation doctorale et recherche sur la biodiversité de Madagascar, à l'Université de Mahajanga (Région Boeny).">
+        <meta property="og:title" content="{{ $seo['title'] }}">
+        <meta property="og:description" content="{{ $seo['description'] }}">
         <meta property="og:url" content="{{ $appUrl }}/">
         <meta property="og:locale" content="fr_FR">
-        <meta property="og:image" content="{{ $appUrl }}/icons/og-image.png">
+        <meta property="og:image" content="{{ $ogImage }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="École Doctorale EDEN — Écosystèmes Naturels">
-        <meta name="twitter:description" content="Formation doctorale et recherche sur la biodiversité de Madagascar, Université de Mahajanga.">
-        <meta name="twitter:image" content="{{ $appUrl }}/icons/og-image.png">
+        <meta name="twitter:title" content="{{ $seo['title'] }}">
+        <meta name="twitter:description" content="{{ $seo['description'] }}">
+        <meta name="twitter:image" content="{{ $ogImage }}">
 
-        {{-- PWA --}}
+        {{-- PWA & favicon (favicon modifiable par le superadmin) --}}
         <link rel="manifest" href="/manifest.webmanifest">
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+        <link rel="icon" href="{{ $seo['favicon'] }}" sizes="any">
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">

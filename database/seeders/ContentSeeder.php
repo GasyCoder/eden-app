@@ -20,6 +20,12 @@ class ContentSeeder extends Seeder
             ['key' => 'site.name', 'group' => 'site', 'value' => 'EDEN-UMG'],
             ['key' => 'site.caption', 'group' => 'site', 'value' => 'Université de Mahajanga'],
             ['key' => 'site.logo', 'group' => 'site', 'type' => 'image', 'value' => null],
+            ['key' => 'site.favicon', 'group' => 'seo', 'type' => 'image', 'value' => null],
+
+            ['key' => 'seo.title', 'group' => 'seo', 'value' => 'EDEN-UMG — École Doctorale Écosystèmes Naturels'],
+            ['key' => 'seo.description', 'group' => 'seo', 'type' => 'textarea', 'value' => "École Doctorale Écosystèmes Naturels (EDEN) de l'Université de Mahajanga : formation doctorale et recherche sur la biodiversité de Madagascar — équipes d'accueil, parcours doctoral, thématiques, projets et partenariats."],
+            ['key' => 'seo.keywords', 'group' => 'seo', 'value' => 'EDEN, École Doctorale, Université de Mahajanga, UMG, Écosystèmes Naturels, doctorat Madagascar, recherche biodiversité, thèse, Boeny, formation doctorale, écologie, conservation'],
+            ['key' => 'seo.og_image', 'group' => 'seo', 'type' => 'image', 'value' => null],
 
             ['key' => 'nav.about_label', 'group' => 'nav', 'value' => 'À propos'],
             ['key' => 'nav.organisation_label', 'group' => 'nav', 'value' => 'Organisation'],

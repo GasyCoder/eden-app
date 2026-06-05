@@ -2,6 +2,13 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+const props = defineProps({
+    seo: {
+        type: Object,
+        default: () => ({}),
+    },
+});
+
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? {});
 const flash = computed(() => page.props.flash ?? {});
@@ -24,6 +31,32 @@ const submitProfile = () => profileForm.patch('/me/profile', { preserveScroll: t
 const submitPassword = () => passwordForm.put('/me/password', {
     preserveScroll: true,
     onSuccess: () => passwordForm.reset(),
+});
+
+// Référencement & favicon (superadmin uniquement)
+const settingsForm = useForm({
+    title: props.seo.title ?? '',
+    description: props.seo.description ?? '',
+    keywords: props.seo.keywords ?? '',
+    favicon: null,
+    og_image: null,
+});
+
+const onFavicon = (event) => {
+    settingsForm.favicon = event.target.files?.[0] ?? null;
+};
+
+const onOgImage = (event) => {
+    settingsForm.og_image = event.target.files?.[0] ?? null;
+};
+
+const submitSettings = () => settingsForm.post('/me/settings', {
+    preserveScroll: true,
+    forceFormData: true,
+    onSuccess: () => {
+        settingsForm.favicon = null;
+        settingsForm.og_image = null;
+    },
 });
 </script>
 
@@ -95,6 +128,52 @@ const submitPassword = () => passwordForm.put('/me/password', {
                     </label>
                     <div>
                         <button class="btn btn-primary" type="submit" :disabled="passwordForm.processing" style="justify-content:center;">Mettre à jour le mot de passe</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Référencement & favicon — superadmin uniquement -->
+            <form v-if="user.role === 'superadmin'" class="card" @submit.prevent="submitSettings">
+                <h2 style="font-size:1.2rem;margin-bottom:.35rem;">Référencement &amp; favicon</h2>
+                <p style="font-size:.84rem;color:var(--g500);margin-bottom:1.5rem;">
+                    Réservé au super administrateur. Ces informations apparaissent dans les moteurs de recherche
+                    et lors du partage du lien (Facebook, WhatsApp…).
+                </p>
+                <div style="display:flex;flex-direction:column;gap:1.1rem;">
+                    <label>
+                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Titre du site (onglet &amp; partage)</span>
+                        <input v-model="settingsForm.title" type="text" class="eden-edit-input" style="min-width:0;">
+                        <span v-if="settingsForm.errors.title" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.title }}</span>
+                    </label>
+                    <label>
+                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Description (meta description)</span>
+                        <textarea v-model="settingsForm.description" rows="3" class="eden-edit-textarea" style="min-height:auto;"></textarea>
+                        <span v-if="settingsForm.errors.description" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.description }}</span>
+                    </label>
+                    <label>
+                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Mots-clés (séparés par des virgules)</span>
+                        <textarea v-model="settingsForm.keywords" rows="2" class="eden-edit-textarea" style="min-height:auto;"></textarea>
+                        <span v-if="settingsForm.errors.keywords" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.keywords }}</span>
+                    </label>
+
+                    <div>
+                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Favicon (PNG carré recommandé)</span>
+                        <div style="display:flex;align-items:center;gap:1rem;">
+                            <img :src="seo.favicon" alt="Favicon actuel" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
+                            <input type="file" accept="image/png,image/jpeg,image/webp" @change="onFavicon">
+                        </div>
+                        <span v-if="settingsForm.errors.favicon" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.favicon }}</span>
+                    </div>
+
+                    <div>
+                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Image de partage (Open Graph — 1200×630 conseillé)</span>
+                        <img :src="seo.ogImage" alt="Image de partage actuelle" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
+                        <input type="file" accept="image/png,image/jpeg,image/webp" style="margin-top:.6rem;" @change="onOgImage">
+                        <span v-if="settingsForm.errors.og_image" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.og_image }}</span>
+                    </div>
+
+                    <div>
+                        <button class="btn btn-primary" type="submit" :disabled="settingsForm.processing" style="justify-content:center;">Enregistrer le référencement</button>
                     </div>
                 </div>
             </form>

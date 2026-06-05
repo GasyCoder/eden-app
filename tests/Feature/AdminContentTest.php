@@ -318,3 +318,39 @@ test('authenticated admin can change password with correct current password', fu
 test('guest cannot access profile', function () {
     $this->get('/me/profile')->assertRedirect('/me/login');
 });
+
+test('superadmin can update seo settings', function () {
+    $superadmin = User::factory()->create(['is_admin' => true, 'role' => 'superadmin']);
+
+    $this->actingAs($superadmin)
+        ->post('/me/settings', [
+            'title' => 'Nouveau titre SEO',
+            'description' => 'Nouvelle description',
+            'keywords' => 'mot1, mot2',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'seo.title')->value('value'))->toBe('Nouveau titre SEO')
+        ->and(ContentBlock::where('key', 'seo.keywords')->value('value'))->toBe('mot1, mot2');
+});
+
+test('editor cannot update seo settings', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    $this->actingAs($editor)
+        ->post('/me/settings', ['title' => 'Hack'])
+        ->assertForbidden();
+});
+
+test('superadmin can upload a favicon', function () {
+    Storage::fake('public');
+    $superadmin = User::factory()->create(['is_admin' => true, 'role' => 'superadmin']);
+
+    $this->actingAs($superadmin)
+        ->post('/me/settings', [
+            'favicon' => UploadedFile::fake()->image('favicon.png', 64, 64),
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'site.favicon')->value('value'))->not->toBeNull();
+});
