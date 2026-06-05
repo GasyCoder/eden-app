@@ -12,6 +12,10 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    imageVariants: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 </script>
 
@@ -76,7 +80,23 @@ defineProps({
                 </div>
             </div>
             <div class="map-ph img-ph reveal" :class="{ 'has-image': blocks?.map_image }">
-                <img v-if="blocks?.map_image" :src="blocks.map_image" alt="Carte de localisation" width="680" height="440" loading="lazy" decoding="async">
+                <picture v-if="blocks?.map_image">
+                    <source
+                        v-for="source in imageVariants?.sources ?? []"
+                        :key="source.type"
+                        :type="source.type"
+                        :srcset="source.srcset"
+                        :sizes="imageVariants?.sizes"
+                    >
+                    <img
+                        :src="blocks.map_image"
+                        alt="Carte de localisation de l’Université de Mahajanga"
+                        :width="imageVariants?.width ?? 680"
+                        :height="imageVariants?.height ?? 440"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </picture>
                 <template v-else>
                     <div class="ic" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/><path d="M9 4v14M15 6v14"/></svg>

@@ -26,6 +26,12 @@ Artisan::command('content:generate-image-variants', function () {
         $images->forUrl($siteLogo, ImageVariantService::LOGO_WIDTHS, ImageVariantService::LOGO_SIZES);
     }
 
+    $contactMapImage = ContentBlock::query()->where('key', 'contact.map_image')->value('value');
+
+    if ($contactMapImage) {
+        $images->forUrl($contactMapImage, ImageVariantService::CONTACT_WIDTHS, ImageVariantService::CONTACT_SIZES);
+    }
+
     $urls = ContentBlock::query()
         ->where('type', 'image')
         ->whereNotNull('value')

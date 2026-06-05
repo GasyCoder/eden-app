@@ -28,6 +28,11 @@ class HomeController extends Controller
                     ImageVariantService::LOGO_WIDTHS,
                     ImageVariantService::LOGO_SIZES,
                 ),
+                'contactMapImage' => $images->forUrl(
+                    $blocks['contact']['map_image'] ?? null,
+                    ImageVariantService::CONTACT_WIDTHS,
+                    ImageVariantService::CONTACT_SIZES,
+                ),
             ],
             'canEdit' => (bool) request()->user()?->is_admin,
         ]);

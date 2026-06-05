@@ -36,6 +36,7 @@ class ImageUploadController extends Controller
         return match ($contentKey) {
             'hero.image' => [ImageVariantService::HERO_WIDTHS, ImageVariantService::HERO_SIZES],
             'site.logo' => [ImageVariantService::LOGO_WIDTHS, ImageVariantService::LOGO_SIZES],
+            'contact.map_image' => [ImageVariantService::CONTACT_WIDTHS, ImageVariantService::CONTACT_SIZES],
             default => [ImageVariantService::DEFAULT_WIDTHS, ImageVariantService::DEFAULT_SIZES],
         };
     }

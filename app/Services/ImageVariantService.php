@@ -9,10 +9,12 @@ class ImageVariantService
 {
     public const HERO_WIDTHS = [480, 768, 1024, 1440];
     public const LOGO_WIDTHS = [96, 140, 192, 280];
+    public const CONTACT_WIDTHS = [480, 768, 1024, 1320];
     public const DEFAULT_WIDTHS = [480, 768, 1024];
 
     public const HERO_SIZES = '(max-width: 768px) calc(100vw - 2.5rem), (max-width: 1180px) 45vw, 560px';
     public const LOGO_SIZES = '70px';
+    public const CONTACT_SIZES = '(max-width: 768px) calc(100vw - 2.5rem), (max-width: 1180px) 48vw, 620px';
     public const DEFAULT_SIZES = '(max-width: 768px) calc(100vw - 2.5rem), 420px';
 
     /**

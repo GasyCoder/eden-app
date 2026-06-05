@@ -112,7 +112,7 @@ onBeforeUnmount(() => {
         :can-edit="editMode"
     />
     <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :can-edit="editMode" />
-    <ContactSection :blocks="blocks.contact" :can-edit="editMode" />
+    <ContactSection :blocks="blocks.contact" :image-variants="performance.contactMapImage" :can-edit="editMode" />
     <Footer
         :site="blocks.site"
         :blocks="blocks.footer"
