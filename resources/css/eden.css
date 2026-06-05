@@ -701,6 +701,16 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
   color: var(--g500);
   font-size: 0.72rem;
 }
+.eden-admin-role {
+  align-self: flex-start;
+  margin-top: 0.2rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 100px;
+  background: var(--green-lt);
+  color: var(--green) !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
 .eden-admin-toggle,
 .eden-admin-logout {
   border: 1px solid var(--border);

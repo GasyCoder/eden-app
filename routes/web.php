@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ContentItemController;
 use App\Http\Controllers\Admin\ContentRevisionController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,9 +18,14 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/me/login', [AuthenticatedSessionController::class, 'store']);
 });
 
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->middleware('auth')
-    ->name('logout');
+Route::middleware('auth')->group(function (): void {
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // Espace profil de l'administrateur connecté (editor ou superadmin)
+    Route::get('/me/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/me/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/me/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+});
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::patch('/content-blocks/{key}', [ContentBlockController::class, 'update'])

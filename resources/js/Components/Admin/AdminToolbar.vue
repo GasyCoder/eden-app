@@ -43,8 +43,14 @@ watch(pinned, (value) => {
     }
 });
 
+const roleLabel = computed(() => (user.value?.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
+
 const toggleEditMode = () => {
     emit('update:editMode', !props.editMode);
+};
+
+const goProfile = () => {
+    router.visit('/me/profile');
 };
 
 const logout = () => {
@@ -60,10 +66,12 @@ const logout = () => {
             <div>
                 <strong>Mode édition</strong>
                 <span>{{ user?.email ?? 'Administrateur' }}</span>
+                <span class="eden-admin-role">{{ roleLabel }}</span>
             </div>
             <button class="eden-admin-toggle" type="button" @click="toggleEditMode">
                 {{ editMode ? 'Masquer les outils' : 'Afficher les outils' }}
             </button>
+            <button class="eden-admin-logout" type="button" @click="goProfile">Profil</button>
             <button class="eden-admin-logout" type="button" @click="historyOpen = true">Historique</button>
             <button class="eden-admin-logout eden-admin-danger" type="button" @click="logout">Déconnexion</button>
             <button class="eden-admin-pin" type="button" title="Réduire la barre" aria-label="Réduire la barre" @click="pinned = false">⤓</button>

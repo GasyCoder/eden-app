@@ -1,8 +1,14 @@
 <script setup>
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
 import { useContentItemEditor } from '@/Composables/useContentItemEditor';
+
+// Seul un superadmin peut éditer les mentions légales du footer (copyright + crédit)
+const page = usePage();
+const canEditProtected = computed(() => Boolean(page.props.canEditProtected));
 
 const props = defineProps({
     site: {
@@ -204,8 +210,8 @@ const informationEditor = useContentItemEditor(
                 </div>
             </div>
             <div class="ft-bottom">
-                <p><EditableText :value="blocks?.copyright" fallback="© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés." content-key="footer.copyright" :can-edit="canEdit" /></p>
-                <p><EditableText :value="blocks?.credit" fallback="Conçu pour l'excellence académique" content-key="footer.credit" :can-edit="canEdit" /></p>
+                <p><EditableText :value="blocks?.copyright" fallback="© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés." content-key="footer.copyright" :can-edit="canEdit && canEditProtected" /></p>
+                <p><EditableText :value="blocks?.credit" fallback="Conçu pour l'excellence académique" content-key="footer.credit" :can-edit="canEdit && canEditProtected" /></p>
             </div>
         </div>
     </footer>

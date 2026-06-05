@@ -43,9 +43,11 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'is_admin' => $request->user()->is_admin,
+                    'role' => $request->user()->role,
                 ] : null,
             ],
             'canEdit' => (bool) $request->user()?->is_admin,
+            'canEditProtected' => (bool) $request->user()?->isSuperAdmin(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

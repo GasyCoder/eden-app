@@ -17,6 +17,8 @@ class ContentBlockController extends Controller
         ContentSanitizer $sanitizer,
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
+        abort_unless($request->user()->canEditBlock($key), 403, 'Ce contenu est réservé au superadmin.');
+
         $block = ContentBlock::where('key', $key)->firstOrFail();
         $type = $request->validated('type') ?? $block->type;
         $before = $revisions->snapshotBlock($block);

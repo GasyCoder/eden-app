@@ -5,6 +5,7 @@ use App\Models\ContentItem;
 use App\Models\ContentRevision;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 test('guest cannot update content blocks', function () {
@@ -235,4 +236,85 @@ test('non admin cannot list content revisions', function () {
     $this->actingAs($user)
         ->getJson('/admin/content-revisions')
         ->assertForbidden();
+});
+
+test('editor cannot update superadmin-only footer blocks', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::create(['key' => 'footer.copyright', 'value' => '© Ancien']);
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/footer.copyright', [
+            'value' => '© Nouveau',
+            'type' => 'text',
+        ])
+        ->assertForbidden();
+
+    expect(ContentBlock::where('key', 'footer.copyright')->value('value'))->toBe('© Ancien');
+});
+
+test('superadmin can update superadmin-only footer blocks', function () {
+    $superadmin = User::factory()->create(['is_admin' => true, 'role' => 'superadmin']);
+
+    ContentBlock::create(['key' => 'footer.copyright', 'value' => '© Ancien']);
+
+    $this->actingAs($superadmin)
+        ->patch('/admin/content-blocks/footer.copyright', [
+            'value' => '© Nouveau',
+            'type' => 'text',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'footer.copyright')->value('value'))->toBe('© Nouveau');
+});
+
+test('editor can still update non-protected blocks', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::create(['key' => 'hero.title', 'value' => 'Ancien']);
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/hero.title', [
+            'value' => 'Nouveau',
+            'type' => 'text',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'hero.title')->value('value'))->toBe('Nouveau');
+});
+
+test('authenticated admin can update profile email', function () {
+    $user = User::factory()->create(['is_admin' => true, 'role' => 'editor', 'email' => 'old@eden.test']);
+
+    $this->actingAs($user)
+        ->patch('/me/profile', [
+            'name' => 'Nouveau Nom',
+            'email' => 'new@eden.test',
+        ])
+        ->assertRedirect();
+
+    expect($user->refresh()->email)->toBe('new@eden.test')
+        ->and($user->name)->toBe('Nouveau Nom');
+});
+
+test('authenticated admin can change password with correct current password', function () {
+    $user = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'editor',
+        'password' => 'ancienmotdepasse',
+    ]);
+
+    $this->actingAs($user)
+        ->put('/me/password', [
+            'current_password' => 'ancienmotdepasse',
+            'password' => 'nouveaumotdepasse',
+            'password_confirmation' => 'nouveaumotdepasse',
+        ])
+        ->assertRedirect();
+
+    expect(Hash::check('nouveaumotdepasse', $user->refresh()->password))->toBeTrue();
+});
+
+test('guest cannot access profile', function () {
+    $this->get('/me/profile')->assertRedirect('/me/login');
 });
