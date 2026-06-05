@@ -166,7 +166,7 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                         <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Favicon (PNG carré recommandé)</span>
                         <div style="display:flex;align-items:center;gap:1rem;">
                             <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingFavicon }" style="width:40px;height:40px;">
-                                <img :src="seo.favicon" alt="Favicon actuel" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
+                                <img :src="seo.favicon" alt="Favicon actuel" width="40" height="40" loading="lazy" decoding="async" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
                                 <span v-if="isUploadingFavicon" class="eden-upload-skeleton small" role="status" aria-live="polite">
                                     <span class="eden-upload-content">
                                         <span class="eden-upload-spinner"></span>
@@ -181,7 +181,7 @@ const submitSettings = () => settingsForm.post('/me/settings', {
                     <div>
                         <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Image de partage (Open Graph — 1200×630 conseillé)</span>
                         <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingOgImage }" style="width:100%;max-width:340px;">
-                            <img :src="seo.ogImage" alt="Image de partage actuelle" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
+                            <img :src="seo.ogImage" alt="Image de partage actuelle" width="340" height="179" loading="lazy" decoding="async" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
                             <span v-if="isUploadingOgImage" class="eden-upload-skeleton" role="status" aria-live="polite">
                                 <span class="eden-upload-content">
                                     <span class="eden-upload-spinner"></span>

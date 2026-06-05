@@ -1,5 +1,5 @@
 /* Service worker EDEN-UMG — PWA */
-const CACHE = 'eden-cache-v2';
+const CACHE = 'eden-cache-v3';
 const APP_SHELL = ['/'];
 
 self.addEventListener('install', (event) => {
@@ -60,7 +60,7 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.startsWith('/build/') ||
     url.pathname.startsWith('/icons/') ||
-    /\.(css|js|woff2?|ttf|png|jpe?g|svg|webp|ico)$/i.test(url.pathname)
+    /\.(css|js|woff2?|ttf|png|jpe?g|svg|webp|avif|ico)$/i.test(url.pathname)
   ) {
     event.respondWith(
       caches.match(req).then(

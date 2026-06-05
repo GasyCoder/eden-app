@@ -8,6 +8,10 @@ use Illuminate\Support\Arr;
 
 class ContentRepository
 {
+    public function __construct(private readonly ImageVariantService $images)
+    {
+    }
+
     public function blocks(): array
     {
         $blocks = [];
@@ -36,6 +40,7 @@ class ContentRepository
                 'subtitle' => $item->subtitle,
                 'description' => $item->description,
                 'image' => $item->image,
+                'image_sources' => $this->images->forUrl($item->image),
                 'link_url' => $item->link_url,
                 'link_label' => $item->link_label,
                 'meta' => $item->meta ?? [],

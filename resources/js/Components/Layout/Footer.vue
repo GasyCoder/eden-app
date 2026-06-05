@@ -132,7 +132,7 @@ const iconKey = (name = '') => {
                 <div class="ft-brand">
                     <a href="#" class="logo">
                         <div class="logo-mark" :class="{ 'has-logo': site?.logo }">
-                            <img v-if="site?.logo" :src="site.logo" alt="Logo EDEN-UMG">
+                            <img v-if="site?.logo" :src="site.logo" alt="Logo EDEN-UMG" width="56" height="56" loading="lazy" decoding="async">
                             <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
                                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M12 21V9" />

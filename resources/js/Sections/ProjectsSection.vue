@@ -121,6 +121,10 @@ function projectDisplayImage(project) {
     return editingId.value === project.id ? form.value.image : project.image;
 }
 
+function projectDisplaySources(project) {
+    return editingId.value === project.id ? [] : project.image_sources?.sources ?? [];
+}
+
 function projectDisplayImageLabel(project) {
     return editingId.value === project.id
         ? form.value.image_label
@@ -236,7 +240,7 @@ async function uploadProjectImage(event) {
                 <div class="grid-3">
                 <div v-if="creating" class="proj-card reveal visible">
                     <div class="proj-img img-ph" :class="{ 'has-image': form.image, 'is-uploading': uploadingProjectImage }">
-                        <img v-if="form.image" :src="form.image" alt="">
+                        <img v-if="form.image" :src="form.image" alt="" width="380" height="190" loading="lazy" decoding="async">
                         <template v-else>
                             <div class="ic">{{ form.icon }}</div>
                             <span>{{ form.image_label }}</span>
@@ -275,7 +279,23 @@ async function uploadProjectImage(event) {
 
                 <div v-for="(project, index) in projects" :key="project.id ?? project.title" class="proj-card reveal">
                     <div class="proj-img img-ph" :class="{ 'has-image': projectDisplayImage(project), 'is-uploading': editingId === project.id && uploadingProjectImage }">
-                        <img v-if="projectDisplayImage(project)" :src="projectDisplayImage(project)" :alt="project.title ?? 'Projet'">
+                        <picture v-if="projectDisplayImage(project)">
+                            <source
+                                v-for="source in projectDisplaySources(project)"
+                                :key="source.type"
+                                :type="source.type"
+                                :srcset="source.srcset"
+                                :sizes="project.image_sources?.sizes"
+                            >
+                            <img
+                                :src="projectDisplayImage(project)"
+                                :alt="project.title ?? 'Projet EDEN-UMG'"
+                                width="380"
+                                height="190"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </picture>
                         <template v-else>
                             <div class="ic">{{ project.meta?.icon ?? '🌿' }}</div>
                             <span>{{ projectDisplayImageLabel(project) }}</span>

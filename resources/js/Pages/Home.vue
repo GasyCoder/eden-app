@@ -26,6 +26,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    performance: {
+        type: Object,
+        default: () => ({}),
+    },
     canEdit: {
         type: Boolean,
         default: false,
@@ -82,7 +86,7 @@ onBeforeUnmount(() => {
     <Toast />
 
     <Navbar :blocks="blocks.site" :nav="blocks.nav" :can-edit="editMode" />
-    <HeroSection :blocks="blocks.hero" :can-edit="editMode" />
+    <HeroSection :blocks="blocks.hero" :image-variants="performance.heroImage" :can-edit="editMode" />
     <AboutSection :blocks="blocks.about" :stats="blocks.stats" :can-edit="editMode" />
     <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" :can-edit="editMode" />
     <DirectorMessageSection :blocks="blocks.direction" :can-edit="editMode" />

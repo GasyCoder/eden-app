@@ -19,6 +19,7 @@
         </script>
 
         @php($ogImage = \Illuminate\Support\Str::startsWith($seo['ogImage'], 'http') ? $seo['ogImage'] : $appUrl.$seo['ogImage'])
+        @php($heroPreload = $performance['heroImage']['preload'] ?? null)
         <title inertia>{{ $seo['title'] }}</title>
 
         {{-- Référencement (SEO) — modifiable par le superadmin --}}
@@ -48,6 +49,17 @@
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" href="{{ $seo['favicon'] }}" sizes="any">
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+        @if($heroPreload)
+            <link
+                rel="preload"
+                as="image"
+                href="{{ $heroPreload['href'] }}"
+                type="{{ $heroPreload['type'] }}"
+                imagesrcset="{{ $heroPreload['srcset'] }}"
+                imagesizes="{{ $heroPreload['sizes'] }}"
+                fetchpriority="high"
+            >
+        @endif
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">

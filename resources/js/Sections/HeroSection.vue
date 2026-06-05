@@ -12,6 +12,10 @@ defineProps({
         type: Boolean,
         default: false,
     },
+    imageVariants: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 </script>
 
@@ -53,7 +57,24 @@ defineProps({
             </div>
             <div class="hero-visual">
                 <div class="hero-img img-ph" :class="{ 'has-image': blocks?.image }">
-                    <img v-if="blocks?.image" :src="blocks.image" alt="Terrain de recherche">
+                    <picture v-if="blocks?.image">
+                        <source
+                            v-for="source in imageVariants?.sources ?? []"
+                            :key="source.type"
+                            :type="source.type"
+                            :srcset="source.srcset"
+                            :sizes="imageVariants?.sizes"
+                        >
+                        <img
+                            :src="blocks.image"
+                            alt="Terrain de recherche EDEN-UMG"
+                            :width="imageVariants?.width ?? 1536"
+                            :height="imageVariants?.height ?? 1024"
+                            loading="eager"
+                            fetchpriority="high"
+                            decoding="async"
+                        >
+                    </picture>
                     <template v-else>
                         <div class="ic" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m4 16 4.5-4.5a2 2 0 0 1 2.8 0L16 16"/><path d="m14 14 1.5-1.5a2 2 0 0 1 2.8 0L21 15"/><circle cx="8.5" cy="9" r="1.4"/></svg>

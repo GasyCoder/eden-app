@@ -170,6 +170,7 @@ section { padding: 6rem 0; position: relative; }
 .img-ph .ic { color: var(--g400); opacity: 0.85; }
 .img-ph .ic svg { width: 30px; height: 30px; }
 .img-ph.has-image { background: transparent; padding: 0; }
+.img-ph.has-image picture { display: block; width: 100%; height: 100%; }
 .img-ph.has-image img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ── Animations reveal ───────────────────────── */

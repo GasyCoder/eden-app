@@ -36,7 +36,7 @@ defineProps({
                 </div>
             </div>
             <div class="dir-photo img-ph reveal" :class="{ 'has-image': blocks?.photo }">
-                <img v-if="blocks?.photo" :src="blocks.photo" alt="Portrait du Directeur">
+                <img v-if="blocks?.photo" :src="blocks.photo" alt="Portrait du Directeur" width="680" height="520" loading="lazy" decoding="async">
                 <template v-else>
                     <div class="ic" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>
