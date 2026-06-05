@@ -3,6 +3,13 @@ import { ref } from 'vue';
 
 const isOpen = ref(false);
 
+defineProps({
+    blocks: {
+        type: Object,
+        default: () => ({}),
+    },
+});
+
 const toggleNav = () => {
     isOpen.value = !isOpen.value;
 };
@@ -23,8 +30,8 @@ const closeNav = () => {
                     </svg>
                 </div>
                 <div class="logo-text">
-                    <span class="logo-name">EDEN-UMG</span>
-                    <span class="logo-caption">Université de Mahajanga</span>
+                    <span class="logo-name">{{ blocks?.name ?? 'EDEN-UMG' }}</span>
+                    <span class="logo-caption">{{ blocks?.caption ?? 'Université de Mahajanga' }}</span>
                 </div>
             </a>
 

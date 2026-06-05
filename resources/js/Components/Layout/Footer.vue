@@ -1,3 +1,49 @@
+<script setup>
+defineProps({
+    site: {
+        type: Object,
+        default: () => ({}),
+    },
+    blocks: {
+        type: Object,
+        default: () => ({}),
+    },
+    navigationLinks: {
+        type: Array,
+        default: () => [],
+    },
+    researchLinks: {
+        type: Array,
+        default: () => [],
+    },
+    informationLinks: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const fallbackNavigationLinks = [
+    { title: 'À propos', link_url: '#about' },
+    { title: 'Mission & Vision', link_url: '#mission' },
+    { title: 'Organisation', link_url: '#organisation' },
+    { title: 'Formation', link_url: '#formation' },
+];
+
+const fallbackResearchLinks = [
+    { title: 'Thématiques EAD 1', link_url: '#recherche' },
+    { title: 'Thématiques EAD 2', link_url: '#recherche' },
+    { title: 'Projets en cours', link_url: '#projets' },
+    { title: 'Partenariats', link_url: '#partenaires' },
+];
+
+const fallbackInformationLinks = [
+    { title: 'Nous contacter', link_url: '#contact' },
+    { title: 'Actualités', link_url: '#' },
+    { title: 'Bibliothèque numérique', link_url: '#' },
+    { title: 'Espace doctorant', link_url: '#' },
+];
+</script>
+
 <template>
     <footer>
         <div class="container">
@@ -11,37 +57,28 @@
                             </svg>
                         </div>
                         <div class="logo-text">
-                            <span class="logo-name">EDEN-UMG</span>
-                            <span class="logo-caption">Université de Mahajanga</span>
+                            <span class="logo-name">{{ site?.name ?? 'EDEN-UMG' }}</span>
+                            <span class="logo-caption">{{ site?.caption ?? 'Université de Mahajanga' }}</span>
                         </div>
                     </a>
-                    <p>École Doctorale Écosystèmes Naturels — Former les chercheurs de demain pour la préservation des écosystèmes malgaches et le développement durable.</p>
+                    <p>{{ blocks?.description ?? 'École Doctorale Écosystèmes Naturels — Former les chercheurs de demain pour la préservation des écosystèmes malgaches et le développement durable.' }}</p>
                 </div>
                 <div class="ft-col">
                     <h5>Navigation</h5>
-                    <a href="#about">À propos</a>
-                    <a href="#mission">Mission &amp; Vision</a>
-                    <a href="#organisation">Organisation</a>
-                    <a href="#formation">Formation</a>
+                    <a v-for="link in (navigationLinks?.length ? navigationLinks : fallbackNavigationLinks)" :key="link.title" :href="link.link_url ?? '#'">{{ link.title }}</a>
                 </div>
                 <div class="ft-col">
                     <h5>Recherche</h5>
-                    <a href="#recherche">Thématiques EAD 1</a>
-                    <a href="#recherche">Thématiques EAD 2</a>
-                    <a href="#projets">Projets en cours</a>
-                    <a href="#partenaires">Partenariats</a>
+                    <a v-for="link in (researchLinks?.length ? researchLinks : fallbackResearchLinks)" :key="link.title" :href="link.link_url ?? '#'">{{ link.title }}</a>
                 </div>
                 <div class="ft-col">
                     <h5>Informations</h5>
-                    <a href="#contact">Nous contacter</a>
-                    <a href="#">Actualités</a>
-                    <a href="#">Bibliothèque numérique</a>
-                    <a href="#">Espace doctorant</a>
+                    <a v-for="link in (informationLinks?.length ? informationLinks : fallbackInformationLinks)" :key="link.title" :href="link.link_url ?? '#'">{{ link.title }}</a>
                 </div>
             </div>
             <div class="ft-bottom">
-                <p>© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés.</p>
-                <p>Conçu pour l'excellence académique</p>
+                <p>{{ blocks?.copyright ?? '© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés.' }}</p>
+                <p>{{ blocks?.credit ?? "Conçu pour l'excellence académique" }}</p>
             </div>
         </div>
     </footer>

@@ -1,41 +1,65 @@
+<script setup>
+defineProps({
+    blocks: {
+        type: Object,
+        default: () => ({}),
+    },
+    items: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const fallbackTeams = [
+    {
+        title: 'Biodiversité et Écosystèmes Terrestres',
+        subtitle: 'Responsable : Dr. [Nom du Responsable EAD 1]',
+        meta: {
+            number: 'EAD 1',
+            themes: [
+                'Diversité floristique et fonctionnelle des forêts malgaches',
+                'Écologie des espèces endémiques et faune sauvage',
+                'Conservation des ressources génétiques végétales',
+                'Agroécologie et systèmes agricoles durables',
+                'Restauration des écosystèmes forestiers dégradés',
+            ],
+        },
+    },
+    {
+        title: 'Écosystèmes Aquatiques et Marins',
+        subtitle: 'Responsable : Dr. [Nom du Responsable EAD 2]',
+        meta: {
+            number: 'EAD 2',
+            themes: [
+                'Biodiversité et santé des récifs coralliens',
+                'Dynamique et conservation des mangroves',
+                'Ressources halieutiques et pêche durable',
+                'Qualité des eaux et écosystèmes lacustres',
+                'Ichtyologie et biologie marine côtière',
+            ],
+        },
+    },
+];
+</script>
+
 <template>
     <section id="organisation">
         <div class="container">
             <div class="section-header reveal">
-                <span class="eyebrow">Organisation</span>
-                <h2>Équipes d'Accueil Doctoral</h2>
-                <p>L'EDEN est structurée autour de deux Équipes d'Accueil Doctoral (EAD) regroupant chercheurs et doctorants autour de thématiques scientifiques complémentaires.</p>
+                <span class="eyebrow">{{ blocks?.eyebrow ?? 'Organisation' }}</span>
+                <h2>{{ blocks?.title ?? "Équipes d'Accueil Doctoral" }}</h2>
+                <p>{{ blocks?.description ?? "L'EDEN est structurée autour de deux Équipes d'Accueil Doctoral (EAD) regroupant chercheurs et doctorants autour de thématiques scientifiques complémentaires." }}</p>
             </div>
             <div class="ead-grid">
-                <div class="ead-card reveal">
+                <div v-for="team in (items?.length ? items : fallbackTeams)" :key="team.title" class="ead-card reveal">
                     <div class="ead-head">
-                        <p class="ead-num">EAD 1</p>
-                        <h3>Biodiversité et Écosystèmes Terrestres</h3>
-                        <p class="resp">Responsable : Dr. [Nom du Responsable EAD 1]</p>
+                        <p class="ead-num">{{ team.meta?.number ?? 'EAD 1' }}</p>
+                        <h3>{{ team.title }}</h3>
+                        <p class="resp">{{ team.subtitle }}</p>
                     </div>
                     <div class="ead-body">
                         <div class="ead-themes">
-                            <div class="ead-t">Diversité floristique et fonctionnelle des forêts malgaches</div>
-                            <div class="ead-t">Écologie des espèces endémiques et faune sauvage</div>
-                            <div class="ead-t">Conservation des ressources génétiques végétales</div>
-                            <div class="ead-t">Agroécologie et systèmes agricoles durables</div>
-                            <div class="ead-t">Restauration des écosystèmes forestiers dégradés</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="ead-card reveal">
-                    <div class="ead-head">
-                        <p class="ead-num">EAD 2</p>
-                        <h3>Écosystèmes Aquatiques et Marins</h3>
-                        <p class="resp">Responsable : Dr. [Nom du Responsable EAD 2]</p>
-                    </div>
-                    <div class="ead-body">
-                        <div class="ead-themes">
-                            <div class="ead-t">Biodiversité et santé des récifs coralliens</div>
-                            <div class="ead-t">Dynamique et conservation des mangroves</div>
-                            <div class="ead-t">Ressources halieutiques et pêche durable</div>
-                            <div class="ead-t">Qualité des eaux et écosystèmes lacustres</div>
-                            <div class="ead-t">Ichtyologie et biologie marine côtière</div>
+                            <div v-for="theme in (team.meta?.themes ?? [])" :key="theme" class="ead-t">{{ theme }}</div>
                         </div>
                     </div>
                 </div>

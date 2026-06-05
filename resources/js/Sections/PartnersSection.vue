@@ -1,34 +1,59 @@
+<script setup>
+defineProps({
+    blocks: {
+        type: Object,
+        default: () => ({}),
+    },
+    nationalPartners: {
+        type: Array,
+        default: () => [],
+    },
+    internationalPartners: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const fallbackNationalPartners = [
+    { title: "Université d'Antananarivo" },
+    { title: 'Université de Toliara' },
+    { title: 'CNRE Madagascar' },
+    { title: 'IRD Madagascar' },
+    { title: 'WWF Madagascar' },
+    { title: 'Madagascar National Parks' },
+    { title: 'WCS Madagascar' },
+];
+
+const fallbackInternationalPartners = [
+    { title: 'Université de La Réunion' },
+    { title: 'MNHN Paris' },
+    { title: 'Université de Bordeaux' },
+    { title: 'CIRAD' },
+    { title: 'Agence Française de Développement' },
+    { title: 'GEF — Fonds Mondial Environnement' },
+    { title: 'IUCN' },
+    { title: 'Union Européenne' },
+];
+</script>
+
 <template>
     <section id="partenaires">
         <div class="container">
             <div class="section-header reveal">
-                <span class="eyebrow">Partenariats</span>
-                <h2>Nos Partenaires</h2>
-                <p>L'EDEN développe des collaborations avec des organismes nationaux et internationaux de premier plan en matière de recherche environnementale et de conservation.</p>
+                <span class="eyebrow">{{ blocks?.eyebrow ?? 'Partenariats' }}</span>
+                <h2>{{ blocks?.title ?? 'Nos Partenaires' }}</h2>
+                <p>{{ blocks?.description ?? "L'EDEN développe des collaborations avec des organismes nationaux et internationaux de premier plan en matière de recherche environnementale et de conservation." }}</p>
             </div>
             <div class="part-section reveal">
-                <p class="part-type">Partenaires nationaux</p>
+                <p class="part-type">{{ blocks?.national_label ?? 'Partenaires nationaux' }}</p>
                 <div class="part-row">
-                    <span class="part-chip">Université d'Antananarivo</span>
-                    <span class="part-chip">Université de Toliara</span>
-                    <span class="part-chip">CNRE Madagascar</span>
-                    <span class="part-chip">IRD Madagascar</span>
-                    <span class="part-chip">WWF Madagascar</span>
-                    <span class="part-chip">Madagascar National Parks</span>
-                    <span class="part-chip">WCS Madagascar</span>
+                    <span v-for="partner in (nationalPartners?.length ? nationalPartners : fallbackNationalPartners)" :key="partner.title" class="part-chip">{{ partner.title }}</span>
                 </div>
             </div>
             <div class="part-section reveal">
-                <p class="part-type">Partenaires internationaux</p>
+                <p class="part-type">{{ blocks?.international_label ?? 'Partenaires internationaux' }}</p>
                 <div class="part-row">
-                    <span class="part-chip">Université de La Réunion</span>
-                    <span class="part-chip">MNHN Paris</span>
-                    <span class="part-chip">Université de Bordeaux</span>
-                    <span class="part-chip">CIRAD</span>
-                    <span class="part-chip">Agence Française de Développement</span>
-                    <span class="part-chip">GEF — Fonds Mondial Environnement</span>
-                    <span class="part-chip">IUCN</span>
-                    <span class="part-chip">Union Européenne</span>
+                    <span v-for="partner in (internationalPartners?.length ? internationalPartners : fallbackInternationalPartners)" :key="partner.title" class="part-chip">{{ partner.title }}</span>
                 </div>
             </div>
         </div>

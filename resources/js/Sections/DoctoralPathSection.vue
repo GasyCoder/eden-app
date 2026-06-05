@@ -1,59 +1,78 @@
+<script setup>
+defineProps({
+    blocks: {
+        type: Object,
+        default: () => ({}),
+    },
+    conditions: {
+        type: Array,
+        default: () => [],
+    },
+    steps: {
+        type: Array,
+        default: () => [],
+    },
+    units: {
+        type: Array,
+        default: () => [],
+    },
+});
+
+const fallbackConditions = [
+    { title: "Être titulaire d'un Master 2 ou diplôme équivalent" },
+    { title: "Disposer d'un projet de recherche rédigé et validé" },
+    { title: 'Avoir un directeur de thèse habilité (HDR)' },
+    { title: "Réussir l'entretien devant le Conseil de l'École Doctorale" },
+    { title: "Obtenir l'inscription administrative à l'Université de Mahajanga" },
+];
+
+const fallbackSteps = [
+    { subtitle: 'Année 1', title: 'Initiation à la Recherche', description: 'Séminaires, revue bibliographique, protocole expérimental', meta: { number: '1' } },
+    { subtitle: 'Année 2', title: 'Recherche Active', description: 'Terrains, analyses, publications, conférences', meta: { number: '2' } },
+    { subtitle: 'Année 3', title: 'Rédaction & Soutenance', description: 'Rédaction de thèse, pré-soutenance, soutenance publique', meta: { number: '3' } },
+];
+
+const fallbackUnits = [
+    { title: 'Méthodologie de la recherche scientifique' },
+    { title: 'Biostatistiques et analyse de données' },
+    { title: 'Rédaction et publication scientifique' },
+    { title: 'Éthique et déontologie de la recherche' },
+    { title: 'Valorisation et transfert de connaissances' },
+];
+</script>
+
 <template>
     <section id="formation">
         <div class="container">
             <div class="section-header reveal">
-                <span class="eyebrow">Formation</span>
-                <h2>Parcours Doctoral</h2>
-                <p>L'EDEN offre une formation de 3 ans alliant excellence scientifique, encadrement personnalisé et développement des compétences du chercheur.</p>
+                <span class="eyebrow">{{ blocks?.eyebrow ?? 'Formation' }}</span>
+                <h2>{{ blocks?.title ?? 'Parcours Doctoral' }}</h2>
+                <p>{{ blocks?.description ?? "L'EDEN offre une formation de 3 ans alliant excellence scientifique, encadrement personnalisé et développement des compétences du chercheur." }}</p>
             </div>
             <div class="formation-grid">
                 <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">Conditions d'Admission</h3>
+                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">{{ blocks?.conditions_title ?? "Conditions d'Admission" }}</h3>
                     <div class="check-list">
-                        <div class="check-i">Être titulaire d'un Master 2 ou diplôme équivalent</div>
-                        <div class="check-i">Disposer d'un projet de recherche rédigé et validé</div>
-                        <div class="check-i">Avoir un directeur de thèse habilité (HDR)</div>
-                        <div class="check-i">Réussir l'entretien devant le Conseil de l'École Doctorale</div>
-                        <div class="check-i">Obtenir l'inscription administrative à l'Université de Mahajanga</div>
+                        <div v-for="condition in (conditions?.length ? conditions : fallbackConditions)" :key="condition.title" class="check-i">{{ condition.title }}</div>
                     </div>
                 </div>
                 <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">Parcours en 3 Ans</h3>
+                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">{{ blocks?.path_title ?? 'Parcours en 3 Ans' }}</h3>
                     <div class="parcours">
-                        <div class="step">
-                            <div class="step-l"><div class="step-dot">1</div><div class="step-line"></div></div>
+                        <div v-for="step in (steps?.length ? steps : fallbackSteps)" :key="step.title" class="step">
+                            <div class="step-l"><div class="step-dot">{{ step.meta?.number ?? '1' }}</div><div class="step-line"></div></div>
                             <div class="step-r">
-                                <p class="step-yr">Année 1</p>
-                                <p class="step-t">Initiation à la Recherche</p>
-                                <p class="step-d">Séminaires, revue bibliographique, protocole expérimental</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-l"><div class="step-dot">2</div><div class="step-line"></div></div>
-                            <div class="step-r">
-                                <p class="step-yr">Année 2</p>
-                                <p class="step-t">Recherche Active</p>
-                                <p class="step-d">Terrains, analyses, publications, conférences</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-l"><div class="step-dot">3</div><div class="step-line"></div></div>
-                            <div class="step-r">
-                                <p class="step-yr">Année 3</p>
-                                <p class="step-t">Rédaction &amp; Soutenance</p>
-                                <p class="step-d">Rédaction de thèse, pré-soutenance, soutenance publique</p>
+                                <p class="step-yr">{{ step.subtitle }}</p>
+                                <p class="step-t">{{ step.title }}</p>
+                                <p class="step-d">{{ step.description }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">Unités de Formation</h3>
+                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;">{{ blocks?.units_title ?? 'Unités de Formation' }}</h3>
                     <div class="check-list">
-                        <div class="check-i">Méthodologie de la recherche scientifique</div>
-                        <div class="check-i">Biostatistiques et analyse de données</div>
-                        <div class="check-i">Rédaction et publication scientifique</div>
-                        <div class="check-i">Éthique et déontologie de la recherche</div>
-                        <div class="check-i">Valorisation et transfert de connaissances</div>
+                        <div v-for="unit in (units?.length ? units : fallbackUnits)" :key="unit.title" class="check-i">{{ unit.title }}</div>
                     </div>
                 </div>
             </div>
