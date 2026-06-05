@@ -40,6 +40,7 @@ const upload = async (event) => {
     try {
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('content_key', props.contentKey);
 
         const response = await fetch('/admin/uploads/images', {
             method: 'POST',

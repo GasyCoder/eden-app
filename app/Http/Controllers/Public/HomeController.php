@@ -23,6 +23,11 @@ class HomeController extends Controller
                     ImageVariantService::HERO_WIDTHS,
                     ImageVariantService::HERO_SIZES,
                 ),
+                'siteLogo' => $images->forUrl(
+                    $blocks['site']['logo'] ?? null,
+                    ImageVariantService::LOGO_WIDTHS,
+                    ImageVariantService::LOGO_SIZES,
+                ),
             ],
             'canEdit' => (bool) request()->user()?->is_admin,
         ]);

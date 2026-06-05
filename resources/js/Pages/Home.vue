@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
     <Toast />
 
-    <Navbar :blocks="blocks.site" :nav="blocks.nav" :can-edit="editMode" />
+    <Navbar :blocks="blocks.site" :nav="blocks.nav" :logo-variants="performance.siteLogo" :can-edit="editMode" />
     <HeroSection :blocks="blocks.hero" :image-variants="performance.heroImage" :can-edit="editMode" />
     <AboutSection :blocks="blocks.about" :stats="blocks.stats" :can-edit="editMode" />
     <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" :can-edit="editMode" />
@@ -120,6 +120,7 @@ onBeforeUnmount(() => {
         :research-links="collections.footer_research"
         :information-links="collections.footer_information"
         :social-links="collections.footer_socials"
+        :logo-variants="performance.siteLogo"
         :can-edit="editMode"
     />
 

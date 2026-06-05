@@ -5,6 +5,7 @@ use App\Models\ContentItem;
 use App\Services\ImageVariantService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -12,10 +13,17 @@ Artisan::command('inspire', function () {
 
 Artisan::command('content:generate-image-variants', function () {
     $images = app(ImageVariantService::class);
+    $before = count(Storage::disk('public')->allFiles('content/optimized'));
     $heroImage = ContentBlock::query()->where('key', 'hero.image')->value('value');
 
     if ($heroImage) {
         $images->forUrl($heroImage, ImageVariantService::HERO_WIDTHS, ImageVariantService::HERO_SIZES);
+    }
+
+    $siteLogo = ContentBlock::query()->where('key', 'site.logo')->value('value');
+
+    if ($siteLogo) {
+        $images->forUrl($siteLogo, ImageVariantService::LOGO_WIDTHS, ImageVariantService::LOGO_SIZES);
     }
 
     $urls = ContentBlock::query()
@@ -27,7 +35,8 @@ Artisan::command('content:generate-image-variants', function () {
         ->unique()
         ->values();
 
-    $count = $images->generateForUrls($urls);
+    $images->generateForUrls($urls);
+    $count = max(0, count(Storage::disk('public')->allFiles('content/optimized')) - $before);
 
     $this->info("Variantes d'images vérifiées pour {$urls->count()} image(s).");
     $this->info("Nouvelles variantes générées : {$count}.");

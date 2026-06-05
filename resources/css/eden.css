@@ -322,6 +322,11 @@ section { padding: 6rem 0; position: relative; }
   box-shadow: none;
   color: inherit;
 }
+.logo-mark picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .logo-mark img {
   width: 100%;
   height: 100%;
