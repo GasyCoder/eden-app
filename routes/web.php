@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function (): void {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    // Chemin d'authentification personnalisé (les chemins par défaut /login, /register,
+    // mot de passe oublié n'existent pas et renvoient donc 404).
+    Route::get('/me/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/me/login', [AuthenticatedSessionController::class, 'store']);
 });
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])

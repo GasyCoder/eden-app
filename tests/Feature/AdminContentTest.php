@@ -15,7 +15,7 @@ test('guest cannot update content blocks', function () {
 
     $this->patch('/admin/content-blocks/hero.title', [
         'value' => 'New title',
-    ])->assertRedirect('/login');
+    ])->assertRedirect('/me/login');
 });
 
 test('admin can update content blocks', function () {
