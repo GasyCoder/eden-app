@@ -1152,6 +1152,51 @@ html[data-theme="dark"] .eden-admin-toolbar {
   transform: translateY(-2px);
   box-shadow: var(--sh-lg);
 }
+/* ── Invite d'installation PWA ──────────────── */
+.eden-install {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 290;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: min(440px, calc(100vw - 2rem));
+  padding: 0.85rem 1rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--rm);
+  box-shadow: var(--sh-lg);
+}
+.eden-install-ic { width: 46px; height: 46px; border-radius: 10px; flex-shrink: 0; }
+.eden-install-body { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; min-width: 0; }
+.eden-install-body strong { font-family: var(--fb); font-size: 0.92rem; color: var(--g800); }
+.eden-install-body span { font-size: 0.8rem; color: var(--g500); line-height: 1.35; }
+.eden-install-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+.eden-install-btn {
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--green);
+  border-radius: var(--r);
+  background: var(--green);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.eden-install-btn:hover { background: var(--green-3); }
+.eden-install-close {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g500);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.eden-install-close:hover { color: var(--g800); border-color: var(--g300); }
+.eden-install-enter-active, .eden-install-leave-active { transition: transform 0.3s ease, opacity 0.3s ease; }
+.eden-install-enter-from, .eden-install-leave-to { transform: translate(-50%, 120%); opacity: 0; }
+
 /* ── Toasts ─────────────────────────────────── */
 .eden-toasts {
   position: fixed;

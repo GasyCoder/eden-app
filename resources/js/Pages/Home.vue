@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Toast from '@/Components/Toast.vue';
+import InstallPrompt from '@/Components/InstallPrompt.vue';
 import AdminToolbar from '@/Components/Admin/AdminToolbar.vue';
 import Footer from '@/Components/Layout/Footer.vue';
 import Navbar from '@/Components/Layout/Navbar.vue';
@@ -84,6 +85,7 @@ onBeforeUnmount(() => {
 
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
     <Toast />
+    <InstallPrompt />
 
     <Navbar :blocks="blocks.site" :nav="blocks.nav" :logo-variants="performance.siteLogo" :can-edit="editMode" />
     <HeroSection :blocks="blocks.hero" :image-variants="performance.heroImage" :can-edit="editMode" />
