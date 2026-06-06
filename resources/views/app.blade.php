@@ -48,7 +48,7 @@
         {{-- PWA & favicon (favicon modifiable par le superadmin) --}}
         <link rel="manifest" href="/manifest.webmanifest">
         <link rel="icon" href="{{ $seo['favicon'] }}" sizes="any">
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+        <link rel="apple-touch-icon" href="/pwa/icon-180.png">
         @if($heroPreload)
             <link
                 rel="preload"
