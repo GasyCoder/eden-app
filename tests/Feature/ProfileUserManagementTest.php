@@ -69,6 +69,27 @@ test('superadmin profile receives editor list', function () {
             ->where('editors.0.email', 'visible@example.com'));
 });
 
+test('authenticated admin can update profile information through method spoofing', function () {
+    $admin = User::factory()->create([
+        'name' => 'Ancien Nom',
+        'email' => 'ancien@example.com',
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $this->actingAs($admin)
+        ->post('/me/profile', [
+            '_method' => 'PATCH',
+            'name' => 'Nouveau Nom',
+            'email' => 'nouveau@example.com',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Profil mis à jour.');
+
+    expect($admin->refresh()->name)->toBe('Nouveau Nom')
+        ->and($admin->email)->toBe('nouveau@example.com');
+});
+
 test('authenticated admin can update profile photo', function () {
     Storage::fake('public');
 

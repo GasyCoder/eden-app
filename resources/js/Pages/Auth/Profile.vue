@@ -61,12 +61,20 @@ const editorForm = useForm({
     password_confirmation: '',
 });
 
-const submitProfile = () => profileForm.patch('/me/profile', { preserveScroll: true });
+const submitProfile = () => profileForm
+    .transform((data) => ({ ...data, _method: 'PATCH' }))
+    .post('/me/profile', {
+        preserveScroll: true,
+        onFinish: () => profileForm.transform((data) => data),
+    });
 
-const submitPassword = () => passwordForm.put('/me/password', {
-    preserveScroll: true,
-    onSuccess: () => passwordForm.reset(),
-});
+const submitPassword = () => passwordForm
+    .transform((data) => ({ ...data, _method: 'PUT' }))
+    .post('/me/password', {
+        preserveScroll: true,
+        onSuccess: () => passwordForm.reset(),
+        onFinish: () => passwordForm.transform((data) => data),
+    });
 
 const onProfilePhoto = (event) => {
     const file = event.target.files?.[0] ?? null;
