@@ -8,6 +8,7 @@ use App\Support\ThemeSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -65,6 +66,27 @@ class ProfileController extends Controller
         ]);
 
         return back(303)->with('success', 'Mot de passe mis à jour.');
+    }
+
+    public function updatePhoto(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'photo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+        ]);
+
+        $user = $request->user();
+        $previousPath = $user->profile_photo_path;
+        $path = $validated['photo']->store('profile-photos', 'public');
+
+        $user->update([
+            'profile_photo_path' => $path,
+        ]);
+
+        if ($previousPath) {
+            Storage::disk('public')->delete($previousPath);
+        }
+
+        return back(303)->with('success', 'Photo de profil mise à jour.');
     }
 
     public function storeEditor(Request $request): RedirectResponse

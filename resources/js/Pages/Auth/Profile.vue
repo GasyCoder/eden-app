@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { computed, reactive } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import Toast from '@/Components/Toast.vue';
 
 const props = defineProps({
@@ -28,6 +28,7 @@ const roleDescription = computed(() => (
         : 'Accès aux contenus éditables du site, sauf les réglages réservés au superadmin.'
 ));
 const editorsCount = computed(() => props.editors.length);
+const userInitial = computed(() => (user.value.name ?? user.value.email ?? 'A').charAt(0).toUpperCase());
 
 const profileForm = useForm({
     name: user.value.name ?? '',
@@ -38,6 +39,19 @@ const passwordForm = useForm({
     current_password: '',
     password: '',
     password_confirmation: '',
+});
+
+const profilePhotoForm = useForm({
+    photo: null,
+});
+
+const profilePhotoPreview = ref(user.value.profile_photo_url ?? null);
+let profilePhotoObjectUrl = null;
+
+watch(() => user.value.profile_photo_url, (url) => {
+    if (!profilePhotoForm.photo) {
+        profilePhotoPreview.value = url ?? null;
+    }
 });
 
 const editorForm = useForm({
@@ -52,6 +66,39 @@ const submitProfile = () => profileForm.patch('/me/profile', { preserveScroll: t
 const submitPassword = () => passwordForm.put('/me/password', {
     preserveScroll: true,
     onSuccess: () => passwordForm.reset(),
+});
+
+const onProfilePhoto = (event) => {
+    const file = event.target.files?.[0] ?? null;
+    profilePhotoForm.photo = file;
+
+    if (profilePhotoObjectUrl) {
+        URL.revokeObjectURL(profilePhotoObjectUrl);
+        profilePhotoObjectUrl = null;
+    }
+
+    if (file) {
+        profilePhotoObjectUrl = URL.createObjectURL(file);
+        profilePhotoPreview.value = profilePhotoObjectUrl;
+        return;
+    }
+
+    profilePhotoPreview.value = user.value.profile_photo_url ?? null;
+};
+
+const submitProfilePhoto = () => profilePhotoForm.post('/me/profile/photo', {
+    preserveScroll: true,
+    forceFormData: true,
+    onSuccess: () => {
+        profilePhotoForm.reset('photo');
+
+        if (profilePhotoObjectUrl) {
+            URL.revokeObjectURL(profilePhotoObjectUrl);
+            profilePhotoObjectUrl = null;
+        }
+
+        profilePhotoPreview.value = user.value.profile_photo_url ?? profilePhotoPreview.value;
+    },
 });
 
 const submitEditor = () => editorForm.post('/me/users', {
@@ -106,6 +153,12 @@ const submitColors = () => {
     colorsForm.colors = payload;
     colorsForm.post('/me/settings', { preserveScroll: true });
 };
+
+onBeforeUnmount(() => {
+    if (profilePhotoObjectUrl) {
+        URL.revokeObjectURL(profilePhotoObjectUrl);
+    }
+});
 </script>
 
 <template>
@@ -292,6 +345,51 @@ const submitColors = () => {
                 </div>
 
                 <aside class="profile-side">
+                    <form class="card profile-card profile-photo-card" @submit.prevent="submitProfilePhoto">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Photo</span>
+                            <h2>Photo de profil</h2>
+                            <p>Elle s'affiche dans la barre verticale gauche lorsque vous êtes connecté.</p>
+                        </div>
+
+                        <div class="profile-photo-panel">
+                            <div class="profile-avatar-preview">
+                                <img
+                                    v-if="profilePhotoPreview"
+                                    :src="profilePhotoPreview"
+                                    :alt="`Photo de ${user.name}`"
+                                    width="92"
+                                    height="92"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                                <span v-else>{{ userInitial }}</span>
+                                <span v-if="profilePhotoForm.processing" class="eden-upload-skeleton" role="status" aria-live="polite">
+                                    <span class="eden-upload-content">
+                                        <span class="eden-upload-spinner"></span>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div class="profile-photo-fields">
+                                <input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp"
+                                    :disabled="profilePhotoForm.processing"
+                                    @change="onProfilePhoto"
+                                >
+                                <small>PNG, JPG ou WebP. Taille maximale : 2 Mo.</small>
+                                <small v-if="profilePhotoForm.errors.photo" class="profile-error">{{ profilePhotoForm.errors.photo }}</small>
+                            </div>
+                        </div>
+
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="profilePhotoForm.processing || !profilePhotoForm.photo">
+                                {{ profilePhotoForm.processing ? 'Téléversement...' : 'Enregistrer la photo' }}
+                            </button>
+                        </div>
+                    </form>
+
                     <section class="card profile-card profile-role-card">
                         <div class="profile-role-top">
                             <span class="profile-role-badge">{{ roleLabel }}</span>

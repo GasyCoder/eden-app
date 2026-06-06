@@ -63,9 +63,25 @@ const logout = () => {
 <template>
     <template v-if="canEdit">
         <aside v-if="pinned" class="eden-admin-toolbar" aria-label="Mode édition administrateur">
-            <div class="eden-admin-status" :title="`${user?.email ?? 'Administrateur'} — ${roleLabel}`">
-                {{ (user?.email ?? 'A').charAt(0).toUpperCase() }}
-            </div>
+            <button
+                class="eden-admin-status"
+                :class="{ 'has-photo': user?.profile_photo_url }"
+                type="button"
+                :title="`${user?.email ?? 'Administrateur'} — ${roleLabel}`"
+                :aria-label="`Profil de ${user?.name ?? 'l’administrateur'}`"
+                @click="goProfile"
+            >
+                <img
+                    v-if="user?.profile_photo_url"
+                    :src="user.profile_photo_url"
+                    :alt="`Photo de ${user?.name ?? 'administrateur'}`"
+                    width="38"
+                    height="38"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <span v-else>{{ (user?.email ?? 'A').charAt(0).toUpperCase() }}</span>
+            </button>
             <span class="eden-admin-sep"></span>
 
             <button
@@ -107,7 +123,19 @@ const logout = () => {
             aria-label="Afficher la barre d’édition"
             @click="pinned = true"
         >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <img
+                v-if="user?.profile_photo_url"
+                :src="user.profile_photo_url"
+                :alt="`Photo de ${user?.name ?? 'administrateur'}`"
+                width="46"
+                height="46"
+                loading="lazy"
+                decoding="async"
+            >
+            <span v-else class="eden-admin-mini-initial">{{ (user?.email ?? 'A').charAt(0).toUpperCase() }}</span>
+            <span class="eden-admin-mini-edit" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            </span>
         </button>
 
         <AdminHistoryPanel :open="historyOpen" @close="historyOpen = false" />

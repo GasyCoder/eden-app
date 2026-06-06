@@ -1083,6 +1083,153 @@ input[type="file"]:disabled {
   font-size: 0.76rem;
   font-weight: 600;
 }
+.eden-crop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 420;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(15, 23, 18, 0.58);
+}
+.eden-crop-modal {
+  width: min(620px, 100%);
+  max-height: min(92vh, 820px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--rm);
+  background: var(--white);
+  color: var(--g800);
+  box-shadow: var(--sh-lg);
+}
+.eden-crop-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+.eden-crop-header div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.eden-crop-header strong {
+  color: var(--g800);
+  font-family: var(--fb);
+  font-size: 1rem;
+}
+.eden-crop-header span {
+  color: var(--g500);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.eden-crop-header button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g700);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.eden-crop-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.1rem;
+}
+.eden-crop-frame {
+  position: relative;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--border-2);
+  border-radius: var(--rm);
+  background: var(--beige-d);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.eden-crop-frame.is-dragging {
+  cursor: grabbing;
+}
+.eden-crop-frame img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+.eden-crop-grid {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255,255,255,0.6);
+  background:
+    linear-gradient(to right, transparent 33.333%, rgba(255,255,255,0.55) 33.333%, rgba(255,255,255,0.55) calc(33.333% + 1px), transparent calc(33.333% + 1px), transparent 66.666%, rgba(255,255,255,0.55) 66.666%, rgba(255,255,255,0.55) calc(66.666% + 1px), transparent calc(66.666% + 1px)),
+    linear-gradient(to bottom, transparent 33.333%, rgba(255,255,255,0.55) 33.333%, rgba(255,255,255,0.55) calc(33.333% + 1px), transparent calc(33.333% + 1px), transparent 66.666%, rgba(255,255,255,0.55) 66.666%, rgba(255,255,255,0.55) calc(66.666% + 1px), transparent calc(66.666% + 1px));
+  box-shadow: inset 0 0 0 999px rgba(0,0,0,0.04);
+  pointer-events: none;
+}
+.eden-crop-controls {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 0.75rem;
+}
+.eden-crop-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--green);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.eden-crop-controls input[type="range"] {
+  width: 100%;
+  accent-color: var(--green);
+}
+.eden-crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  border-top: 1px solid var(--border);
+}
+.eden-crop-actions button {
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g700);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.eden-crop-actions button:last-child {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--on-green, #fff);
+}
+.eden-crop-actions button:disabled,
+.eden-crop-controls button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
 .eden-edit-actions button:disabled,
 .eden-collection-actions button:disabled,
 .eden-collection-toolbar button:disabled,
@@ -1109,6 +1256,7 @@ input[type="file"]:disabled {
   box-shadow: var(--sh-md);
 }
 .eden-admin-status {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1120,7 +1268,40 @@ input[type="file"]:disabled {
   font-family: var(--fh);
   font-weight: 700;
   font-size: 0.95rem;
-  cursor: default;
+  cursor: pointer;
+  overflow: hidden;
+  border: 0;
+}
+.eden-admin-status.has-photo {
+  background: var(--beige-d);
+  border: 1px solid var(--border-2);
+}
+.eden-admin-status img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.eden-admin-avatar-edit,
+.eden-admin-mini-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--on-green, #fff);
+  box-shadow: var(--sh);
+}
+.eden-admin-avatar-edit {
+  width: 17px;
+  height: 17px;
+}
+.eden-admin-avatar-edit svg {
+  width: 10px;
+  height: 10px;
 }
 .eden-admin-sep {
   width: 24px;
@@ -1166,18 +1347,45 @@ input[type="file"]:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: 1px solid var(--green);
   background: var(--green);
   color: var(--on-green, #fff);
-  box-shadow: var(--sh-md);
+  box-shadow: var(--sh-lg);
   transition: transform 0.18s, box-shadow 0.18s;
+  overflow: visible;
 }
-.eden-admin-mini svg {
-  width: 20px;
-  height: 20px;
+.eden-admin-mini > img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.eden-admin-mini-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--on-green, #fff);
+  font-family: var(--fh);
+  font-weight: 700;
+  font-size: 1.45rem;
+}
+.eden-admin-mini-edit {
+  right: -7px;
+  bottom: 7px;
+  width: 26px;
+  height: 26px;
+  border-width: 2px;
+}
+.eden-admin-mini-edit svg {
+  width: 15px;
+  height: 15px;
 }
 .eden-admin-mini:hover {
   transform: translateY(-50%) scale(1.05);
@@ -1416,6 +1624,55 @@ input[type="file"]:disabled {
 .profile-role-card {
   border-color: var(--border-2);
 }
+.profile-photo-card {
+  overflow: hidden;
+}
+.profile-photo-panel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.profile-avatar-preview {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 92px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-2);
+  border-radius: 50%;
+  background: var(--green-lt);
+  color: var(--green);
+  font-family: var(--fh);
+  font-size: 1.65rem;
+  font-weight: 700;
+  box-shadow: var(--sh);
+}
+.profile-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-photo-fields {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.profile-photo-fields input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  color: var(--g500);
+  font-size: 0.82rem;
+}
+.profile-photo-fields small {
+  color: var(--g500);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
 .profile-role-top {
   display: flex;
   align-items: center;
@@ -1615,6 +1872,8 @@ input[type="file"]:disabled {
   .profile-card { padding: 1.2rem; }
   .profile-form-grid,
   .profile-upload-grid { grid-template-columns: 1fr; }
+  .profile-photo-panel { align-items: flex-start; }
+  .profile-avatar-preview { width: 76px; height: 76px; font-size: 1.35rem; }
   .profile-color-row { grid-template-columns: minmax(0, 1fr) 42px; }
   .profile-color-value { grid-column: 1 / -1; text-align: left; }
   .profile-card-actions,
@@ -1850,7 +2109,13 @@ html[data-theme="dark"] .eden-toast-error .eden-toast-ic { background: rgba(185,
   }
   .eden-admin-btn { width: 38px; height: 38px; }
   .eden-admin-status { width: 34px; height: 34px; font-size: 0.85rem; }
-  .eden-admin-mini { left: 0.5rem; }
+  .eden-admin-avatar-edit { width: 15px; height: 15px; }
+  .eden-admin-avatar-edit svg { width: 9px; height: 9px; }
+  .eden-admin-mini { left: 0.5rem; width: 56px; height: 56px; border-radius: 50%; }
+  .eden-admin-mini > img,
+  .eden-admin-mini-initial { width: 56px; height: 56px; border-radius: 50%; }
+  .eden-admin-mini-edit { right: -6px; bottom: 5px; width: 21px; height: 21px; }
+  .eden-admin-mini-edit svg { width: 12px; height: 12px; }
   .eden-history-row {
     grid-template-columns: 1fr;
   }

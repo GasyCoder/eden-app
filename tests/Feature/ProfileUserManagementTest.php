@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('superadmin can create an editor user from profile', function () {
@@ -65,4 +67,31 @@ test('superadmin profile receives editor list', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->has('editors', 1)
             ->where('editors.0.email', 'visible@example.com'));
+});
+
+test('authenticated admin can update profile photo', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $this->actingAs($admin)
+        ->post('/me/profile/photo', [
+            'photo' => UploadedFile::fake()->image('profile.jpg', 320, 320),
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Photo de profil mise à jour.');
+
+    $path = $admin->refresh()->profile_photo_path;
+
+    expect($path)->not->toBeNull();
+    Storage::disk('public')->assertExists($path);
+
+    $this->actingAs($admin)
+        ->get('/me/profile')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('auth.user.profile_photo_url', Storage::url($path)));
 });

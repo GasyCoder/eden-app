@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/me/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/me/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/me/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/me/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::post('/me/users', [ProfileController::class, 'storeEditor'])->name('profile.users.store');
 
     // Référencement (SEO) + favicon — superadmin uniquement (vérifié dans le contrôleur)
