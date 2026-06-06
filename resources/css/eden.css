@@ -753,8 +753,12 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
 @media (max-width: 768px) {
   section { padding: 3.75rem 0; }
   .container { padding: 0 1.25rem; }
-  .theme-toggle { margin-left: auto; }
-  .menu-btn { display: flex; margin-left: 0.5rem; }
+  /* Le logo se rétracte pour toujours laisser la place au toggle + burger */
+  .logo { flex: 1 1 auto; min-width: 0; }
+  .logo-text { min-width: 0; }
+  .logo-name, .logo-caption { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .theme-toggle { margin-left: 0.5rem; flex-shrink: 0; }
+  .menu-btn { display: flex; margin-left: 0.5rem; flex-shrink: 0; }
   nav#mainNav {
     position: fixed; top: 88px; left: 0; right: 0; bottom: 0;
     display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start;
@@ -786,7 +790,8 @@ footer { background: var(--green-3); padding: 4.5rem 0 2rem; color: rgba(255,255
 }
 @media (max-width: 480px) {
   .logo { gap: 0.65rem; }
-  .logo-mark { width: 70px; height: 70px; }
+  .logo-mark { width: 56px; height: 56px; }
+  .logo-caption { display: none; }
   .hero-actions { flex-direction: column; align-items: stretch; }
   .hero-actions .btn { justify-content: center; }
   .chiffres-grid { grid-template-columns: 1fr 1fr; }
