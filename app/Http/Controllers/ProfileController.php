@@ -109,4 +109,43 @@ class ProfileController extends Controller
 
         return back(303)->with('success', 'Éditeur créé.');
     }
+
+    public function updateEditor(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403, 'Réservé au superadmin.');
+        abort_unless($user->isEditor(), 404);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'password' => ['nullable', 'confirmed', Password::min(8)],
+        ]);
+
+        $user->fill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return back(303)->with('success', 'Éditeur mis à jour.');
+    }
+
+    public function destroyEditor(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($request->user()?->isSuperAdmin(), 403, 'Réservé au superadmin.');
+        abort_unless($user->isEditor(), 404);
+
+        if ($user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        $user->delete();
+
+        return back(303)->with('success', 'Éditeur supprimé.');
+    }
 }

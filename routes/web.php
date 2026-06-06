@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/me/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/me/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::post('/me/users', [ProfileController::class, 'storeEditor'])->name('profile.users.store');
+    Route::patch('/me/users/{user}', [ProfileController::class, 'updateEditor'])->name('profile.users.update');
+    Route::delete('/me/users/{user}', [ProfileController::class, 'destroyEditor'])->name('profile.users.destroy');
     Route::post('/me/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
     // Référencement (SEO) + favicon — superadmin uniquement (vérifié dans le contrôleur)

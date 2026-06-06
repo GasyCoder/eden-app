@@ -114,6 +114,53 @@ const submitEditor = () => editorForm.post('/me/users', {
     onSuccess: () => editorForm.reset(),
 });
 
+const editingEditorId = ref(null);
+const editorUpdateForm = useForm({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+});
+const editorDeleteForm = useForm({});
+
+const startEditEditor = (editor) => {
+    editingEditorId.value = editor.id;
+    editorUpdateForm.clearErrors();
+    editorUpdateForm.name = editor.name ?? '';
+    editorUpdateForm.email = editor.email ?? '';
+    editorUpdateForm.password = '';
+    editorUpdateForm.password_confirmation = '';
+};
+
+const cancelEditEditor = () => {
+    editingEditorId.value = null;
+    editorUpdateForm.clearErrors();
+    editorUpdateForm.reset();
+};
+
+const submitEditorUpdate = (editor) => {
+    editorUpdateForm
+        .transform((data) => ({ ...data, _method: 'PATCH' }))
+        .post(`/me/users/${editor.id}`, {
+            preserveScroll: true,
+            onSuccess: () => cancelEditEditor(),
+            onFinish: () => editorUpdateForm.transform((data) => data),
+        });
+};
+
+const deleteEditor = (editor) => {
+    if (!window.confirm(`Supprimer le compte éditeur "${editor.name}" ?`)) {
+        return;
+    }
+
+    editorDeleteForm
+        .transform(() => ({ _method: 'DELETE' }))
+        .post(`/me/users/${editor.id}`, {
+            preserveScroll: true,
+            onFinish: () => editorDeleteForm.transform((data) => data),
+        });
+};
+
 // Référencement & favicon (superadmin uniquement)
 const settingsForm = useForm({
     title: props.seo.title ?? '',
@@ -468,11 +515,52 @@ onBeforeUnmount(() => {
 
                         <div v-if="editors.length" class="profile-editor-list">
                             <div v-for="editor in editors" :key="editor.id" class="profile-editor-row">
-                                <div>
-                                    <strong>{{ editor.name }}</strong>
-                                    <span>{{ editor.email }}</span>
-                                </div>
-                                <small>{{ editor.created_at }}</small>
+                                <template v-if="editingEditorId === editor.id">
+                                    <form class="profile-editor-edit" @submit.prevent="submitEditorUpdate(editor)">
+                                        <label class="profile-field">
+                                            <span>Nom</span>
+                                            <input v-model="editorUpdateForm.name" type="text" required class="eden-edit-input">
+                                            <small v-if="editorUpdateForm.errors.name" class="profile-error">{{ editorUpdateForm.errors.name }}</small>
+                                        </label>
+                                        <label class="profile-field">
+                                            <span>Email</span>
+                                            <input v-model="editorUpdateForm.email" type="email" required class="eden-edit-input">
+                                            <small v-if="editorUpdateForm.errors.email" class="profile-error">{{ editorUpdateForm.errors.email }}</small>
+                                        </label>
+                                        <label class="profile-field">
+                                            <span>Nouveau mot de passe</span>
+                                            <input v-model="editorUpdateForm.password" type="password" autocomplete="new-password" class="eden-edit-input" placeholder="Optionnel">
+                                            <small v-if="editorUpdateForm.errors.password" class="profile-error">{{ editorUpdateForm.errors.password }}</small>
+                                        </label>
+                                        <label class="profile-field">
+                                            <span>Confirmation</span>
+                                            <input v-model="editorUpdateForm.password_confirmation" type="password" autocomplete="new-password" class="eden-edit-input" placeholder="Optionnel">
+                                        </label>
+                                        <div class="profile-editor-edit-actions">
+                                            <button type="submit" class="profile-icon-action is-save" :disabled="editorUpdateForm.processing" :title="editorUpdateForm.processing ? 'Enregistrement...' : 'Enregistrer'" :aria-label="editorUpdateForm.processing ? 'Enregistrement...' : 'Enregistrer'">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                                            </button>
+                                            <button type="button" class="profile-icon-action" :disabled="editorUpdateForm.processing" title="Annuler" aria-label="Annuler" @click="cancelEditEditor">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </template>
+                                <template v-else>
+                                    <div>
+                                        <strong>{{ editor.name }}</strong>
+                                        <span>{{ editor.email }}</span>
+                                    </div>
+                                    <small>{{ editor.created_at }}</small>
+                                    <div class="profile-editor-actions">
+                                        <button type="button" class="profile-icon-action" title="Modifier l'éditeur" aria-label="Modifier l'éditeur" @click="startEditEditor(editor)">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+                                        </button>
+                                        <button type="button" class="profile-icon-action is-danger" :disabled="editorDeleteForm.processing" title="Supprimer l'éditeur" aria-label="Supprimer l'éditeur" @click="deleteEditor(editor)">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>
+                                        </button>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                         <p v-else class="profile-empty">Aucun éditeur créé pour le moment.</p>

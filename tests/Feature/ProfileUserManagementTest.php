@@ -48,6 +48,89 @@ test('editor cannot create another editor user', function () {
     expect(User::where('email', 'blocked@example.com')->exists())->toBeFalse();
 });
 
+test('superadmin can update an editor user', function () {
+    $superadmin = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'superadmin',
+    ]);
+
+    $editor = User::factory()->create([
+        'name' => 'Ancien Éditeur',
+        'email' => 'old-editor@example.com',
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $this->actingAs($superadmin)
+        ->post("/me/users/{$editor->id}", [
+            '_method' => 'PATCH',
+            'name' => 'Éditeur Modifié',
+            'email' => 'new-editor@example.com',
+            'password' => 'nouveaupass123',
+            'password_confirmation' => 'nouveaupass123',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Éditeur mis à jour.');
+
+    $editor->refresh();
+
+    expect($editor->name)->toBe('Éditeur Modifié')
+        ->and($editor->email)->toBe('new-editor@example.com')
+        ->and(Hash::check('nouveaupass123', $editor->password))->toBeTrue();
+});
+
+test('superadmin can delete an editor user', function () {
+    $superadmin = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'superadmin',
+    ]);
+
+    $editor = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $this->actingAs($superadmin)
+        ->post("/me/users/{$editor->id}", [
+            '_method' => 'DELETE',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Éditeur supprimé.');
+
+    expect(User::find($editor->id))->toBeNull();
+});
+
+test('editor cannot update or delete editor users', function () {
+    $editor = User::factory()->create([
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $target = User::factory()->create([
+        'name' => 'Cible',
+        'email' => 'target@example.com',
+        'is_admin' => true,
+        'role' => 'editor',
+    ]);
+
+    $this->actingAs($editor)
+        ->post("/me/users/{$target->id}", [
+            '_method' => 'PATCH',
+            'name' => 'Interdit',
+            'email' => 'forbidden@example.com',
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($editor)
+        ->post("/me/users/{$target->id}", [
+            '_method' => 'DELETE',
+        ])
+        ->assertForbidden();
+
+    expect($target->refresh()->name)->toBe('Cible')
+        ->and($target->email)->toBe('target@example.com');
+});
+
 test('superadmin profile receives editor list', function () {
     $superadmin = User::factory()->create([
         'is_admin' => true,
