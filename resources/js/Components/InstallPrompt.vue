@@ -8,6 +8,7 @@ const DISMISS_KEY = 'eden_pwa_dismissed';
 const deferredPrompt = ref(null);
 const visible = ref(false); // bannière « Installer » (Android / Chrome / Edge)
 const iosHint = ref(false); // instructions iOS (pas d'événement natif)
+const iosPending = ref(false); // iOS détecté, en attente du choix cookies
 
 const isStandalone = () =>
     window.matchMedia?.('(display-mode: standalone)')?.matches ||
@@ -22,6 +23,17 @@ const dismissedRecently = () => {
     }
 };
 
+// On n'affiche l'invite qu'une fois le choix cookies fait (évite le chevauchement des bannières)
+const cookieDecided = () => {
+    try {
+        return Boolean(window.localStorage.getItem('eden_cookie_consent'));
+    } catch {
+        return true;
+    }
+};
+
+const canShow = () => !isStandalone() && !dismissedRecently() && cookieDecided();
+
 const remember = () => {
     try {
         window.localStorage.setItem(DISMISS_KEY, String(Date.now()));
@@ -34,8 +46,19 @@ const onBeforeInstall = (event) => {
     event.preventDefault();
     deferredPrompt.value = event;
 
-    if (!isStandalone() && !dismissedRecently()) {
+    if (canShow()) {
         visible.value = true;
+    }
+};
+
+// Affiche l'invite (ou les instructions iOS) une fois le consentement cookies donné
+const onCookieConsent = () => {
+    if (deferredPrompt.value && canShow()) {
+        visible.value = true;
+    }
+
+    if (iosPending.value && !isStandalone() && !dismissedRecently()) {
+        iosHint.value = true;
     }
 };
 
@@ -73,6 +96,7 @@ onMounted(() => {
 
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
     window.addEventListener('appinstalled', onInstalled);
+    window.addEventListener('eden:cookie-consent', onCookieConsent);
 
     // iOS Safari : pas de beforeinstallprompt → on affiche des instructions
     const ua = window.navigator.userAgent || '';
@@ -80,8 +104,11 @@ onMounted(() => {
     const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
 
     if (isIos && isSafari && !dismissedRecently()) {
+        iosPending.value = true;
         window.setTimeout(() => {
-            iosHint.value = true;
+            if (canShow()) {
+                iosHint.value = true;
+            }
         }, 2500);
     }
 });
@@ -89,6 +116,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('beforeinstallprompt', onBeforeInstall);
     window.removeEventListener('appinstalled', onInstalled);
+    window.removeEventListener('eden:cookie-consent', onCookieConsent);
 });
 </script>
 
