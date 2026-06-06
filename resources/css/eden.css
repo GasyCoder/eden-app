@@ -890,6 +890,48 @@ footer { background: var(--bg-footer, var(--green-3)); padding: 4.5rem 0 2rem; c
   min-height: 96px;
   resize: vertical;
 }
+.eden-color-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--beige);
+  color: var(--g700);
+}
+.eden-color-edit > span:first-child {
+  color: var(--g500);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.eden-color-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.eden-color-control input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--green);
+}
+.eden-color-control input[type="color"] {
+  width: 42px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r);
+  background: var(--white);
+}
+.eden-color-control input[type="color"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+.eden-color-value {
+  color: var(--g500);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
 .eden-edit-actions,
 .eden-collection-actions,
 .eden-collection-toolbar {

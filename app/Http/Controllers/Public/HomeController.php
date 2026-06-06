@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Services\ImageVariantService;
 use App\Services\ContentRepository;
+use App\Services\ImageVariantService;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,6 +16,7 @@ class HomeController extends Controller
 
         return Inertia::render('Home', [
             'blocks' => $blocks,
+            'blockMeta' => $contentRepository->blockMeta(),
             'collections' => $contentRepository->collections(),
             'performance' => [
                 'heroImage' => $images->forUrl(

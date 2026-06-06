@@ -18,6 +18,7 @@ class UpdateContentBlockRequest extends FormRequest
             'value' => ['nullable', 'string'],
             'type' => ['sometimes', 'string', Rule::in(['text', 'textarea', 'html', 'image', 'number', 'link'])],
             'meta' => ['sometimes', 'nullable', 'array'],
+            'meta.text_color' => ['sometimes', 'nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ];
     }
 }

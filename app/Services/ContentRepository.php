@@ -8,9 +8,7 @@ use Illuminate\Support\Arr;
 
 class ContentRepository
 {
-    public function __construct(private readonly ImageVariantService $images)
-    {
-    }
+    public function __construct(private readonly ImageVariantService $images) {}
 
     public function blocks(): array
     {
@@ -25,6 +23,23 @@ class ContentRepository
             });
 
         return $blocks;
+    }
+
+    public function blockMeta(): array
+    {
+        $meta = [];
+
+        ContentBlock::query()
+            ->active()
+            ->whereNotNull('meta')
+            ->get(['key', 'meta'])
+            ->each(function (ContentBlock $block) use (&$meta): void {
+                if ($block->meta !== []) {
+                    Arr::set($meta, $block->key, $block->meta ?? []);
+                }
+            });
+
+        return $meta;
     }
 
     public function collections(): array

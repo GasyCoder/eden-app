@@ -1,6 +1,6 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import Toast from '@/Components/Toast.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import CookieBanner from '@/Components/CookieBanner.vue';
@@ -28,6 +28,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    blockMeta: {
+        type: Object,
+        default: () => ({}),
+    },
     performance: {
         type: Object,
         default: () => ({}),
@@ -41,6 +45,8 @@ const props = defineProps({
 const showScrollTop = ref(false);
 const editMode = ref(props.canEdit);
 let revealObserver = null;
+
+provide('blockMeta', computed(() => props.blockMeta ?? {}));
 
 const handleScroll = () => {
     showScrollTop.value = window.scrollY > 600;

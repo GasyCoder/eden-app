@@ -330,6 +330,39 @@ test('editor can still update non-protected blocks', function () {
     expect(ContentBlock::where('key', 'hero.title')->value('value'))->toBe('Nouveau');
 });
 
+test('editor can update text color on editable blocks', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::create(['key' => 'hero.title', 'value' => 'Ancien']);
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/hero.title', [
+            'value' => 'Nouveau',
+            'type' => 'text',
+            'meta' => ['text_color' => '#123ABC'],
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'hero.title')->first()->meta)
+        ->toMatchArray(['text_color' => '#123ABC']);
+});
+
+test('invalid text color is rejected', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::create(['key' => 'hero.title', 'value' => 'Ancien']);
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/hero.title', [
+            'value' => 'Nouveau',
+            'type' => 'text',
+            'meta' => ['text_color' => 'rouge'],
+        ])
+        ->assertSessionHasErrors('meta.text_color');
+
+    expect(ContentBlock::where('key', 'hero.title')->first()->meta)->toBeNull();
+});
+
 test('authenticated admin can update profile email', function () {
     $user = User::factory()->create(['is_admin' => true, 'role' => 'editor', 'email' => 'old@eden.test']);
 
