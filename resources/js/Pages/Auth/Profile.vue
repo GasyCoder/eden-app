@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, reactive } from 'vue';
 import Toast from '@/Components/Toast.vue';
 
 const props = defineProps({
@@ -8,13 +8,26 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    theme: {
+        type: Object,
+        default: () => ({ sections: {}, colors: {} }),
+    },
+    editors: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? {});
-const flash = computed(() => page.props.flash ?? {});
-
-const roleLabel = computed(() => (user.value.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
+const isSuperAdmin = computed(() => user.value.role === 'superadmin');
+const roleLabel = computed(() => (isSuperAdmin.value ? 'Super administrateur' : 'Éditeur'));
+const roleDescription = computed(() => (
+    isSuperAdmin.value
+        ? 'Accès complet aux contenus, réglages SEO, apparence et comptes éditeurs.'
+        : 'Accès aux contenus éditables du site, sauf les réglages réservés au superadmin.'
+));
+const editorsCount = computed(() => props.editors.length);
 
 const profileForm = useForm({
     name: user.value.name ?? '',
@@ -27,11 +40,23 @@ const passwordForm = useForm({
     password_confirmation: '',
 });
 
+const editorForm = useForm({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+});
+
 const submitProfile = () => profileForm.patch('/me/profile', { preserveScroll: true });
 
 const submitPassword = () => passwordForm.put('/me/password', {
     preserveScroll: true,
     onSuccess: () => passwordForm.reset(),
+});
+
+const submitEditor = () => editorForm.post('/me/users', {
+    preserveScroll: true,
+    onSuccess: () => editorForm.reset(),
 });
 
 // Référencement & favicon (superadmin uniquement)
@@ -62,144 +87,292 @@ const submitSettings = () => settingsForm.post('/me/settings', {
         settingsForm.og_image = null;
     },
 });
+
+// Couleurs de fond des sections (superadmin)
+const sections = props.theme?.sections ?? {};
+const colorState = reactive({});
+Object.keys(sections).forEach((key) => {
+    const stored = props.theme?.colors?.[key] ?? '';
+    colorState[key] = { enabled: stored !== '', value: stored || '#0F5132' };
+});
+
+const colorsForm = useForm({ colors: {} });
+
+const submitColors = () => {
+    const payload = {};
+    Object.keys(sections).forEach((key) => {
+        payload[key] = colorState[key].enabled ? colorState[key].value : '';
+    });
+    colorsForm.colors = payload;
+    colorsForm.post('/me/settings', { preserveScroll: true });
+};
 </script>
 
 <template>
     <Head title="Mon profil" />
 
-    <main class="min-h-screen" style="background: var(--beige); padding: 4.5rem 1.25rem;">
-        <div style="max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-                <div>
+    <main class="profile-page">
+        <div class="profile-shell">
+            <div class="profile-hero">
+                <div class="profile-hero-copy">
                     <span class="eyebrow">Mon compte</span>
-                    <h1 style="font-size:1.7rem;">Profil administrateur</h1>
+                    <h1>Profil administrateur</h1>
+                    <p>Gérez votre accès, la sécurité du compte et les réglages réservés au superadmin.</p>
                 </div>
-                <Link href="/" class="btn btn-secondary" style="padding:.55rem 1.1rem;">← Retour au site</Link>
+                <div class="profile-actions">
+                    <Link href="/" class="btn btn-secondary profile-back-link">Retour au site</Link>
+                </div>
             </div>
 
             <Toast />
 
-            <!-- Rôle (lecture seule) -->
-            <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-                <div>
-                    <span style="display:block;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--g400);">Rôle</span>
-                    <strong style="font-family:var(--fh);font-size:1.05rem;color:var(--green);">{{ roleLabel }}</strong>
-                </div>
-                <span style="font-size:.84rem;color:var(--g500);max-width:260px;text-align:right;">
-                    {{ user.role === 'superadmin' ? 'Accès complet à tous les contenus.' : 'Accès à tous les contenus sauf les mentions légales du footer.' }}
-                </span>
-            </div>
-
-            <!-- Identité / email -->
-            <form class="card" @submit.prevent="submitProfile">
-                <h2 style="font-size:1.2rem;margin-bottom:1.25rem;">Identité & accès</h2>
-                <div style="display:flex;flex-direction:column;gap:1rem;">
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Nom</span>
-                        <input v-model="profileForm.name" type="text" required class="eden-edit-input" style="min-width:0;">
-                        <span v-if="profileForm.errors.name" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ profileForm.errors.name }}</span>
-                    </label>
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Email d'accès</span>
-                        <input v-model="profileForm.email" type="email" autocomplete="email" required class="eden-edit-input" style="min-width:0;">
-                        <span v-if="profileForm.errors.email" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ profileForm.errors.email }}</span>
-                    </label>
-                    <div>
-                        <button class="btn btn-primary" type="submit" :disabled="profileForm.processing" style="justify-content:center;">
-                            {{ profileForm.processing ? 'Enregistrement...' : 'Enregistrer' }}
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- Mot de passe -->
-            <form class="card" @submit.prevent="submitPassword">
-                <h2 style="font-size:1.2rem;margin-bottom:1.25rem;">Changer le mot de passe</h2>
-                <div style="display:flex;flex-direction:column;gap:1rem;">
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Mot de passe actuel</span>
-                        <input v-model="passwordForm.current_password" type="password" autocomplete="current-password" required class="eden-edit-input" style="min-width:0;">
-                        <span v-if="passwordForm.errors.current_password" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ passwordForm.errors.current_password }}</span>
-                    </label>
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Nouveau mot de passe</span>
-                        <input v-model="passwordForm.password" type="password" autocomplete="new-password" required class="eden-edit-input" style="min-width:0;">
-                        <span v-if="passwordForm.errors.password" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ passwordForm.errors.password }}</span>
-                    </label>
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Confirmer le nouveau mot de passe</span>
-                        <input v-model="passwordForm.password_confirmation" type="password" autocomplete="new-password" required class="eden-edit-input" style="min-width:0;">
-                    </label>
-                    <div>
-                        <button class="btn btn-primary" type="submit" :disabled="passwordForm.processing" style="justify-content:center;">
-                            {{ passwordForm.processing ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- Référencement & favicon — superadmin uniquement -->
-            <form v-if="user.role === 'superadmin'" class="card" @submit.prevent="submitSettings">
-                <h2 style="font-size:1.2rem;margin-bottom:.35rem;">Référencement &amp; favicon</h2>
-                <p style="font-size:.84rem;color:var(--g500);margin-bottom:1.5rem;">
-                    Réservé au super administrateur. Ces informations apparaissent dans les moteurs de recherche
-                    et lors du partage du lien (Facebook, WhatsApp…).
-                </p>
-                <div style="display:flex;flex-direction:column;gap:1.1rem;">
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Titre du site (onglet &amp; partage)</span>
-                        <input v-model="settingsForm.title" type="text" class="eden-edit-input" style="min-width:0;">
-                        <span v-if="settingsForm.errors.title" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.title }}</span>
-                    </label>
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Description (meta description)</span>
-                        <textarea v-model="settingsForm.description" rows="3" class="eden-edit-textarea" style="min-height:auto;"></textarea>
-                        <span v-if="settingsForm.errors.description" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.description }}</span>
-                    </label>
-                    <label>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.35rem;">Mots-clés (séparés par des virgules)</span>
-                        <textarea v-model="settingsForm.keywords" rows="2" class="eden-edit-textarea" style="min-height:auto;"></textarea>
-                        <span v-if="settingsForm.errors.keywords" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.keywords }}</span>
-                    </label>
-
-                    <div>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Favicon (PNG carré recommandé)</span>
-                        <div style="display:flex;align-items:center;gap:1rem;">
-                            <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingFavicon }" style="width:40px;height:40px;">
-                                <img :src="seo.favicon" alt="Favicon actuel" width="40" height="40" loading="lazy" decoding="async" style="width:40px;height:40px;border:1px solid var(--border);border-radius:8px;object-fit:contain;background:#fff;">
-                                <span v-if="isUploadingFavicon" class="eden-upload-skeleton small" role="status" aria-live="polite">
-                                    <span class="eden-upload-content">
-                                        <span class="eden-upload-spinner"></span>
-                                    </span>
-                                </span>
-                            </span>
-                            <input type="file" accept="image/png,image/jpeg,image/webp" :disabled="settingsForm.processing" @change="onFavicon">
+            <div class="profile-grid">
+                <div class="profile-main">
+                    <form class="card profile-card" @submit.prevent="submitProfile">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Identité</span>
+                            <h2>Informations du compte</h2>
                         </div>
-                        <span v-if="settingsForm.errors.favicon" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.favicon }}</span>
-                    </div>
 
-                    <div>
-                        <span style="display:block;font-size:.82rem;color:var(--g500);margin-bottom:.5rem;">Image de partage (Open Graph — 1200×630 conseillé)</span>
-                        <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingOgImage }" style="width:100%;max-width:340px;">
-                            <img :src="seo.ogImage" alt="Image de partage actuelle" width="340" height="179" loading="lazy" decoding="async" style="width:100%;max-width:340px;border:1px solid var(--border);border-radius:8px;display:block;">
-                            <span v-if="isUploadingOgImage" class="eden-upload-skeleton" role="status" aria-live="polite">
-                                <span class="eden-upload-content">
-                                    <span class="eden-upload-spinner"></span>
-                                    <span>Téléversement...</span>
+                        <div class="profile-form-grid">
+                            <label class="profile-field">
+                                <span>Nom</span>
+                                <input v-model="profileForm.name" type="text" required class="eden-edit-input">
+                                <small v-if="profileForm.errors.name" class="profile-error">{{ profileForm.errors.name }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Email d'accès</span>
+                                <input v-model="profileForm.email" type="email" autocomplete="email" required class="eden-edit-input">
+                                <small v-if="profileForm.errors.email" class="profile-error">{{ profileForm.errors.email }}</small>
+                            </label>
+                        </div>
+
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="profileForm.processing">
+                                {{ profileForm.processing ? 'Enregistrement...' : 'Enregistrer le profil' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <form class="card profile-card" @submit.prevent="submitPassword">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Sécurité</span>
+                            <h2>Mot de passe</h2>
+                        </div>
+
+                        <div class="profile-form-grid">
+                            <label class="profile-field full">
+                                <span>Mot de passe actuel</span>
+                                <input v-model="passwordForm.current_password" type="password" autocomplete="current-password" required class="eden-edit-input">
+                                <small v-if="passwordForm.errors.current_password" class="profile-error">{{ passwordForm.errors.current_password }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Nouveau mot de passe</span>
+                                <input v-model="passwordForm.password" type="password" autocomplete="new-password" required class="eden-edit-input">
+                                <small v-if="passwordForm.errors.password" class="profile-error">{{ passwordForm.errors.password }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Confirmation</span>
+                                <input v-model="passwordForm.password_confirmation" type="password" autocomplete="new-password" required class="eden-edit-input">
+                            </label>
+                        </div>
+
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="passwordForm.processing">
+                                {{ passwordForm.processing ? 'Mise à jour...' : 'Mettre à jour le mot de passe' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <form v-if="isSuperAdmin" class="card profile-card" @submit.prevent="submitSettings">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Référencement</span>
+                            <h2>SEO, favicon et partage</h2>
+                            <p>Ces informations alimentent l'onglet du navigateur, les moteurs de recherche et les aperçus de partage.</p>
+                        </div>
+
+                        <div class="profile-form-stack">
+                            <label class="profile-field">
+                                <span>Titre du site</span>
+                                <input v-model="settingsForm.title" type="text" class="eden-edit-input">
+                                <small v-if="settingsForm.errors.title" class="profile-error">{{ settingsForm.errors.title }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Description</span>
+                                <textarea v-model="settingsForm.description" rows="3" class="eden-edit-textarea"></textarea>
+                                <small v-if="settingsForm.errors.description" class="profile-error">{{ settingsForm.errors.description }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Mots-clés</span>
+                                <textarea v-model="settingsForm.keywords" rows="2" class="eden-edit-textarea"></textarea>
+                                <small v-if="settingsForm.errors.keywords" class="profile-error">{{ settingsForm.errors.keywords }}</small>
+                            </label>
+
+                            <div class="profile-upload-grid">
+                                <div class="profile-upload-block">
+                                    <span class="profile-upload-label">Favicon</span>
+                                    <div class="profile-upload-row compact">
+                                        <span class="eden-file-preview" :class="{ 'is-uploading': isUploadingFavicon }">
+                                            <img :src="seo.favicon" alt="Favicon actuel" width="48" height="48" loading="lazy" decoding="async" class="profile-favicon-preview">
+                                            <span v-if="isUploadingFavicon" class="eden-upload-skeleton small" role="status" aria-live="polite">
+                                                <span class="eden-upload-content">
+                                                    <span class="eden-upload-spinner"></span>
+                                                </span>
+                                            </span>
+                                        </span>
+                                        <input type="file" accept="image/png,image/jpeg,image/webp" :disabled="settingsForm.processing" @change="onFavicon">
+                                    </div>
+                                    <small v-if="settingsForm.errors.favicon" class="profile-error">{{ settingsForm.errors.favicon }}</small>
+                                </div>
+
+                                <div class="profile-upload-block">
+                                    <span class="profile-upload-label">Image de partage</span>
+                                    <span class="eden-file-preview profile-og-preview" :class="{ 'is-uploading': isUploadingOgImage }">
+                                        <img :src="seo.ogImage" alt="Image de partage actuelle" width="340" height="179" loading="lazy" decoding="async">
+                                        <span v-if="isUploadingOgImage" class="eden-upload-skeleton" role="status" aria-live="polite">
+                                            <span class="eden-upload-content">
+                                                <span class="eden-upload-spinner"></span>
+                                                <span>Téléversement...</span>
+                                            </span>
+                                        </span>
+                                    </span>
+                                    <input type="file" accept="image/png,image/jpeg,image/webp" :disabled="settingsForm.processing" @change="onOgImage">
+                                    <small v-if="settingsForm.errors.og_image" class="profile-error">{{ settingsForm.errors.og_image }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="settingsForm.processing">
+                                {{ settingsForm.processing ? 'Enregistrement...' : 'Enregistrer le référencement' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <form v-if="isSuperAdmin" class="card profile-card" @submit.prevent="submitColors">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Apparence</span>
+                            <h2>Couleurs des sections</h2>
+                            <p>Décochez une section pour revenir à la couleur par défaut du thème.</p>
+                        </div>
+
+                        <div class="profile-color-list">
+                            <div
+                                v-for="(label, key) in theme.sections"
+                                :key="key"
+                                class="profile-color-row"
+                            >
+                                <label class="profile-color-check">
+                                    <input type="checkbox" v-model="colorState[key].enabled">
+                                    <span>{{ label }}</span>
+                                </label>
+                                <input
+                                    type="color"
+                                    v-model="colorState[key].value"
+                                    :disabled="!colorState[key].enabled"
+                                    class="profile-color-input"
+                                >
+                                <span class="profile-color-value">
+                                    {{ colorState[key].enabled ? colorState[key].value : 'Par défaut' }}
                                 </span>
-                            </span>
-                        </span>
-                        <input type="file" accept="image/png,image/jpeg,image/webp" style="margin-top:.6rem;" :disabled="settingsForm.processing" @change="onOgImage">
-                        <span v-if="settingsForm.errors.og_image" style="display:block;color:#b91c1c;font-size:.8rem;margin-top:.35rem;">{{ settingsForm.errors.og_image }}</span>
-                    </div>
+                            </div>
+                        </div>
 
-                    <div>
-                        <button class="btn btn-primary" type="submit" :disabled="settingsForm.processing" style="justify-content:center;">
-                            {{ settingsForm.processing ? 'Enregistrement...' : 'Enregistrer le référencement' }}
-                        </button>
-                    </div>
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="colorsForm.processing">
+                                {{ colorsForm.processing ? 'Enregistrement...' : 'Enregistrer les couleurs' }}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+
+                <aside class="profile-side">
+                    <section class="card profile-card profile-role-card">
+                        <div class="profile-role-top">
+                            <span class="profile-role-badge">{{ roleLabel }}</span>
+                            <span class="profile-role-dot" aria-hidden="true"></span>
+                        </div>
+                        <h2>{{ user.name }}</h2>
+                        <p>{{ roleDescription }}</p>
+                        <dl class="profile-meta-list">
+                            <div>
+                                <dt>Email</dt>
+                                <dd>{{ user.email }}</dd>
+                            </div>
+                            <div>
+                                <dt>Rôle technique</dt>
+                                <dd>{{ user.role }}</dd>
+                            </div>
+                            <div v-if="isSuperAdmin">
+                                <dt>Éditeurs</dt>
+                                <dd>{{ editorsCount }}</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <form v-if="isSuperAdmin" class="card profile-card profile-editor-card" @submit.prevent="submitEditor">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Utilisateurs</span>
+                            <h2>Créer un éditeur</h2>
+                            <p>Le compte créé pourra modifier les contenus publics autorisés.</p>
+                        </div>
+
+                        <div class="profile-form-stack">
+                            <label class="profile-field">
+                                <span>Nom</span>
+                                <input v-model="editorForm.name" type="text" autocomplete="name" required class="eden-edit-input">
+                                <small v-if="editorForm.errors.name" class="profile-error">{{ editorForm.errors.name }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Email</span>
+                                <input v-model="editorForm.email" type="email" autocomplete="email" required class="eden-edit-input">
+                                <small v-if="editorForm.errors.email" class="profile-error">{{ editorForm.errors.email }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Mot de passe</span>
+                                <input v-model="editorForm.password" type="password" autocomplete="new-password" required class="eden-edit-input">
+                                <small v-if="editorForm.errors.password" class="profile-error">{{ editorForm.errors.password }}</small>
+                            </label>
+
+                            <label class="profile-field">
+                                <span>Confirmation</span>
+                                <input v-model="editorForm.password_confirmation" type="password" autocomplete="new-password" required class="eden-edit-input">
+                            </label>
+                        </div>
+
+                        <div class="profile-card-actions">
+                            <button class="btn btn-primary profile-submit" type="submit" :disabled="editorForm.processing">
+                                {{ editorForm.processing ? 'Création...' : 'Créer l’éditeur' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <section v-if="isSuperAdmin" class="card profile-card">
+                        <div class="profile-card-header">
+                            <span class="profile-kicker">Comptes actifs</span>
+                            <h2>Éditeurs</h2>
+                        </div>
+
+                        <div v-if="editors.length" class="profile-editor-list">
+                            <div v-for="editor in editors" :key="editor.id" class="profile-editor-row">
+                                <div>
+                                    <strong>{{ editor.name }}</strong>
+                                    <span>{{ editor.email }}</span>
+                                </div>
+                                <small>{{ editor.created_at }}</small>
+                            </div>
+                        </div>
+                        <p v-else class="profile-empty">Aucun éditeur créé pour le moment.</p>
+                    </section>
+                </aside>
+            </div>
         </div>
     </main>
 </template>

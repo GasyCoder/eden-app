@@ -66,6 +66,9 @@
         <meta name="apple-mobile-web-app-title" content="EDEN-UMG">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if (!empty($themeColors))
+            <style id="eden-theme-colors">:root{@foreach ($themeColors as $var => $val){{ $var }}:{{ $val }};@endforeach}</style>
+        @endif
         @inertiaHead
     </head>
     <body>

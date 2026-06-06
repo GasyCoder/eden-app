@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Support\SeoSettings;
 use App\Support\PagePerformanceSettings;
+use App\Support\ThemeSettings;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with([
                 'seo' => SeoSettings::all(),
                 'performance' => PagePerformanceSettings::all(),
+                'themeColors' => ThemeSettings::cssVariables(),
             ]);
         });
     }

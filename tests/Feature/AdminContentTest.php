@@ -401,3 +401,29 @@ test('superadmin can upload a favicon', function () {
 
     expect(ContentBlock::where('key', 'site.favicon')->value('value'))->not->toBeNull();
 });
+
+test('superadmin can set a section background color', function () {
+    $superadmin = User::factory()->create(['is_admin' => true, 'role' => 'superadmin']);
+
+    $this->actingAs($superadmin)
+        ->post('/me/settings', ['colors' => ['chiffres' => '#AA0000']])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'theme.bg_chiffres')->value('value'))->toBe('#AA0000');
+});
+
+test('invalid section color is rejected', function () {
+    $superadmin = User::factory()->create(['is_admin' => true, 'role' => 'superadmin']);
+
+    $this->actingAs($superadmin)
+        ->post('/me/settings', ['colors' => ['hero' => 'rouge']])
+        ->assertSessionHasErrors('colors.hero');
+});
+
+test('editor cannot change section colors', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    $this->actingAs($editor)
+        ->post('/me/settings', ['colors' => ['hero' => '#112233']])
+        ->assertForbidden();
+});
