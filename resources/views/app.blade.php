@@ -69,6 +69,37 @@
         @inertiaHead
     </head>
     <body>
+        @if (request()->routeIs('home'))
+            {{-- Skeleton de premier chargement (retiré au montage de l'app) — réutilise les styles du skeleton de navigation --}}
+            <div id="app-skeleton" class="eden-page-loading" role="status" aria-label="Chargement de la page">
+                <div class="eden-page-loading-bar" style="width: 42%"></div>
+                <div class="eden-page-loading-shell">
+                    <div class="eden-page-loading-header">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="eden-page-loading-hero">
+                        <div>
+                            <span class="eden-page-loading-line short"></span>
+                            <span class="eden-page-loading-title"></span>
+                            <span class="eden-page-loading-title narrow"></span>
+                            <span class="eden-page-loading-line"></span>
+                            <span class="eden-page-loading-line medium"></span>
+                        </div>
+                        <div class="eden-page-loading-media"></div>
+                    </div>
+                    <div class="eden-page-loading-grid">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+            <script>
+                // Filet de sécurité : si le JS de l'app ne se charge pas, on retire le skeleton.
+                setTimeout(function () {
+                    var s = document.getElementById('app-skeleton');
+                    if (s) { s.remove(); }
+                }, 10000);
+            </script>
+        @endif
         @inertia
     </body>
 </html>

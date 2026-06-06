@@ -91,6 +91,15 @@ createInertiaApp({
         createApp(Root)
             .use(plugin)
             .mount(el);
+
+        // Retire le skeleton de premier chargement (rendu côté serveur) en fondu
+        const skeleton = document.getElementById('app-skeleton');
+        if (skeleton) {
+            requestAnimationFrame(() => {
+                skeleton.classList.add('is-gone');
+                setTimeout(() => skeleton.remove(), 400);
+            });
+        }
     },
 });
 

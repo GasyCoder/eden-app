@@ -204,6 +204,13 @@ section { padding: 6rem 0; position: relative; }
   background: var(--beige);
   pointer-events: none;
 }
+/* Skeleton de premier chargement (rendu côté serveur) : fondu de sortie */
+#app-skeleton {
+  transition: opacity 0.4s ease;
+}
+#app-skeleton.is-gone {
+  opacity: 0;
+}
 .eden-page-loading-bar {
   position: fixed;
   top: 0;
