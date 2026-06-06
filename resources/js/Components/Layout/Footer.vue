@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
@@ -9,6 +9,9 @@ import { useContentItemEditor } from '@/Composables/useContentItemEditor';
 // Seul un superadmin peut éditer les mentions légales du footer (copyright + crédit)
 const page = usePage();
 const canEditProtected = computed(() => Boolean(page.props.canEditProtected));
+const newsletterForm = useForm({
+    email: '',
+});
 
 const props = defineProps({
     site: {
@@ -106,6 +109,12 @@ const socialEditor = useContentItemEditor(
     (item) => ({ title: item.title ?? '', link_url: item.link_url ?? 'https://' }),
     linkPayload,
 );
+
+const submitNewsletter = () => {
+    newsletterForm.post('/newsletter', {
+        preserveScroll: true,
+    });
+};
 
 // Icônes de marque (simple-icons, chemin unique). Repli : icône lien générique.
 const brandPaths = {
@@ -208,6 +217,24 @@ const iconKey = (name = '') => {
                         </span>
                         <button v-if="canEdit && !socialEditor.creating.value" type="button" class="ft-social-add" title="Ajouter un réseau social" aria-label="Ajouter un réseau social" @click="socialEditor.startCreate">+</button>
                     </div>
+
+                    <form class="ft-newsletter" @submit.prevent="submitNewsletter">
+                        <label for="newsletter-email">Newsletter</label>
+                        <div class="ft-newsletter-row">
+                            <input
+                                id="newsletter-email"
+                                v-model="newsletterForm.email"
+                                type="email"
+                                autocomplete="email"
+                                placeholder="Votre email"
+                                required
+                            >
+                            <button type="submit" :disabled="newsletterForm.processing">
+                                {{ newsletterForm.processing ? '...' : "S'inscrire" }}
+                            </button>
+                        </div>
+                        <span v-if="newsletterForm.errors.email" class="ft-newsletter-error">{{ newsletterForm.errors.email }}</span>
+                    </form>
                 </div>
                 <div class="ft-col">
                     <h5><EditableText :value="blocks?.navigation_title" fallback="Navigation" content-key="footer.navigation_title" :can-edit="canEdit" /></h5>

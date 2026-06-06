@@ -725,6 +725,91 @@ footer { background: var(--bg-footer, var(--green-3)); padding: 4.5rem 0 2rem; c
 }
 .ft-social-add:hover { border-color: var(--accent); color: var(--accent); }
 .ft-socials .eden-collection-actions { margin-top: 0; gap: 0.3rem; }
+.ft-newsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: min(100%, 430px);
+  max-width: 430px;
+  margin-top: 1.45rem;
+}
+.ft-newsletter label {
+  color: rgba(255,255,255,0.82);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ft-newsletter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+}
+.ft-newsletter input {
+  min-width: 0;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: var(--r);
+  background: rgba(255,255,255,0.08);
+  color: var(--on-green);
+  padding: 0 0.75rem;
+  font: inherit;
+}
+.ft-newsletter input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+.ft-newsletter input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+.ft-newsletter button {
+  min-width: 104px;
+  height: 42px;
+  border: 1px solid var(--accent);
+  border-radius: var(--r);
+  background: var(--accent);
+  color: var(--on-green);
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+}
+.ft-newsletter button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+.ft-newsletter-error {
+  color: #fecaca;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.newsletter-confirm-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.25rem;
+  background: var(--beige);
+}
+.newsletter-confirm-card {
+  width: min(560px, 100%);
+}
+.newsletter-confirm-card h1 {
+  margin-bottom: 0.85rem;
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+}
+.newsletter-confirm-card p {
+  color: var(--g500);
+  font-size: 1rem;
+}
+.newsletter-confirm-card strong {
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+.newsletter-confirm-actions {
+  margin-top: 1.45rem;
+}
 
 /* ── Scroll Top ──────────────────────────────── */
 #scrollTop {

@@ -7,11 +7,14 @@ use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\NewsletterController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
+Route::get('/newsletter/confirmation', [NewsletterController::class, 'confirmation'])->name('newsletter.confirmation');
 
 // Icônes PWA générées depuis le logo/favicon téléversé (repli sur le monogramme)
 Route::get('/pwa/icon-{spec}.png', [PwaController::class, 'icon'])
