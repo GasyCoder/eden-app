@@ -1,14 +1,16 @@
 <script setup>
-import { computed, inject, onBeforeUnmount, reactive, ref, unref, watch } from 'vue';
-import EditableImage from '@/Components/Editable/EditableImage.vue';
-import EditableText from '@/Components/Editable/EditableText.vue';
-import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import { adminPatch } from '@/Composables/useAdminRequest';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
+    },
+    announcements: {
+        type: Array,
+        default: () => [],
     },
     canManage: {
         type: Boolean,
@@ -20,16 +22,18 @@ const props = defineProps({
     },
 });
 
-const injectedBlockMeta = inject('blockMeta', {});
 const delayOptions = [1, 2, 3, 5, 10, 15, 30];
 const managerOpen = ref(false);
 const visitorOpen = ref(false);
-const localEnabled = ref(null);
-const localDelay = ref(null);
+const selectedAnnouncementId = ref(null);
+const creatingAnnouncement = ref(false);
+const pendingDelete = ref(null);
 const localImagePosition = ref(null);
 const repositioning = ref(false);
 const savingKey = ref('');
+const uploadingImage = ref(false);
 const error = ref('');
+const imageInput = ref(null);
 const drag = reactive({
     active: false,
     x: 0,
@@ -37,13 +41,18 @@ const drag = reactive({
     positionX: 50,
     positionY: 50,
 });
+const draft = reactive({
+    id: null,
+    title: '',
+    message: '',
+    image: '',
+    button_label: '',
+    button_url: '',
+    enabled: false,
+    delay_seconds: 3,
+    meta: {},
+});
 let timer = null;
-
-const getByPath = (source, path) => path
-    .split('.')
-    .reduce((current, segment) => (
-        current && typeof current === 'object' ? current[segment] : undefined
-    ), source);
 
 const clamp = (value, min = 0, max = 100) => Math.min(Math.max(value, min), max);
 
@@ -59,31 +68,60 @@ const normalizeZoom = (value) => {
     return Number.isFinite(parsed) ? clamp(parsed, 1, 2) : 1;
 };
 
-const rawEnabled = computed(() => localEnabled.value ?? props.blocks?.enabled ?? '0');
-const enabled = computed(() => ['1', 'true', 'oui', 'yes', 'on'].includes(String(rawEnabled.value).toLowerCase()));
-const delaySeconds = computed(() => {
-    const parsed = Number(localDelay.value ?? props.blocks?.delay_seconds ?? 3);
+const normalizeDelay = (value) => {
+    const parsed = Number(value);
 
     return delayOptions.includes(parsed) ? parsed : 3;
+};
+
+const truthy = (value) => ['1', 'true', 'oui', 'yes', 'on'].includes(String(value).toLowerCase());
+
+const fallbackPopup = computed(() => ({
+    id: props.blocks?.id ?? null,
+    enabled: props.blocks?.enabled ?? '0',
+    delay_seconds: props.blocks?.delay_seconds ?? '3',
+    title: props.blocks?.title || 'Annonce importante',
+    message: props.blocks?.message || "Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN.",
+    image: props.blocks?.image || '',
+    button_label: props.blocks?.button_label || 'En savoir plus',
+    button_url: props.blocks?.button_url || '#',
+    meta: props.blocks?.meta ?? {},
+    is_active: truthy(props.blocks?.enabled),
+    is_archived: false,
+    updated_at: props.blocks?.updated_at ?? null,
+}));
+
+const announcementList = computed(() => {
+    if (props.announcements?.length) {
+        return props.announcements;
+    }
+
+    return fallbackPopup.value.id ? [fallbackPopup.value] : [];
 });
-const title = computed(() => props.blocks?.title || 'Annonce importante');
-const message = computed(() => props.blocks?.message || "Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN.");
-const image = computed(() => props.blocks?.image || '');
-const blockMeta = computed(() => getByPath(unref(injectedBlockMeta), 'popup.image') ?? {});
+
+const selectedAnnouncement = computed(() => announcementList.value.find((item) => item.id === selectedAnnouncementId.value) ?? null);
+const visitorPopup = computed(() => fallbackPopup.value);
+const visiblePopup = computed(() => (managerOpen.value ? draft : visitorPopup.value));
+const enabled = computed(() => truthy(visitorPopup.value.enabled));
+const delaySeconds = computed(() => normalizeDelay(visitorPopup.value.delay_seconds));
+const title = computed(() => visiblePopup.value.title || 'Annonce importante');
+const message = computed(() => visiblePopup.value.message || "Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN.");
+const image = computed(() => visiblePopup.value.image || '');
+const buttonLabel = computed(() => visiblePopup.value.button_label || 'En savoir plus');
+const buttonUrl = computed(() => visiblePopup.value.button_url || '#');
+const hasButton = computed(() => buttonLabel.value && buttonUrl.value && buttonUrl.value !== '#');
+const activeMeta = computed(() => (managerOpen.value ? draft.meta : (visitorPopup.value.meta ?? {})));
 const storedImagePosition = computed(() => ({
-    x: normalizePosition(blockMeta.value?.object_position_x),
-    y: normalizePosition(blockMeta.value?.object_position_y),
-    zoom: normalizeZoom(blockMeta.value?.object_zoom),
+    x: normalizePosition(activeMeta.value?.object_position_x),
+    y: normalizePosition(activeMeta.value?.object_position_y),
+    zoom: normalizeZoom(activeMeta.value?.object_zoom),
 }));
 const imagePosition = computed(() => localImagePosition.value ?? storedImagePosition.value);
 const imageStyle = computed(() => ({
     transform: `translate3d(${(imagePosition.value.x - 50) * 0.35}%, ${(imagePosition.value.y - 50) * 0.35}%, 0) scale(${imagePosition.value.zoom})`,
 }));
-const buttonLabel = computed(() => props.blocks?.button_label || 'En savoir plus');
-const buttonUrl = computed(() => props.blocks?.button_url || '#');
-const hasButton = computed(() => buttonLabel.value && buttonUrl.value && buttonUrl.value !== '#');
 const popupSignature = computed(() => {
-    const source = `${title.value}|${message.value}|${buttonLabel.value}|${buttonUrl.value}`;
+    const source = `${visitorPopup.value.id}|${visitorPopup.value.title}|${visitorPopup.value.message}|${visitorPopup.value.button_url}`;
     let hash = 0;
 
     for (let index = 0; index < source.length; index += 1) {
@@ -94,6 +132,42 @@ const popupSignature = computed(() => {
     return `eden_visitor_popup_${Math.abs(hash)}`;
 });
 const popupVisible = computed(() => visitorOpen.value || managerOpen.value);
+
+const statusLabel = (item) => {
+    if (item.is_active) {
+        return 'Active';
+    }
+
+    return item.is_archived ? 'Archivée' : 'Inactive';
+};
+
+const resetDraft = (popup = fallbackPopup.value) => {
+    draft.id = popup?.id ?? null;
+    draft.title = popup?.title || 'Annonce importante';
+    draft.message = popup?.message || "Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN.";
+    draft.image = popup?.image || '';
+    draft.button_label = popup?.button_label || 'En savoir plus';
+    draft.button_url = popup?.button_url || '#';
+    draft.enabled = Boolean(popup?.is_active ?? truthy(popup?.enabled));
+    draft.delay_seconds = normalizeDelay(popup?.delay_seconds ?? popup?.meta?.delay_seconds);
+    draft.meta = {
+        ...(popup?.meta ?? {}),
+        delay_seconds: normalizeDelay(popup?.delay_seconds ?? popup?.meta?.delay_seconds),
+    };
+    localImagePosition.value = null;
+    repositioning.value = false;
+    drag.active = false;
+    error.value = '';
+};
+
+const openManager = () => {
+    const initial = props.blocks?.id ?? announcementList.value[0]?.id ?? null;
+
+    managerOpen.value = true;
+    creatingAnnouncement.value = !initial;
+    selectedAnnouncementId.value = initial;
+    resetDraft(initial ? (announcementList.value.find((item) => item.id === initial) ?? fallbackPopup.value) : fallbackPopup.value);
+};
 
 const closeVisitor = () => {
     visitorOpen.value = false;
@@ -107,6 +181,8 @@ const closeVisitor = () => {
 
 const closeManager = () => {
     managerOpen.value = false;
+    creatingAnnouncement.value = false;
+    pendingDelete.value = null;
     repositioning.value = false;
     drag.active = false;
     localImagePosition.value = null;
@@ -149,32 +225,221 @@ const scheduleVisitorPopup = () => {
     }, delaySeconds.value * 1000);
 };
 
-const saveBlock = (key, value, type = 'text') => {
+const selectAnnouncement = (item) => {
+    creatingAnnouncement.value = false;
+    selectedAnnouncementId.value = item.id;
+    resetDraft(item);
+};
+
+const newAnnouncement = () => {
+    creatingAnnouncement.value = true;
+    selectedAnnouncementId.value = null;
+    resetDraft({
+        id: null,
+        title: 'Nouvelle annonce',
+        message: "Rédigez ici le message destiné aux visiteurs de l'École Doctorale EDEN.",
+        image: '',
+        button_label: 'En savoir plus',
+        button_url: '#',
+        enabled: '1',
+        is_active: true,
+        delay_seconds: 3,
+        meta: { delay_seconds: 3 },
+    });
+};
+
+const emptyAnnouncement = () => {
+    creatingAnnouncement.value = true;
+    selectedAnnouncementId.value = null;
+    resetDraft({
+        id: null,
+        title: '',
+        message: '',
+        image: '',
+        button_label: 'En savoir plus',
+        button_url: '#',
+        enabled: '0',
+        is_active: false,
+        delay_seconds: 3,
+        meta: { delay_seconds: 3 },
+    });
+};
+
+const payloadFromDraft = () => ({
+    title: draft.title,
+    description: draft.message,
+    image: draft.image || '',
+    link_label: draft.button_label,
+    link_url: draft.button_url || '#',
+    is_active: draft.enabled,
+    meta: {
+        ...(draft.meta ?? {}),
+        delay_seconds: normalizeDelay(draft.delay_seconds),
+    },
+});
+
+const saveDraft = (key = 'popup.save') => {
     savingKey.value = key;
     error.value = '';
 
-    if (key === 'popup.enabled') {
-        localEnabled.value = value;
-    }
-
-    if (key === 'popup.delay_seconds') {
-        localDelay.value = value;
-    }
-
-    adminPatch(`/admin/content-blocks/${key}`, {
-        value,
-        type,
-    }, {
+    const payload = payloadFromDraft();
+    const options = {
+        forceFormData: true,
         preserveScroll: true,
+        onSuccess: () => {
+            creatingAnnouncement.value = false;
+        },
         onError: () => {
             error.value = 'Enregistrement impossible.';
-            localEnabled.value = null;
-            localDelay.value = null;
+        },
+        onFinish: () => {
+            savingKey.value = '';
+        },
+    };
+
+    if (creatingAnnouncement.value || !draft.id) {
+        router.post('/admin/visitor-popups', payload, options);
+        return;
+    }
+
+    adminPatch(`/admin/visitor-popups/${draft.id}`, payload, options);
+};
+
+const updateStatus = (value) => {
+    draft.enabled = value === '1';
+    saveDraft('popup.status');
+};
+
+const updateDelay = (value) => {
+    draft.delay_seconds = normalizeDelay(value);
+    draft.meta = {
+        ...(draft.meta ?? {}),
+        delay_seconds: draft.delay_seconds,
+    };
+    saveDraft('popup.delay');
+};
+
+const activateAnnouncement = (item) => {
+    savingKey.value = `activate-${item.id}`;
+    error.value = '';
+
+    adminPatch(`/admin/visitor-popups/${item.id}/activate`, {}, {
+        preserveScroll: true,
+        onError: () => {
+            error.value = 'Activation impossible.';
         },
         onFinish: () => {
             savingKey.value = '';
         },
     });
+};
+
+const archiveAnnouncement = (item) => {
+    savingKey.value = `archive-${item.id}`;
+    error.value = '';
+
+    adminPatch(`/admin/visitor-popups/${item.id}/archive`, {}, {
+        preserveScroll: true,
+        onError: () => {
+            error.value = 'Archivage impossible.';
+        },
+        onFinish: () => {
+            savingKey.value = '';
+        },
+    });
+};
+
+const requestDeleteAnnouncement = (item) => {
+    pendingDelete.value = item;
+};
+
+const cancelDeleteAnnouncement = () => {
+    if (!savingKey.value) {
+        pendingDelete.value = null;
+    }
+};
+
+const confirmDeleteAnnouncement = () => {
+    if (!pendingDelete.value) {
+        return;
+    }
+
+    const item = pendingDelete.value;
+    savingKey.value = `delete-${item.id}`;
+    error.value = '';
+
+    adminDelete(`/admin/visitor-popups/${item.id}`, {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            if (selectedAnnouncementId.value === item.id) {
+                selectedAnnouncementId.value = null;
+                creatingAnnouncement.value = false;
+            }
+
+            if (announcementList.value.length <= 1) {
+                emptyAnnouncement();
+            }
+
+            pendingDelete.value = null;
+        },
+        onError: () => {
+            error.value = 'Suppression impossible.';
+        },
+        onFinish: () => {
+            savingKey.value = '';
+        },
+    });
+};
+
+const chooseImage = () => {
+    if (uploadingImage.value || savingKey.value) {
+        return;
+    }
+
+    imageInput.value?.click();
+};
+
+const onImageChange = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    uploadingImage.value = true;
+    error.value = '';
+
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('content_key', 'visitor_popup.image');
+
+        const response = await fetch('/admin/uploads/images', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                Accept: 'application/json',
+            },
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.path) {
+            error.value = data.message ?? 'Image refusée.';
+            return;
+        }
+
+        draft.image = data.path;
+        saveDraft('popup.image');
+    } catch {
+        error.value = 'Upload impossible.';
+    } finally {
+        uploadingImage.value = false;
+
+        if (event.target) {
+            event.target.value = '';
+        }
+    }
 };
 
 const startReposition = () => {
@@ -247,46 +512,36 @@ const zoomImage = (step) => {
 
 const saveReposition = () => {
     const nextPosition = imagePosition.value;
-    savingKey.value = 'popup.image.position';
-    error.value = '';
 
-    adminPatch('/admin/content-blocks/popup.image', {
-        value: image.value,
-        type: 'image',
-        meta: {
-            ...blockMeta.value,
-            object_position_x: Math.round(nextPosition.x),
-            object_position_y: Math.round(nextPosition.y),
-            object_zoom: Number(nextPosition.zoom.toFixed(2)),
-        },
-    }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            repositioning.value = false;
-        },
-        onError: () => {
-            error.value = 'Position non enregistrée.';
-            localImagePosition.value = null;
-        },
-        onFinish: () => {
-            savingKey.value = '';
-        },
-    });
+    draft.meta = {
+        ...(draft.meta ?? {}),
+        object_position_x: Math.round(nextPosition.x),
+        object_position_y: Math.round(nextPosition.y),
+        object_zoom: Number(nextPosition.zoom.toFixed(2)),
+    };
+    repositioning.value = false;
+    saveDraft('popup.image.position');
 };
 
-watch(() => props.blocks?.enabled, () => {
-    localEnabled.value = null;
-});
-
-watch(() => props.blocks?.delay_seconds, () => {
-    localDelay.value = null;
-});
-
-watch(storedImagePosition, () => {
-    if (!repositioning.value) {
-        localImagePosition.value = null;
+watch(() => props.announcements, () => {
+    if (!managerOpen.value) {
+        return;
     }
-});
+
+    const selected = selectedAnnouncementId.value
+        ? announcementList.value.find((item) => item.id === selectedAnnouncementId.value)
+        : null;
+    const next = selected ?? announcementList.value.find((item) => item.id === props.blocks?.id) ?? announcementList.value[0] ?? null;
+
+    if (next) {
+        selectedAnnouncementId.value = next.id;
+        creatingAnnouncement.value = false;
+        resetDraft(next);
+        return;
+    }
+
+    emptyAnnouncement();
+}, { deep: true });
 
 watch([enabled, delaySeconds, popupSignature, () => props.isAdmin, () => props.canManage], scheduleVisitorPopup, {
     immediate: true,
@@ -305,7 +560,7 @@ onBeforeUnmount(() => {
         type="button"
         class="eden-popup-manager-trigger"
         title="Configurer l'annonce visiteurs"
-        @click="managerOpen = true"
+        @click="openManager"
     >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 14a3 3 0 0 0 3 3h1l3 4v-4h4l5 2V5l-5 2H7a3 3 0 0 0-3 3v4Z" />
@@ -327,14 +582,14 @@ onBeforeUnmount(() => {
             <div v-if="managerOpen" class="eden-popup-admin-settings">
                 <div>
                     <span>Annonce visiteurs</span>
-                    <strong>{{ enabled ? 'Activée' : 'Désactivée' }}</strong>
+                    <strong>{{ draft.enabled ? 'Activée' : 'Désactivée' }}</strong>
                 </div>
                 <label>
                     <span>Statut</span>
                     <select
-                        :value="enabled ? '1' : '0'"
-                        :disabled="savingKey === 'popup.enabled'"
-                        @change="saveBlock('popup.enabled', $event.target.value, 'number')"
+                        :value="draft.enabled ? '1' : '0'"
+                        :disabled="Boolean(savingKey)"
+                        @change="updateStatus($event.target.value)"
                     >
                         <option value="1">Activer</option>
                         <option value="0">Désactiver</option>
@@ -343,16 +598,72 @@ onBeforeUnmount(() => {
                 <label>
                     <span>Délai d'affichage</span>
                     <select
-                        :value="delaySeconds"
-                        :disabled="savingKey === 'popup.delay_seconds'"
-                        @change="saveBlock('popup.delay_seconds', $event.target.value, 'number')"
+                        :value="draft.delay_seconds"
+                        :disabled="Boolean(savingKey)"
+                        @change="updateDelay($event.target.value)"
                     >
                         <option v-for="seconds in delayOptions" :key="seconds" :value="seconds">
                             Après {{ seconds }}s
                         </option>
                     </select>
                 </label>
+                <button type="button" class="eden-popup-new-button" :disabled="Boolean(savingKey)" @click="newAnnouncement">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+                    Nouvelle
+                </button>
                 <span v-if="error" class="eden-popup-admin-error">{{ error }}</span>
+            </div>
+
+            <div v-if="managerOpen" class="eden-popup-library">
+                <header>
+                    <div>
+                        <span>Liste des annonces</span>
+                        <strong>{{ announcementList.length }} annonce{{ announcementList.length > 1 ? 's' : '' }}</strong>
+                    </div>
+                </header>
+
+                <div v-if="announcementList.length" class="eden-popup-list">
+                    <div
+                        v-for="item in announcementList"
+                        :key="item.id"
+                        class="eden-popup-list-item"
+                        :class="{ active: item.id === selectedAnnouncementId }"
+                    >
+                        <button type="button" class="eden-popup-list-main" @click="selectAnnouncement(item)">
+                            <strong>{{ item.title || 'Annonce sans titre' }}</strong>
+                            <small>{{ item.updated_at || 'Non datée' }}</small>
+                        </button>
+                        <em :class="{ active: item.is_active, archived: item.is_archived }">{{ statusLabel(item) }}</em>
+                        <span class="eden-popup-list-actions">
+                            <button
+                                v-if="!item.is_active"
+                                type="button"
+                                title="Activer"
+                                :disabled="Boolean(savingKey)"
+                                @click.stop="activateAnnouncement(item)"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                            </button>
+                            <button
+                                type="button"
+                                title="Archiver"
+                                :disabled="Boolean(savingKey) || item.is_archived"
+                                @click.stop="archiveAnnouncement(item)"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><path d="M10 12h4" /></svg>
+                            </button>
+                            <button
+                                type="button"
+                                title="Supprimer"
+                                :disabled="Boolean(savingKey)"
+                                @click.stop="requestDeleteAnnouncement(item)"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <p v-else>Aucune annonce enregistrée. Enregistrez l’annonce affichée pour l’ajouter à la liste.</p>
             </div>
 
             <div
@@ -376,7 +687,21 @@ onBeforeUnmount(() => {
                     :style="imageStyle"
                 >
                 <span v-else>Image de l'annonce</span>
-                <EditableImage content-key="popup.image" :can-edit="canManage" />
+
+                <input ref="imageInput" hidden type="file" accept="image/*" @change="onImageChange">
+                <button
+                    v-if="managerOpen"
+                    type="button"
+                    class="eden-edit-image"
+                    :disabled="uploadingImage || Boolean(savingKey)"
+                    :title="uploadingImage ? 'Upload...' : 'Changer l’image'"
+                    :aria-label="uploadingImage ? 'Upload...' : 'Changer l’image'"
+                    @click.stop="chooseImage"
+                >
+                    <span class="admin-edit-button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+                    </span>
+                </button>
 
                 <button
                     v-if="managerOpen && image && !repositioning"
@@ -423,11 +748,11 @@ onBeforeUnmount(() => {
                     </label>
                     <div class="eden-popup-zoom-controls">
                         <span>Zoom</span>
-                        <button type="button" :disabled="savingKey === 'popup.image.position' || imagePosition.zoom <= 1" aria-label="Réduire le zoom" @click.stop="zoomImage(-0.05)">
+                        <button type="button" :disabled="savingKey === 'popup.image.position' || imagePosition.zoom <= 1" aria-label="Réduire le zoom" title="Réduire le zoom" @click.stop="zoomImage(-0.05)">
                             −
                         </button>
                         <strong>{{ Math.round(imagePosition.zoom * 100) }}%</strong>
-                        <button type="button" :disabled="savingKey === 'popup.image.position' || imagePosition.zoom >= 2" aria-label="Augmenter le zoom" @click.stop="zoomImage(0.05)">
+                        <button type="button" :disabled="savingKey === 'popup.image.position' || imagePosition.zoom >= 2" aria-label="Augmenter le zoom" title="Augmenter le zoom" @click.stop="zoomImage(0.05)">
                             +
                         </button>
                     </div>
@@ -464,52 +789,74 @@ onBeforeUnmount(() => {
             </div>
 
             <span class="eyebrow">Annonce</span>
-            <h2>
-                <EditableText
-                    :value="title"
-                    fallback="Annonce importante"
-                    content-key="popup.title"
-                    :can-edit="canManage"
-                />
-            </h2>
-            <p>
-                <EditableTextarea
-                    :value="message"
-                    fallback="Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN."
-                    content-key="popup.message"
-                    :can-edit="canManage"
-                />
-            </p>
+            <template v-if="managerOpen">
+                <input v-model="draft.title" class="eden-popup-title-input" type="text" :disabled="Boolean(savingKey)" placeholder="Titre de l'annonce">
+                <textarea v-model="draft.message" class="eden-popup-message-input" rows="3" :disabled="Boolean(savingKey)" placeholder="Message de l'annonce"></textarea>
+                <div class="eden-popup-admin-link">
+                    <label>
+                        <span>Libellé</span>
+                        <input v-model="draft.button_label" type="text" :disabled="Boolean(savingKey)">
+                    </label>
+                    <label>
+                        <span>Lien</span>
+                        <input v-model="draft.button_url" type="text" :disabled="Boolean(savingKey)">
+                    </label>
+                </div>
+                <div class="eden-popup-manager-actions">
+                    <button type="button" class="btn btn-primary" :disabled="Boolean(savingKey)" @click="saveDraft()">
+                        {{ savingKey === 'popup.save' ? 'Enregistrement...' : 'Enregistrer' }}
+                    </button>
+                    <button
+                        v-if="draft.id && !selectedAnnouncement?.is_archived"
+                        type="button"
+                        class="btn btn-secondary"
+                        :disabled="Boolean(savingKey)"
+                        @click="archiveAnnouncement({ id: draft.id })"
+                    >
+                        Archiver
+                    </button>
+                    <button
+                        v-if="draft.id"
+                        type="button"
+                        class="btn btn-secondary eden-popup-danger-button"
+                        :disabled="Boolean(savingKey)"
+                        @click="requestDeleteAnnouncement({ id: draft.id, title: draft.title, updated_at: selectedAnnouncement?.updated_at })"
+                    >
+                        Supprimer
+                    </button>
+                    <button type="button" class="btn btn-secondary" :disabled="Boolean(savingKey)" @click="closeManager">
+                        Fermer
+                    </button>
+                </div>
+            </template>
+            <template v-else>
+                <h2>{{ title }}</h2>
+                <p>{{ message }}</p>
+            </template>
 
-            <div v-if="managerOpen" class="eden-popup-admin-link">
-                <span>
-                    Libellé :
-                    <EditableText
-                        :value="buttonLabel"
-                        fallback="En savoir plus"
-                        content-key="popup.button_label"
-                        :can-edit="canManage"
-                    />
-                </span>
-                <span>
-                    Lien :
-                    <EditableText
-                        :value="buttonUrl"
-                        fallback="#"
-                        content-key="popup.button_url"
-                        :can-edit="canManage"
-                        type="link"
-                    />
-                </span>
-            </div>
-
-            <div class="eden-visitor-popup-actions">
+            <div v-if="!managerOpen" class="eden-visitor-popup-actions">
                 <a v-if="hasButton" class="btn btn-primary" :href="buttonUrl" target="_blank" rel="noopener noreferrer">
                     {{ buttonLabel }}
                 </a>
                 <button type="button" class="btn btn-secondary" @click="close">
                     Fermer
                 </button>
+            </div>
+
+            <div v-if="pendingDelete" class="eden-popup-delete-confirm" role="dialog" aria-modal="true" aria-label="Confirmer la suppression">
+                <div>
+                    <span class="profile-kicker">Suppression</span>
+                    <h3>Supprimer cette annonce ?</h3>
+                    <p>
+                        L’annonce <strong>{{ pendingDelete.title || 'sans titre' }}</strong> sera supprimée définitivement de la liste.
+                    </p>
+                    <div class="eden-popup-delete-actions">
+                        <button type="button" class="btn btn-secondary" :disabled="Boolean(savingKey)" @click="cancelDeleteAnnouncement">Annuler</button>
+                        <button type="button" class="btn eden-popup-danger-submit" :disabled="Boolean(savingKey)" @click="confirmDeleteAnnouncement">
+                            {{ savingKey === `delete-${pendingDelete.id}` ? 'Suppression...' : 'Supprimer' }}
+                        </button>
+                    </div>
+                </div>
             </div>
         </article>
     </div>

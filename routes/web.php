@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ContentBlockController;
 use App\Http\Controllers\Admin\ContentItemController;
 use App\Http\Controllers\Admin\ContentRevisionController;
 use App\Http\Controllers\Admin\ImageUploadController;
+use App\Http\Controllers\Admin\VisitorPopupController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
@@ -67,6 +68,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::post('/uploads/images', [ImageUploadController::class, 'store'])
         ->name('uploads.images.store');
+
+    Route::post('/visitor-popups', [VisitorPopupController::class, 'store'])
+        ->name('visitor-popups.store');
+
+    Route::patch('/visitor-popups/{contentItem}', [VisitorPopupController::class, 'update'])
+        ->name('visitor-popups.update');
+
+    Route::patch('/visitor-popups/{contentItem}/activate', [VisitorPopupController::class, 'activate'])
+        ->name('visitor-popups.activate');
+
+    Route::patch('/visitor-popups/{contentItem}/archive', [VisitorPopupController::class, 'archive'])
+        ->name('visitor-popups.archive');
+
+    Route::delete('/visitor-popups/{contentItem}', [VisitorPopupController::class, 'destroy'])
+        ->name('visitor-popups.destroy');
 
     Route::get('/content-revisions', [ContentRevisionController::class, 'index'])
         ->name('content-revisions.index');

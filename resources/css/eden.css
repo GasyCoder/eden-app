@@ -1666,7 +1666,11 @@ input[type="file"]:disabled {
 }
 .eden-visitor-popup {
   position: relative;
-  width: min(760px, 100%);
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 2.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-bottom: 7rem;
   border: 1px solid var(--border);
   border-radius: var(--rm);
   background: var(--white);
@@ -1730,6 +1734,9 @@ input[type="file"]:disabled {
   position: absolute;
   top: 0.55rem;
   right: 0.55rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 .eden-visitor-popup-banner.is-empty {
   border-style: dashed;
@@ -1870,14 +1877,21 @@ input[type="file"]:disabled {
   font-size: 1rem;
 }
 .eden-visitor-popup-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
+  margin: 1rem -2rem -2rem;
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--border);
+  background: var(--white);
 }
 .eden-popup-admin-settings {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto;
   gap: 0.75rem;
   align-items: end;
   margin: -0.35rem 0 1.25rem;
@@ -1912,16 +1926,168 @@ input[type="file"]:disabled {
   font-size: 0.86rem;
   font-weight: 700;
 }
+.eden-popup-new-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  border: 1px solid var(--green);
+  border-radius: var(--r);
+  background: var(--green);
+  color: var(--on-green);
+  padding: 0 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+.eden-popup-new-button svg {
+  width: 15px;
+  height: 15px;
+}
+.eden-popup-new-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
 .eden-popup-admin-error {
   grid-column: 1 / -1;
   color: #b91c1c;
   font-size: 0.78rem;
   font-weight: 700;
 }
-.eden-popup-admin-link {
+.eden-popup-library {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--beige);
+}
+.eden-popup-library header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+.eden-popup-library header span {
+  display: block;
+  color: var(--g400);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.eden-popup-library header strong {
+  color: var(--g800);
+  font-size: 0.95rem;
+}
+.eden-popup-library > p {
+  margin: 0;
+  color: var(--g600);
+  font-size: 0.9rem;
+}
+.eden-popup-list {
   display: grid;
   gap: 0.55rem;
-  margin: 0.75rem 0 1rem;
+  max-height: 190px;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+.eden-popup-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g800);
+  padding: 0.65rem;
+  text-align: left;
+}
+.eden-popup-list-item.active {
+  border-color: rgba(15, 81, 50, 0.42);
+  box-shadow: 0 0 0 2px rgba(15, 81, 50, 0.08);
+}
+.eden-popup-list-main {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 0.15rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+}
+.eden-popup-list-item strong {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.eden-popup-list-item small {
+  color: var(--g500);
+  font-size: 0.75rem;
+}
+.eden-popup-list-item em {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: var(--beige);
+  color: var(--g600);
+  padding: 0 0.65rem;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.eden-popup-list-item em.active {
+  background: rgba(15, 81, 50, 0.12);
+  color: var(--green);
+}
+.eden-popup-list-item em.archived {
+  background: rgba(185, 28, 28, 0.08);
+  color: #b91c1c;
+}
+.eden-popup-list-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+.eden-popup-list-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--green);
+}
+.eden-popup-list-actions button:last-child {
+  color: #b91c1c;
+}
+.eden-popup-list-actions button svg {
+  width: 15px;
+  height: 15px;
+}
+.eden-popup-list-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.eden-popup-admin-link {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 0.65rem;
+  margin: 0.75rem 0 6.25rem;
   padding: 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -1929,6 +2095,114 @@ input[type="file"]:disabled {
   color: var(--g700);
   font-size: 0.86rem;
   font-weight: 700;
+}
+.eden-popup-admin-link label {
+  display: grid;
+  gap: 0.35rem;
+}
+.eden-popup-admin-link label span {
+  color: var(--g500);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.eden-popup-admin-link input,
+.eden-popup-title-input,
+.eden-popup-message-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  color: var(--g800);
+  font: inherit;
+  box-shadow: 0 0 0 2px transparent;
+}
+.eden-popup-admin-link input {
+  min-height: 38px;
+  padding: 0 0.65rem;
+}
+.eden-popup-title-input {
+  margin: 0 0 0.85rem;
+  padding: 0.6rem 0.7rem;
+  font-family: var(--fh);
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 700;
+  line-height: 1.18;
+}
+.eden-popup-message-input {
+  min-height: 90px;
+  margin: 0 0 0.25rem;
+  padding: 0.65rem 0.7rem;
+  color: var(--g700);
+  resize: vertical;
+}
+.eden-popup-admin-link input:focus,
+.eden-popup-title-input:focus,
+.eden-popup-message-input:focus {
+  border-color: var(--green);
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(15, 81, 50, 0.1);
+}
+.eden-popup-manager-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem -2rem -2rem;
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+}
+.eden-popup-danger-button {
+  border-color: rgba(185, 28, 28, 0.3);
+  color: #b91c1c;
+}
+.eden-popup-delete-confirm {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  border-radius: var(--rm);
+  background: rgba(8, 24, 17, 0.52);
+}
+.eden-popup-delete-confirm > div {
+  width: min(430px, 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--rm);
+  background: var(--white);
+  box-shadow: var(--sh-lg);
+  padding: 1.35rem;
+}
+.eden-popup-delete-confirm h3 {
+  margin: 0.25rem 0 0.55rem;
+  font-size: 1.28rem;
+}
+.eden-popup-delete-confirm p {
+  margin: 0;
+  color: var(--g700);
+  font-size: 0.94rem;
+}
+.eden-popup-delete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.15rem;
+}
+.eden-popup-danger-submit {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: #fff;
+}
+.eden-popup-danger-submit:hover {
+  border-color: #991b1b;
+  background: #991b1b;
+  color: #fff;
 }
 /* ── Invite d'installation PWA ──────────────── */
 .eden-install {
@@ -2861,6 +3135,33 @@ html[data-theme="dark"] .eden-toast-error .eden-toast-ic { background: rgba(185,
   }
   .eden-popup-admin-settings select {
     width: 100%;
+  }
+  .eden-popup-new-button {
+    width: 100%;
+  }
+  .eden-popup-list-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .eden-popup-list-actions {
+    justify-content: flex-start;
+  }
+  .eden-popup-admin-link {
+    grid-template-columns: 1fr;
+    margin-bottom: 8.25rem;
+  }
+  .eden-popup-manager-actions,
+  .eden-popup-delete-actions {
+    flex-direction: column-reverse;
+  }
+  .eden-popup-manager-actions,
+  .eden-visitor-popup-actions {
+    margin: 1rem -1.35rem -1.35rem;
+    padding: 0.9rem 1.35rem;
+  }
+  .eden-popup-manager-actions .btn,
+  .eden-popup-delete-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
   .eden-popup-reposition-panel {
     align-items: stretch;

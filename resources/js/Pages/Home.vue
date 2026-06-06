@@ -38,6 +38,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    visitorPopups: {
+        type: Array,
+        default: () => [],
+    },
     canEdit: {
         type: Boolean,
         default: false,
@@ -94,7 +98,7 @@ onBeforeUnmount(() => {
 
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
     <AdminOnboardingGuide />
-    <VisitorAnnouncementPopup :blocks="blocks.popup" :is-admin="canEdit" :can-manage="editMode" />
+    <VisitorAnnouncementPopup :blocks="blocks.popup" :announcements="visitorPopups" :is-admin="canEdit" :can-manage="editMode" />
     <Toast />
     <CookieBanner />
     <InstallPrompt />

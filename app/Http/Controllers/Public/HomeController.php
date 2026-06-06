@@ -13,11 +13,14 @@ class HomeController extends Controller
     public function index(ContentRepository $contentRepository, ImageVariantService $images): Response
     {
         $blocks = $contentRepository->blocks();
+        $blocks['popup'] = $contentRepository->visitorPopup($blocks['popup'] ?? []);
+        $canEdit = (bool) request()->user()?->is_admin;
 
         return Inertia::render('Home', [
             'blocks' => $blocks,
             'blockMeta' => $contentRepository->blockMeta(),
             'collections' => $contentRepository->collections(),
+            'visitorPopups' => $canEdit ? $contentRepository->visitorPopups() : [],
             'performance' => [
                 'heroImage' => $images->forUrl(
                     $blocks['hero']['image'] ?? null,
@@ -35,7 +38,7 @@ class HomeController extends Controller
                     ImageVariantService::CONTACT_SIZES,
                 ),
             ],
-            'canEdit' => (bool) request()->user()?->is_admin,
+            'canEdit' => $canEdit,
         ]);
     }
 }

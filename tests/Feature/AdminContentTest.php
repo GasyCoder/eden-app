@@ -4,6 +4,7 @@ use App\Models\ContentBlock;
 use App\Models\ContentItem;
 use App\Models\ContentRevision;
 use App\Models\User;
+use App\Services\ContentRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -398,6 +399,106 @@ test('editor can reposition visitor popup image', function () {
             'object_position_y' => 78,
             'object_zoom' => 1.35,
         ]);
+});
+
+test('editor can manage visitor popup list', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+    $oldPopup = ContentItem::create([
+        'collection_key' => 'visitor_popups',
+        'title' => 'Ancienne annonce',
+        'description' => 'Ancien message',
+        'link_label' => 'Voir',
+        'link_url' => '#',
+        'meta' => ['delay_seconds' => 3],
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($editor)
+        ->post('/admin/visitor-popups', [
+            'title' => 'Nouvelle annonce',
+            'description' => '<script>alert(1)</script>Message propre',
+            'link_label' => 'En savoir plus',
+            'link_url' => 'https://example.com',
+            'image' => '/storage/content/popup.jpg',
+            'is_active' => true,
+            'meta' => [
+                'delay_seconds' => 5,
+                'object_position_x' => 44,
+                'object_position_y' => 66,
+                'object_zoom' => 1.25,
+            ],
+        ])
+        ->assertRedirect();
+
+    $popup = ContentItem::where('collection_key', 'visitor_popups')
+        ->where('title', 'Nouvelle annonce')
+        ->firstOrFail();
+
+    expect($oldPopup->refresh()->is_active)->toBeFalse()
+        ->and($popup->is_active)->toBeTrue()
+        ->and($popup->description)->toBe('alert(1)Message propre')
+        ->and($popup->meta)->toMatchArray([
+            'delay_seconds' => 5,
+            'object_position_x' => 44,
+            'object_position_y' => 66,
+            'object_zoom' => 1.25,
+        ]);
+
+    $this->actingAs($editor)
+        ->patch("/admin/visitor-popups/{$popup->id}/archive")
+        ->assertRedirect();
+
+    expect($popup->refresh()->is_active)->toBeFalse()
+        ->and($popup->meta)->toHaveKey('archived_at');
+
+    $this->actingAs($editor)
+        ->patch("/admin/visitor-popups/{$popup->id}/activate")
+        ->assertRedirect();
+
+    expect($popup->refresh()->is_active)->toBeTrue()
+        ->and($popup->meta)->not->toHaveKey('archived_at');
+
+    $this->actingAs($editor)
+        ->delete("/admin/visitor-popups/{$popup->id}")
+        ->assertRedirect();
+
+    expect(ContentItem::whereKey($popup->id)->exists())->toBeFalse();
+});
+
+test('visitor popup repository stays disabled when all popup items are inactive', function () {
+    ContentItem::where('collection_key', 'visitor_popups')->delete();
+
+    ContentItem::create([
+        'collection_key' => 'visitor_popups',
+        'title' => 'Annonce archivée',
+        'description' => 'Message archivé',
+        'link_label' => 'Voir',
+        'link_url' => '#',
+        'meta' => ['delay_seconds' => 3, 'archived_at' => now()->toISOString()],
+        'is_active' => false,
+    ]);
+
+    $popup = app(ContentRepository::class)->visitorPopup([
+        'enabled' => '1',
+        'title' => 'Ancien fallback',
+    ]);
+
+    expect($popup['enabled'])->toBe('0')
+        ->and($popup['title'])->toBe('Annonce archivée')
+        ->and($popup['is_active'])->toBeFalse();
+});
+
+test('visitor popup repository is disabled when popup list is empty', function () {
+    ContentItem::where('collection_key', 'visitor_popups')->delete();
+
+    $popup = app(ContentRepository::class)->visitorPopup([
+        'enabled' => '1',
+        'title' => 'Ancien fallback actif',
+    ]);
+
+    expect($popup['enabled'])->toBe('0')
+        ->and($popup['title'])->toBe('Ancien fallback actif')
+        ->and($popup['is_active'])->toBeFalse();
 });
 
 test('invalid text color is rejected', function () {
