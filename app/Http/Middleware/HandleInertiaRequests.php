@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'is_admin' => $request->user()->is_admin,
                     'role' => $request->user()->role,
+                    'onboarding_completed_at' => $request->user()->onboarding_completed_at?->toISOString(),
                     'profile_photo_url' => $request->user()->profile_photo_path
                         ? Storage::url($request->user()->profile_photo_path)
                         : null,

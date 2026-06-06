@@ -136,6 +136,14 @@ class ContentSeeder extends Seeder
             ['key' => 'footer.information_title', 'group' => 'footer', 'value' => 'Informations'],
             ['key' => 'footer.copyright', 'group' => 'footer', 'value' => '© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés.'],
             ['key' => 'footer.credit', 'group' => 'footer', 'value' => "Conçu pour l'excellence académique"],
+
+            ['key' => 'popup.enabled', 'group' => 'popup', 'type' => 'number', 'value' => '0'],
+            ['key' => 'popup.delay_seconds', 'group' => 'popup', 'type' => 'number', 'value' => '3'],
+            ['key' => 'popup.title', 'group' => 'popup', 'value' => 'Annonce importante'],
+            ['key' => 'popup.message', 'group' => 'popup', 'type' => 'textarea', 'value' => "Une nouvelle information est disponible pour les visiteurs de l'École Doctorale EDEN."],
+            ['key' => 'popup.button_label', 'group' => 'popup', 'value' => 'En savoir plus'],
+            ['key' => 'popup.button_url', 'group' => 'popup', 'type' => 'link', 'value' => '#'],
+            ['key' => 'popup.image', 'group' => 'popup', 'type' => 'image', 'value' => null],
         ];
 
         foreach ($blocks as $position => $block) {

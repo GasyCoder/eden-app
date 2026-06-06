@@ -4,7 +4,9 @@ import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import Toast from '@/Components/Toast.vue';
 import InstallPrompt from '@/Components/InstallPrompt.vue';
 import CookieBanner from '@/Components/CookieBanner.vue';
+import AdminOnboardingGuide from '@/Components/Admin/AdminOnboardingGuide.vue';
 import AdminToolbar from '@/Components/Admin/AdminToolbar.vue';
+import VisitorAnnouncementPopup from '@/Components/VisitorAnnouncementPopup.vue';
 import Footer from '@/Components/Layout/Footer.vue';
 import Navbar from '@/Components/Layout/Navbar.vue';
 import AboutSection from '@/Sections/AboutSection.vue';
@@ -91,6 +93,8 @@ onBeforeUnmount(() => {
     <Head title="École Doctorale Écosystèmes Naturels" />
 
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
+    <AdminOnboardingGuide />
+    <VisitorAnnouncementPopup :blocks="blocks.popup" :is-admin="canEdit" :can-manage="editMode" />
     <Toast />
     <CookieBanner />
     <InstallPrompt />

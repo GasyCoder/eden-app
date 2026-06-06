@@ -44,6 +44,7 @@ watch(pinned, (value) => {
 });
 
 const roleLabel = computed(() => (user.value?.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
+const userDisplayName = computed(() => user.value?.name || user.value?.email || 'Administrateur');
 
 const toggleEditMode = () => {
     emit('update:editMode', !props.editMode);
@@ -67,7 +68,7 @@ const logout = () => {
                 class="eden-admin-status"
                 :class="{ 'has-photo': user?.profile_photo_url }"
                 type="button"
-                :title="`${user?.email ?? 'Administrateur'} — ${roleLabel}`"
+                :title="`${userDisplayName} — ${roleLabel}`"
                 :aria-label="`Profil de ${user?.name ?? 'l’administrateur'}`"
                 @click="goProfile"
             >
@@ -119,8 +120,8 @@ const logout = () => {
             v-else
             class="eden-admin-mini"
             type="button"
-            title="Outils d’édition"
-            aria-label="Afficher la barre d’édition"
+            :title="userDisplayName"
+            :aria-label="`Afficher la barre d’édition de ${userDisplayName}`"
             @click="pinned = true"
         >
             <img
@@ -133,6 +134,7 @@ const logout = () => {
                 decoding="async"
             >
             <span v-else class="eden-admin-mini-initial">{{ (user?.email ?? 'A').charAt(0).toUpperCase() }}</span>
+            <span class="eden-admin-mini-tooltip" role="tooltip">{{ userDisplayName }}</span>
             <span class="eden-admin-mini-edit" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
             </span>

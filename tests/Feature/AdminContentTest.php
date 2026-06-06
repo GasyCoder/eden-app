@@ -347,6 +347,59 @@ test('editor can update text color on editable blocks', function () {
         ->toMatchArray(['text_color' => '#123ABC']);
 });
 
+test('editor can manage visitor popup settings', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    expect(ContentBlock::where('key', 'popup.enabled')->exists())->toBeTrue()
+        ->and(ContentBlock::where('key', 'popup.delay_seconds')->exists())->toBeTrue()
+        ->and(ContentBlock::where('key', 'popup.image')->exists())->toBeTrue();
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/popup.enabled', [
+            'value' => '1',
+            'type' => 'number',
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/popup.delay_seconds', [
+            'value' => '5',
+            'type' => 'number',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'popup.enabled')->value('value'))->toBe('1')
+        ->and(ContentBlock::where('key', 'popup.delay_seconds')->value('value'))->toBe('5');
+});
+
+test('editor can reposition visitor popup image', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::updateOrCreate(
+        ['key' => 'popup.image'],
+        ['type' => 'image', 'value' => '/storage/content/popup.jpg', 'group' => 'popup'],
+    );
+
+    $this->actingAs($editor)
+        ->patch('/admin/content-blocks/popup.image', [
+            'value' => '/storage/content/popup.jpg',
+            'type' => 'image',
+            'meta' => [
+                'object_position_x' => 35,
+                'object_position_y' => 78,
+                'object_zoom' => 1.35,
+            ],
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'popup.image')->first()->meta)
+        ->toMatchArray([
+            'object_position_x' => 35,
+            'object_position_y' => 78,
+            'object_zoom' => 1.35,
+        ]);
+});
+
 test('invalid text color is rejected', function () {
     $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
 

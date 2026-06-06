@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ContentItemController;
 use App\Http\Controllers\Admin\ContentRevisionController;
 use App\Http\Controllers\Admin\ImageUploadController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsletterController;
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/me/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/me/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
     Route::post('/me/users', [ProfileController::class, 'storeEditor'])->name('profile.users.store');
+    Route::post('/me/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
     // Référencement (SEO) + favicon — superadmin uniquement (vérifié dans le contrôleur)
     Route::post('/me/settings', [SettingsController::class, 'update'])->name('settings.update');
