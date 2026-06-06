@@ -122,6 +122,7 @@ const editorUpdateForm = useForm({
     password_confirmation: '',
 });
 const editorDeleteForm = useForm({});
+const editorPendingDelete = ref(null);
 
 const startEditEditor = (editor) => {
     editingEditorId.value = editor.id;
@@ -148,15 +149,36 @@ const submitEditorUpdate = (editor) => {
         });
 };
 
-const deleteEditor = (editor) => {
-    if (!window.confirm(`Supprimer le compte éditeur "${editor.name}" ?`)) {
+const requestDeleteEditor = (editor) => {
+    editorPendingDelete.value = editor;
+};
+
+const cancelDeleteEditor = () => {
+    if (editorDeleteForm.processing) {
         return;
     }
+
+    editorPendingDelete.value = null;
+};
+
+const confirmDeleteEditor = () => {
+    if (!editorPendingDelete.value) {
+        return;
+    }
+
+    const editor = editorPendingDelete.value;
 
     editorDeleteForm
         .transform(() => ({ _method: 'DELETE' }))
         .post(`/me/users/${editor.id}`, {
             preserveScroll: true,
+            onSuccess: () => {
+                if (editingEditorId.value === editor.id) {
+                    cancelEditEditor();
+                }
+
+                editorPendingDelete.value = null;
+            },
             onFinish: () => editorDeleteForm.transform((data) => data),
         });
 };
@@ -556,7 +578,7 @@ onBeforeUnmount(() => {
                                         <button type="button" class="profile-icon-action" title="Modifier l'éditeur" aria-label="Modifier l'éditeur" @click="startEditEditor(editor)">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
                                         </button>
-                                        <button type="button" class="profile-icon-action is-danger" :disabled="editorDeleteForm.processing" title="Supprimer l'éditeur" aria-label="Supprimer l'éditeur" @click="deleteEditor(editor)">
+                                        <button type="button" class="profile-icon-action is-danger" :disabled="editorDeleteForm.processing" title="Supprimer l'éditeur" aria-label="Supprimer l'éditeur" @click="requestDeleteEditor(editor)">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v5" /><path d="M14 11v5" /></svg>
                                         </button>
                                     </div>
@@ -569,4 +591,76 @@ onBeforeUnmount(() => {
             </div>
         </div>
     </main>
+
+    <teleport to="body">
+        <div
+            v-if="editorPendingDelete"
+            class="profile-confirm-backdrop"
+            role="presentation"
+            @click.self="cancelDeleteEditor"
+        >
+            <section
+                class="profile-confirm-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="profile-delete-editor-title"
+            >
+                <button
+                    type="button"
+                    class="profile-confirm-close"
+                    :disabled="editorDeleteForm.processing"
+                    aria-label="Fermer"
+                    @click="cancelDeleteEditor"
+                >
+                    ×
+                </button>
+
+                <div class="profile-confirm-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v5" />
+                        <path d="M14 11v5" />
+                    </svg>
+                </div>
+
+                <span class="profile-kicker">Suppression</span>
+                <h2 id="profile-delete-editor-title">Supprimer cet éditeur ?</h2>
+                <p>
+                    Le compte <strong>{{ editorPendingDelete.name }}</strong> ne pourra plus se connecter ni modifier les contenus du site.
+                </p>
+
+                <dl class="profile-confirm-summary">
+                    <div>
+                        <dt>Nom</dt>
+                        <dd>{{ editorPendingDelete.name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Email</dt>
+                        <dd>{{ editorPendingDelete.email }}</dd>
+                    </div>
+                </dl>
+
+                <div class="profile-confirm-actions">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        :disabled="editorDeleteForm.processing"
+                        @click="cancelDeleteEditor"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="button"
+                        class="btn profile-danger-submit"
+                        :disabled="editorDeleteForm.processing"
+                        @click="confirmDeleteEditor"
+                    >
+                        {{ editorDeleteForm.processing ? 'Suppression...' : 'Supprimer le compte' }}
+                    </button>
+                </div>
+            </section>
+        </div>
+    </teleport>
 </template>
