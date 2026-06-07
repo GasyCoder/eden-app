@@ -14,6 +14,7 @@ class ContentRevisionRecorder
         return Arr::only($block->fresh()?->toArray() ?? $block->toArray(), [
             'id',
             'key',
+            'locale',
             'type',
             'value',
             'meta',
@@ -30,6 +31,7 @@ class ContentRevisionRecorder
         return Arr::only($item->fresh()?->toArray() ?? $item->toArray(), [
             'id',
             'collection_key',
+            'locale',
             'title',
             'subtitle',
             'description',

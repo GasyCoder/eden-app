@@ -5,7 +5,7 @@ import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
 import EditableCollection from '@/Components/Editable/EditableCollection.vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
+import { adminDelete, adminPatch, withContentLocale } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     blocks: {
@@ -139,7 +139,7 @@ function saveProject(project) {
 }
 
 function createProject() {
-    router.post('/admin/content-items/projects', payload(), {
+    router.post('/admin/content-items/projects', withContentLocale(payload()), {
         preserveScroll: true,
         onSuccess: cancelEdit,
     });

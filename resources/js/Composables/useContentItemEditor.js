@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
+import { adminDelete, adminPatch, withContentLocale } from '@/Composables/useAdminRequest';
 
 export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload) {
     const editingId = ref(null);
@@ -26,7 +26,7 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
     }
 
     function createItem() {
-        router.post(`/admin/content-items/${collectionKey}`, toPayload(form.value), {
+        router.post(`/admin/content-items/${collectionKey}`, withContentLocale(toPayload(form.value)), {
             preserveScroll: true,
             onSuccess: cancelEdit,
         });

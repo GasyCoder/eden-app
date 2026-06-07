@@ -30,6 +30,14 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    locale: {
+        type: String,
+        default: 'fr',
+    },
+    languageUrls: {
+        type: Object,
+        default: () => ({ fr: '/', en: '/en' }),
+    },
     blockMeta: {
         type: Object,
         default: () => ({}),
@@ -98,12 +106,25 @@ onBeforeUnmount(() => {
 
     <AdminToolbar :can-edit="canEdit" v-model:edit-mode="editMode" />
     <AdminOnboardingGuide />
-    <VisitorAnnouncementPopup :blocks="blocks.popup" :announcements="visitorPopups" :is-admin="canEdit" :can-manage="editMode" />
+    <VisitorAnnouncementPopup
+        :blocks="blocks.popup"
+        :announcements="visitorPopups"
+        :current-locale="locale"
+        :is-admin="canEdit"
+        :can-manage="editMode"
+    />
     <Toast />
     <CookieBanner />
     <InstallPrompt />
 
-    <Navbar :blocks="blocks.site" :nav="blocks.nav" :logo-variants="performance.siteLogo" :can-edit="editMode" />
+    <Navbar
+        :blocks="blocks.site"
+        :nav="blocks.nav"
+        :logo-variants="performance.siteLogo"
+        :locale="locale"
+        :language-urls="languageUrls"
+        :can-edit="editMode"
+    />
     <HeroSection :blocks="blocks.hero" :image-variants="performance.heroImage" :can-edit="editMode" />
     <AboutSection :blocks="blocks.about" :stats="blocks.stats" :can-edit="editMode" />
     <MissionVisionSection :blocks="blocks.mission" :items="collections.mission_cards" :can-edit="editMode" />

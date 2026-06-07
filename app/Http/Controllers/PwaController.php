@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContentBlock;
+use App\Support\ContentLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,8 +50,8 @@ class PwaController extends Controller
 
     private function sourcePath(): ?string
     {
-        $url = ContentBlock::where('key', 'site.logo')->value('value')
-            ?: ContentBlock::where('key', 'site.favicon')->value('value');
+        $url = ContentBlock::where('key', 'site.logo')->where('locale', ContentLocale::DEFAULT)->value('value')
+            ?: ContentBlock::where('key', 'site.favicon')->where('locale', ContentLocale::DEFAULT)->value('value');
 
         if (! $url) {
             return null;

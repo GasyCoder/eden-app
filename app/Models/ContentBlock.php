@@ -9,6 +9,7 @@ class ContentBlock extends Model
 {
     protected $fillable = [
         'key',
+        'locale',
         'type',
         'value',
         'meta',
@@ -42,5 +43,10 @@ class ContentBlock extends Model
     public function scopeByGroup(Builder $query, ?string $group): Builder
     {
         return $group ? $query->where('group', $group) : $query;
+    }
+
+    public function scopeLocale(Builder $query, string $locale): Builder
+    {
+        return $query->where('locale', $locale);
     }
 }

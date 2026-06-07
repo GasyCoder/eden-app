@@ -1,5 +1,7 @@
+@php($pageLocale = \App\Support\ContentLocale::fromRequest(request()))
+@php($pageUrl = $pageLocale === 'en' ? route('home.en') : route('home'))
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ $pageLocale }}">
     <head>
         @php($appUrl = rtrim(config('app.url'), '/'))
         <meta charset="utf-8">
@@ -28,15 +30,18 @@
         <meta name="author" content="École Doctorale EDEN — Université de Mahajanga">
         <meta name="robots" content="index, follow">
         <meta name="theme-color" content="#0F5132">
-        <link rel="canonical" href="{{ $appUrl }}/">
+        <link rel="canonical" href="{{ $pageUrl }}">
+        <link rel="alternate" hreflang="fr" href="{{ route('home') }}">
+        <link rel="alternate" hreflang="en" href="{{ route('home.en') }}">
+        <link rel="alternate" hreflang="x-default" href="{{ route('home') }}">
 
         {{-- Open Graph / réseaux sociaux --}}
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="École Doctorale EDEN — Université de Mahajanga">
         <meta property="og:title" content="{{ $seo['title'] }}">
         <meta property="og:description" content="{{ $seo['description'] }}">
-        <meta property="og:url" content="{{ $appUrl }}/">
-        <meta property="og:locale" content="fr_FR">
+        <meta property="og:url" content="{{ $pageUrl }}">
+        <meta property="og:locale" content="{{ $pageLocale === 'en' ? 'en_US' : 'fr_FR' }}">
         <meta property="og:image" content="{{ $ogImage }}">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
@@ -72,7 +77,7 @@
         @inertiaHead
     </head>
     <body>
-        @if (request()->routeIs('home'))
+        @if (request()->routeIs('home') || request()->routeIs('home.en'))
             {{-- Skeleton de premier chargement (retiré au montage de l'app) — réutilise les styles du skeleton de navigation --}}
             <div id="app-skeleton" class="eden-page-loading" role="status" aria-label="Chargement de la page">
                 <div class="eden-page-loading-bar" style="width: 42%"></div>

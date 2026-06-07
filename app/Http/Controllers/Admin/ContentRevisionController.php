@@ -67,7 +67,8 @@ class ContentRevisionController extends Controller
     {
         if ($revision->action === 'created' && $revision->before === null) {
             $key = $revision->after['key'] ?? $revision->content_key;
-            ContentBlock::where('key', $key)->delete();
+            $locale = $revision->after['locale'] ?? 'fr';
+            ContentBlock::where('key', $key)->where('locale', $locale)->delete();
 
             return;
         }
@@ -75,7 +76,10 @@ class ContentRevisionController extends Controller
         $snapshot = $revision->before;
 
         ContentBlock::updateOrCreate(
-            ['key' => $snapshot['key']],
+            [
+                'key' => $snapshot['key'],
+                'locale' => $snapshot['locale'] ?? 'fr',
+            ],
             Arr::only($snapshot, [
                 'type',
                 'value',
@@ -101,6 +105,7 @@ class ContentRevisionController extends Controller
         $item->forceFill(Arr::only($snapshot, [
             'id',
             'collection_key',
+            'locale',
             'title',
             'subtitle',
             'description',
@@ -118,6 +123,7 @@ class ContentRevisionController extends Controller
     {
         foreach ($revision->before ?? [] as $item) {
             ContentItem::byCollection($revision->content_key)
+                ->where('locale', $item['locale'] ?? 'fr')
                 ->whereKey($item['id'])
                 ->update(['position' => $item['position']]);
         }

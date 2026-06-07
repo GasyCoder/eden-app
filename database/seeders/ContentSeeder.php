@@ -12,6 +12,7 @@ class ContentSeeder extends Seeder
     {
         $this->seedBlocks();
         $this->seedItems();
+        $this->call(ContentEnSeeder::class);
     }
 
     private function seedBlocks(): void
@@ -148,7 +149,10 @@ class ContentSeeder extends Seeder
 
         foreach ($blocks as $position => $block) {
             ContentBlock::updateOrCreate(
-                ['key' => $block['key']],
+                [
+                    'key' => $block['key'],
+                    'locale' => 'fr',
+                ],
                 [
                     'type' => $block['type'] ?? 'text',
                     'value' => $block['value'],
@@ -297,6 +301,7 @@ class ContentSeeder extends Seeder
                 ContentItem::updateOrCreate(
                     [
                         'collection_key' => $collectionKey,
+                        'locale' => 'fr',
                         'position' => $position,
                     ],
                     [

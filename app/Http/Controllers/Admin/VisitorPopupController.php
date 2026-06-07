@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ContentItem;
 use App\Services\ContentRevisionRecorder;
 use App\Services\ContentSanitizer;
+use App\Support\ContentLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -19,15 +20,17 @@ class VisitorPopupController extends Controller
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
         $data = $this->sanitize($this->validated($request), $sanitizer);
+        $locale = ContentLocale::fromRequest($request);
 
         if ($data['is_active'] ?? true) {
-            ContentItem::byCollection('visitor_popups')->update(['is_active' => false]);
+            ContentItem::byCollection('visitor_popups')->locale($locale)->update(['is_active' => false]);
         }
 
         $item = ContentItem::create([
             ...$data,
             'collection_key' => 'visitor_popups',
-            'position' => (int) ContentItem::byCollection('visitor_popups')->max('position') + 1,
+            'locale' => $locale,
+            'position' => (int) ContentItem::byCollection('visitor_popups')->locale($locale)->max('position') + 1,
             'is_active' => $data['is_active'] ?? true,
         ]);
 
@@ -42,13 +45,14 @@ class VisitorPopupController extends Controller
         ContentSanitizer $sanitizer,
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
-        $this->ensureVisitorPopup($contentItem);
+        $this->ensureVisitorPopup($contentItem, ContentLocale::fromRequest($request));
 
         $data = $this->sanitize($this->validated($request, partial: true), $sanitizer);
         $before = $revisions->snapshotItem($contentItem);
 
         if (($data['is_active'] ?? false) === true) {
             ContentItem::byCollection('visitor_popups')
+                ->locale($contentItem->locale)
                 ->whereKeyNot($contentItem->id)
                 ->update(['is_active' => false]);
         }
@@ -62,11 +66,12 @@ class VisitorPopupController extends Controller
 
     public function activate(ContentItem $contentItem, ContentRevisionRecorder $revisions): RedirectResponse
     {
-        $this->ensureVisitorPopup($contentItem);
+        $this->ensureVisitorPopup($contentItem, ContentLocale::fromRequest());
 
         $before = $revisions->snapshotItem($contentItem);
 
         ContentItem::byCollection('visitor_popups')
+            ->locale($contentItem->locale)
             ->whereKeyNot($contentItem->id)
             ->update(['is_active' => false]);
 
@@ -85,7 +90,7 @@ class VisitorPopupController extends Controller
 
     public function archive(ContentItem $contentItem, ContentRevisionRecorder $revisions): RedirectResponse
     {
-        $this->ensureVisitorPopup($contentItem);
+        $this->ensureVisitorPopup($contentItem, ContentLocale::fromRequest());
 
         $before = $revisions->snapshotItem($contentItem);
         $meta = $contentItem->meta ?? [];
@@ -105,7 +110,7 @@ class VisitorPopupController extends Controller
 
     public function destroy(ContentItem $contentItem, ContentRevisionRecorder $revisions): RedirectResponse
     {
-        $this->ensureVisitorPopup($contentItem);
+        $this->ensureVisitorPopup($contentItem, ContentLocale::fromRequest());
 
         $before = $revisions->snapshotItem($contentItem);
 
@@ -116,9 +121,9 @@ class VisitorPopupController extends Controller
         return back(303)->with('success', 'Annonce supprimée.');
     }
 
-    private function ensureVisitorPopup(ContentItem $contentItem): void
+    private function ensureVisitorPopup(ContentItem $contentItem, string $locale): void
     {
-        abort_unless($contentItem->collection_key === 'visitor_popups', 404);
+        abort_unless($contentItem->collection_key === 'visitor_popups' && $contentItem->locale === $locale, 404);
     }
 
     private function validated(Request $request, bool $partial = false): array

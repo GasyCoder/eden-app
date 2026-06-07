@@ -31,7 +31,9 @@ class SeoSettings
     public static function all(): array
     {
         try {
-            $blocks = ContentBlock::whereIn('key', self::KEYS)->pluck('value', 'key');
+            $blocks = ContentBlock::whereIn('key', self::KEYS)
+                ->where('locale', ContentLocale::DEFAULT)
+                ->pluck('value', 'key');
         } catch (\Throwable) {
             $blocks = collect();
         }

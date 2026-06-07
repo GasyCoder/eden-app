@@ -9,6 +9,7 @@ class ContentItem extends Model
 {
     protected $fillable = [
         'collection_key',
+        'locale',
         'title',
         'subtitle',
         'description',
@@ -44,5 +45,10 @@ class ContentItem extends Model
     public function scopeByCollection(Builder $query, string $collectionKey): Builder
     {
         return $query->where('collection_key', $collectionKey);
+    }
+
+    public function scopeLocale(Builder $query, string $locale): Builder
+    {
+        return $query->where('locale', $locale);
     }
 }

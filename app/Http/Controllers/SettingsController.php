@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ContentBlock;
 use App\Services\ContentSanitizer;
 use App\Services\ImageVariantService;
+use App\Support\ContentLocale;
 use App\Support\ThemeSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,7 +65,10 @@ class SettingsController extends Controller
     private function setBlock(string $key, ?string $value, string $type, string $group = 'seo'): void
     {
         ContentBlock::updateOrCreate(
-            ['key' => $key],
+            [
+                'key' => $key,
+                'locale' => ContentLocale::DEFAULT,
+            ],
             [
                 'type' => $type,
                 'value' => $value,

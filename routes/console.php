@@ -3,6 +3,7 @@
 use App\Models\ContentBlock;
 use App\Models\ContentItem;
 use App\Services\ImageVariantService;
+use App\Support\ContentLocale;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -14,19 +15,19 @@ Artisan::command('inspire', function () {
 Artisan::command('content:generate-image-variants', function () {
     $images = app(ImageVariantService::class);
     $before = count(Storage::disk('public')->allFiles('content/optimized'));
-    $heroImage = ContentBlock::query()->where('key', 'hero.image')->value('value');
+    $heroImage = ContentBlock::query()->where('key', 'hero.image')->where('locale', ContentLocale::DEFAULT)->value('value');
 
     if ($heroImage) {
         $images->forUrl($heroImage, ImageVariantService::HERO_WIDTHS, ImageVariantService::HERO_SIZES);
     }
 
-    $siteLogo = ContentBlock::query()->where('key', 'site.logo')->value('value');
+    $siteLogo = ContentBlock::query()->where('key', 'site.logo')->where('locale', ContentLocale::DEFAULT)->value('value');
 
     if ($siteLogo) {
         $images->forUrl($siteLogo, ImageVariantService::LOGO_WIDTHS, ImageVariantService::LOGO_SIZES);
     }
 
-    $contactMapImage = ContentBlock::query()->where('key', 'contact.map_image')->value('value');
+    $contactMapImage = ContentBlock::query()->where('key', 'contact.map_image')->where('locale', ContentLocale::DEFAULT)->value('value');
 
     if ($contactMapImage) {
         $images->forUrl($contactMapImage, ImageVariantService::CONTACT_WIDTHS, ImageVariantService::CONTACT_SIZES);

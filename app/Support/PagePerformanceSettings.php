@@ -13,7 +13,12 @@ class PagePerformanceSettings
     public static function all(): array
     {
         try {
-            $heroImage = ContentBlock::where('key', 'hero.image')->value('value');
+            $heroImage = ContentBlock::where('key', 'hero.image')
+                ->where('locale', ContentLocale::fromRequest())
+                ->value('value')
+                ?: ContentBlock::where('key', 'hero.image')
+                    ->where('locale', ContentLocale::DEFAULT)
+                    ->value('value');
         } catch (\Throwable) {
             $heroImage = null;
         }

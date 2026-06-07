@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ContentLocale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
@@ -36,8 +37,16 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $locale = ContentLocale::fromRequest($request);
+
         return [
             ...parent::share($request),
+            'locale' => $locale,
+            'locales' => ContentLocale::SUPPORTED,
+            'languageUrls' => [
+                'fr' => route('home'),
+                'en' => route('home.en'),
+            ],
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,

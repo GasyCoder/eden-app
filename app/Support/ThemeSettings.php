@@ -39,6 +39,7 @@ class ThemeSettings
         try {
             $stored = ContentBlock::query()
                 ->whereIn('key', array_map(fn ($s) => self::key($s), array_keys(self::SECTIONS)))
+                ->where('locale', ContentLocale::DEFAULT)
                 ->pluck('value', 'key');
         } catch (\Throwable) {
             $stored = collect();

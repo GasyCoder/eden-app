@@ -1,12 +1,14 @@
 <script setup>
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableImage from '@/Components/Editable/EditableImage.vue';
 import ThemeToggle from '@/Components/Layout/ThemeToggle.vue';
+import LangFlag from '@/Components/Layout/LangFlag.vue';
 
 const isOpen = ref(false);
+const languageOpen = ref(false);
 
-defineProps({
+const props = defineProps({
     blocks: {
         type: Object,
         default: () => ({}),
@@ -23,14 +25,42 @@ defineProps({
         type: Object,
         default: () => ({}),
     },
+    locale: {
+        type: String,
+        default: 'fr',
+    },
+    languageUrls: {
+        type: Object,
+        default: () => ({ fr: '/', en: '/en' }),
+    },
 });
+
+const currentLanguageName = computed(() => (props.locale === 'en' ? 'English' : 'Français'));
+const currentLanguageCode = computed(() => (props.locale === 'en' ? 'EN' : 'FR'));
+
+const languages = computed(() => [
+    { code: 'fr', name: 'Français', url: props.languageUrls?.fr ?? '/' },
+    { code: 'en', name: 'English', url: props.languageUrls?.en ?? '/en' },
+]);
 
 const toggleNav = () => {
     isOpen.value = !isOpen.value;
+    languageOpen.value = false;
 };
 
 const closeNav = () => {
     isOpen.value = false;
+    languageOpen.value = false;
+};
+
+const toggleLanguageDropdown = () => {
+    languageOpen.value = !languageOpen.value;
+};
+
+const closeLanguageDropdown = (event) => {
+    if (!event.target.closest?.('.language-switcher')) {
+        languageOpen.value = false;
+    }
 };
 
 // Verrouille le défilement de la page quand le menu mobile est ouvert
@@ -43,6 +73,13 @@ watch(isOpen, (open) => {
 onBeforeUnmount(() => {
     if (typeof document !== 'undefined') {
         document.body.style.overflow = '';
+        document.removeEventListener('click', closeLanguageDropdown);
+    }
+});
+
+onMounted(() => {
+    if (typeof document !== 'undefined') {
+        document.addEventListener('click', closeLanguageDropdown);
     }
 });
 </script>
@@ -50,7 +87,7 @@ onBeforeUnmount(() => {
 <template>
     <header id="header">
         <div class="container">
-            <a href="#" class="logo" @click="closeNav">
+            <a href="#" class="logo" :class="{ 'logo--editable': canEdit }" @click="closeNav">
                 <div class="logo-mark" :class="{ 'has-logo': blocks?.logo }">
                     <picture v-if="blocks?.logo">
                         <source
@@ -102,6 +139,45 @@ onBeforeUnmount(() => {
                     <EditableText :value="nav?.cta_url" fallback="#" content-key="nav.cta_url" :can-edit="canEdit" type="link" />
                 </span>
             </nav>
+
+            <div class="language-switcher" :class="{ 'is-open': languageOpen }" aria-label="Choix de langue">
+                <button
+                    class="language-trigger"
+                    type="button"
+                    :title="`Langue : ${currentLanguageName}`"
+                    :aria-label="`Langue actuelle : ${currentLanguageName}. Ouvrir le choix de langue`"
+                    :aria-expanded="languageOpen ? 'true' : 'false'"
+                    aria-haspopup="true"
+                    @click.stop="toggleLanguageDropdown"
+                >
+                    <LangFlag :code="locale" />
+                    <span class="language-code">{{ currentLanguageCode }}</span>
+                    <svg class="language-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <div v-if="languageOpen" class="language-menu" role="menu">
+                    <a
+                        v-for="lang in languages"
+                        :key="lang.code"
+                        class="language-option"
+                        :class="{ 'is-active': lang.code === locale }"
+                        :href="lang.url"
+                        :hreflang="lang.code"
+                        :aria-current="lang.code === locale ? 'true' : null"
+                        :title="`Afficher en ${lang.name}`"
+                        role="menuitem"
+                        @click="closeNav"
+                    >
+                        <LangFlag :code="lang.code" />
+                        <span class="language-name">{{ lang.name }}</span>
+                        <svg v-if="lang.code === locale" class="language-check" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="m5 10.5 3.5 3.5 6.5-7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
 
             <ThemeToggle />
 

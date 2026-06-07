@@ -103,6 +103,14 @@ createInertiaApp({
     },
 });
 
+router.on('navigate', (event) => {
+    const locale = event.detail?.page?.props?.locale;
+
+    if (['fr', 'en'].includes(locale)) {
+        document.documentElement.lang = locale;
+    }
+});
+
 // PWA : enregistrement du service worker (production uniquement)
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {

@@ -8,6 +8,7 @@ use App\Services\ContentRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('guest cannot update content blocks', function () {
     ContentBlock::create([
@@ -18,6 +19,45 @@ test('guest cannot update content blocks', function () {
     $this->patch('/admin/content-blocks/hero.title', [
         'value' => 'New title',
     ])->assertRedirect('/me/login');
+});
+
+test('english homepage receives locale and falls back to french content', function () {
+    ContentBlock::create([
+        'key' => 'hero.title',
+        'locale' => 'fr',
+        'value' => 'Titre français',
+    ]);
+
+    $this->get('/en')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('locale', 'en')
+            ->where('blocks.hero.title', 'Titre français')
+            ->where('languageUrls.fr', route('home'))
+            ->where('languageUrls.en', route('home.en')));
+});
+
+test('editing a content block from english page creates english translation', function () {
+    $editor = User::factory()->create(['is_admin' => true, 'role' => 'editor']);
+
+    ContentBlock::create([
+        'key' => 'hero.title',
+        'locale' => 'fr',
+        'value' => 'Titre français',
+        'type' => 'text',
+        'group' => 'hero',
+    ]);
+
+    $this->actingAs($editor)
+        ->withHeader('referer', url('/en'))
+        ->patch('/admin/content-blocks/hero.title', [
+            'value' => 'English title',
+            'type' => 'text',
+        ])
+        ->assertRedirect();
+
+    expect(ContentBlock::where('key', 'hero.title')->where('locale', 'fr')->value('value'))->toBe('Titre français')
+        ->and(ContentBlock::where('key', 'hero.title')->where('locale', 'en')->value('value'))->toBe('English title');
 });
 
 test('admin can update content blocks', function () {

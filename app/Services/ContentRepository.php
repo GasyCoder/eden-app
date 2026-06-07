@@ -4,69 +4,100 @@ namespace App\Services;
 
 use App\Models\ContentBlock;
 use App\Models\ContentItem;
+use App\Support\ContentLocale;
 use Illuminate\Support\Arr;
 
 class ContentRepository
 {
     public function __construct(private readonly ImageVariantService $images) {}
 
-    public function blocks(): array
+    public function blocks(string $locale = ContentLocale::DEFAULT): array
     {
         $blocks = [];
+        $locales = $this->fallbackLocales($locale);
 
-        ContentBlock::query()
-            ->active()
-            ->ordered()
-            ->get(['key', 'value'])
-            ->each(function (ContentBlock $block) use (&$blocks): void {
-                Arr::set($blocks, $block->key, $block->value);
-            });
+        foreach ($locales as $activeLocale) {
+            ContentBlock::query()
+                ->active()
+                ->locale($activeLocale)
+                ->ordered()
+                ->get(['key', 'value'])
+                ->each(function (ContentBlock $block) use (&$blocks): void {
+                    if ($block->value !== null && $block->value !== '') {
+                        Arr::set($blocks, $block->key, $block->value);
+                    }
+                });
+        }
 
         return $blocks;
     }
 
-    public function blockMeta(): array
+    public function blockMeta(string $locale = ContentLocale::DEFAULT): array
     {
         $meta = [];
+        $locales = $this->fallbackLocales($locale);
 
-        ContentBlock::query()
-            ->active()
-            ->whereNotNull('meta')
-            ->get(['key', 'meta'])
-            ->each(function (ContentBlock $block) use (&$meta): void {
-                if ($block->meta !== []) {
-                    Arr::set($meta, $block->key, $block->meta ?? []);
-                }
-            });
+        foreach ($locales as $activeLocale) {
+            ContentBlock::query()
+                ->active()
+                ->locale($activeLocale)
+                ->whereNotNull('meta')
+                ->get(['key', 'meta'])
+                ->each(function (ContentBlock $block) use (&$meta): void {
+                    if ($block->meta !== []) {
+                        Arr::set($meta, $block->key, $block->meta ?? []);
+                    }
+                });
+        }
 
         return $meta;
     }
 
-    public function collections(): array
+    public function collections(string $locale = ContentLocale::DEFAULT): array
     {
-        return ContentItem::query()
+        $fallback = ContentItem::query()
             ->active()
+            ->locale(ContentLocale::DEFAULT)
             ->ordered()
             ->get()
-            ->groupBy('collection_key')
-            ->map(fn ($items) => $items->map(fn (ContentItem $item) => [
-                'id' => $item->id,
-                'title' => $item->title,
-                'subtitle' => $item->subtitle,
-                'description' => $item->description,
-                'image' => $item->image,
-                'image_sources' => $this->images->forUrl($item->image),
-                'link_url' => $item->link_url,
-                'link_label' => $item->link_label,
-                'meta' => $item->meta ?? [],
-                'position' => $item->position,
-            ])->values()->all())
+            ->groupBy('collection_key');
+
+        if (ContentLocale::normalize($locale) === ContentLocale::DEFAULT) {
+            return $fallback
+                ->map(fn ($items) => $items->map(fn (ContentItem $item) => $this->serializeItem($item))->values()->all())
+                ->all();
+        }
+
+        $localized = ContentItem::query()
+            ->active()
+            ->locale(ContentLocale::normalize($locale))
+            ->ordered()
+            ->get()
+            ->groupBy('collection_key');
+
+        return $fallback
+            ->keys()
+            ->merge($localized->keys())
+            ->unique()
+            ->mapWithKeys(function (string $collectionKey) use ($fallback, $localized): array {
+                $localizedItems = $localized->get($collectionKey);
+
+                if ($localizedItems && $localizedItems->isNotEmpty()) {
+                    return [$collectionKey => $localizedItems->map(fn (ContentItem $item) => $this->serializeItem($item))->values()->all()];
+                }
+
+                return [$collectionKey => ($fallback->get($collectionKey) ?? collect())
+                    ->map(fn (ContentItem $item) => $this->serializeItem($item, editable: false))
+                    ->values()
+                    ->all()];
+            })
             ->all();
     }
 
-    public function visitorPopup(array $fallback = []): array
+    public function visitorPopup(array $fallback = [], string $locale = ContentLocale::DEFAULT): array
     {
-        $query = ContentItem::query()->byCollection('visitor_popups');
+        $locale = ContentLocale::normalize($locale);
+        $query = ContentItem::query()->byCollection('visitor_popups')->locale($locale);
         $item = (clone $query)->active()->latest('updated_at')->first();
 
         if ($item) {
@@ -82,6 +113,10 @@ class ContentRepository
                 'enabled' => '0',
                 'is_active' => false,
             ];
+        }
+
+        if ($locale !== ContentLocale::DEFAULT) {
+            return $this->visitorPopup($fallback, ContentLocale::DEFAULT);
         }
 
         return [
@@ -100,10 +135,11 @@ class ContentRepository
         ];
     }
 
-    public function visitorPopups(): array
+    public function visitorPopups(string $locale = ContentLocale::DEFAULT): array
     {
         return ContentItem::query()
             ->byCollection('visitor_popups')
+            ->locale(ContentLocale::normalize($locale))
             ->latest('updated_at')
             ->get()
             ->map(fn (ContentItem $item) => $this->serializeVisitorPopup($item))
@@ -130,6 +166,36 @@ class ContentRepository
             'is_archived' => !$item->is_active && isset($meta['archived_at']),
             'created_at' => $item->created_at?->format('d/m/Y'),
             'updated_at' => $item->updated_at?->format('d/m/Y H:i'),
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function fallbackLocales(string $locale): array
+    {
+        $locale = ContentLocale::normalize($locale);
+
+        return $locale === ContentLocale::DEFAULT
+            ? [ContentLocale::DEFAULT]
+            : [ContentLocale::DEFAULT, $locale];
+    }
+
+    private function serializeItem(ContentItem $item, bool $editable = true): array
+    {
+        return [
+            'id' => $editable ? $item->id : null,
+            'title' => $item->title,
+            'subtitle' => $item->subtitle,
+            'description' => $item->description,
+            'image' => $item->image,
+            'image_sources' => $this->images->forUrl($item->image),
+            'link_url' => $item->link_url,
+            'link_label' => $item->link_label,
+            'meta' => $item->meta ?? [],
+            'position' => $item->position,
+            'locale' => $item->locale,
+            'is_fallback' => ! $editable,
         ];
     }
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
-import { adminDelete, adminPatch } from '@/Composables/useAdminRequest';
+import { adminDelete, adminPatch, withContentLocale } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
     blocks: {
@@ -11,6 +11,10 @@ const props = defineProps({
     announcements: {
         type: Array,
         default: () => [],
+    },
+    currentLocale: {
+        type: String,
+        default: 'fr',
     },
     canManage: {
         type: Boolean,
@@ -96,7 +100,7 @@ const announcementList = computed(() => {
         return props.announcements;
     }
 
-    return fallbackPopup.value.id ? [fallbackPopup.value] : [];
+    return props.currentLocale === 'fr' && fallbackPopup.value.id ? [fallbackPopup.value] : [];
 });
 
 const selectedAnnouncement = computed(() => announcementList.value.find((item) => item.id === selectedAnnouncementId.value) ?? null);
@@ -161,7 +165,7 @@ const resetDraft = (popup = fallbackPopup.value) => {
 };
 
 const openManager = () => {
-    const initial = props.blocks?.id ?? announcementList.value[0]?.id ?? null;
+    const initial = announcementList.value[0]?.id ?? (props.currentLocale === 'fr' ? props.blocks?.id : null);
 
     managerOpen.value = true;
     creatingAnnouncement.value = !initial;
@@ -298,7 +302,7 @@ const saveDraft = (key = 'popup.save') => {
     };
 
     if (creatingAnnouncement.value || !draft.id) {
-        router.post('/admin/visitor-popups', payload, options);
+        router.post('/admin/visitor-popups', withContentLocale(payload), options);
         return;
     }
 

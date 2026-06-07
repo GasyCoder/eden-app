@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateContentItemRequest;
 use App\Models\ContentItem;
 use App\Services\ContentRevisionRecorder;
 use App\Services\ContentSanitizer;
+use App\Support\ContentLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 
@@ -21,9 +22,11 @@ class ContentItemController extends Controller
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
         $data = $this->sanitize($request->validated(), $sanitizer);
+        $locale = ContentLocale::fromRequest($request);
 
         $data['collection_key'] = $collectionKey;
-        $data['position'] = $data['position'] ?? ((int) ContentItem::byCollection($collectionKey)->max('position') + 1);
+        $data['locale'] = $locale;
+        $data['position'] = $data['position'] ?? ((int) ContentItem::byCollection($collectionKey)->locale($locale)->max('position') + 1);
         $data['is_active'] = $data['is_active'] ?? true;
 
         $item = ContentItem::create($data);
@@ -39,6 +42,8 @@ class ContentItemController extends Controller
         ContentSanitizer $sanitizer,
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
+        abort_unless($contentItem->locale === ContentLocale::fromRequest($request), 404);
+
         $before = $revisions->snapshotItem($contentItem);
 
         $contentItem->update($this->sanitize($request->validated(), $sanitizer));
@@ -50,6 +55,8 @@ class ContentItemController extends Controller
 
     public function destroy(ContentItem $contentItem, ContentRevisionRecorder $revisions): RedirectResponse
     {
+        abort_unless($contentItem->locale === ContentLocale::fromRequest(), 404);
+
         $before = $revisions->snapshotItem($contentItem);
 
         $contentItem->delete();
@@ -64,20 +71,24 @@ class ContentItemController extends Controller
         string $collectionKey,
         ContentRevisionRecorder $revisions,
     ): RedirectResponse {
+        $locale = ContentLocale::fromRequest($request);
         $before = ContentItem::byCollection($collectionKey)
+            ->locale($locale)
             ->ordered()
-            ->get(['id', 'title', 'position'])
+            ->get(['id', 'title', 'position', 'locale'])
             ->toArray();
 
         foreach ($request->validated('items') as $item) {
             ContentItem::byCollection($collectionKey)
+                ->locale($locale)
                 ->whereKey($item['id'])
                 ->update(['position' => $item['position']]);
         }
 
         $after = ContentItem::byCollection($collectionKey)
+            ->locale($locale)
             ->ordered()
-            ->get(['id', 'title', 'position'])
+            ->get(['id', 'title', 'position', 'locale'])
             ->toArray();
 
         $revisions->recordCollectionReorder($collectionKey, $before, $after);
@@ -109,6 +120,7 @@ class ContentItemController extends Controller
 
         return Arr::only($data, [
             'collection_key',
+            'locale',
             'title',
             'subtitle',
             'description',
