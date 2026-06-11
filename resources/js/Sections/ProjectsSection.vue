@@ -62,7 +62,13 @@ function blankProject() {
         period: '',
         image: '',
         badge_class: 'badge-active',
+        link_url: '',
+        link_label: '',
     };
+}
+
+function hasLink(project) {
+    return project.link_url && project.link_url !== '#';
 }
 
 function editProject(project) {
@@ -79,6 +85,8 @@ function editProject(project) {
         period: project.meta?.period ?? '',
         image: project.image ?? '',
         badge_class: project.meta?.badge_class ?? 'badge-active',
+        link_url: project.link_url ?? '',
+        link_label: project.link_label ?? '',
     };
     creating.value = false;
     editingId.value = project.id;
@@ -106,6 +114,8 @@ function payload() {
         subtitle: form.value.subtitle,
         description: form.value.description,
         image: form.value.image,
+        link_url: form.value.link_url,
+        link_label: form.value.link_label,
         meta: {
             icon: form.value.icon,
             image_label: form.value.image_label,
@@ -269,6 +279,8 @@ async function uploadProjectImage(event) {
                                 <option value="badge-active">En cours</option>
                                 <option value="badge-new">Démarrage</option>
                             </select>
+                            <input v-model="form.link_url" class="eden-collection-input" type="text" placeholder="Lien externe du projet (https://…)">
+                            <input v-model="form.link_label" class="eden-collection-input" type="text" placeholder="Texte du bouton (ex. En savoir plus)">
                             <div class="eden-collection-actions">
                                 <button type="button" :disabled="uploadingProjectImage" @click="createProject">Enregistrer</button>
                                 <button type="button" @click="cancelEdit">Annuler</button>
@@ -325,6 +337,8 @@ async function uploadProjectImage(event) {
                                     <option value="badge-active">En cours</option>
                                     <option value="badge-new">Démarrage</option>
                                 </select>
+                                <input v-model="form.link_url" class="eden-collection-input" type="text" placeholder="Lien externe du projet (https://…)">
+                                <input v-model="form.link_label" class="eden-collection-input" type="text" placeholder="Texte du bouton (ex. En savoir plus)">
                                 <div class="eden-collection-actions">
                                     <button type="button" :disabled="uploadingProjectImage" @click="saveProject(project)">Enregistrer</button>
                                     <button type="button" @click="cancelEdit">Annuler</button>
@@ -344,6 +358,16 @@ async function uploadProjectImage(event) {
                                 <span>{{ project.meta?.funding ?? 'Financement : AFD' }}</span>
                                 <span>{{ project.meta?.period ?? '2023 – 2026' }}</span>
                             </div>
+                            <a
+                                v-if="hasLink(project)"
+                                class="btn btn-secondary proj-cta"
+                                :href="project.link_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {{ project.link_label || 'En savoir plus' }}
+                                <svg class="proj-cta-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7" /><path d="M9 7h8v8" /></svg>
+                            </a>
                             <div v-if="canEdit && project.id" class="eden-collection-actions">
                                 <button type="button" @click="reorderProject(index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
                                 <button type="button" @click="reorderProject(index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
