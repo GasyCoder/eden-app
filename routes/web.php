@@ -10,6 +10,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\NewsletterController;
+use App\Http\Controllers\Public\RavenalaProjectController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->defaults('locale', 'fr')->name('home');
 Route::get('/fr', fn () => redirect()->route('home'))->name('home.fr');
 Route::get('/en', [HomeController::class, 'index'])->defaults('locale', 'en')->name('home.en');
+Route::get('/projets/ravenala', RavenalaProjectController::class)
+    ->defaults('locale', 'fr')
+    ->name('projects.ravenala');
+Route::get('/ravenala', fn () => redirect()->route('projects.ravenala'))->name('ravenala.short');
 Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
 Route::get('/newsletter/confirmation', [NewsletterController::class, 'confirmation'])->name('newsletter.confirmation');
 

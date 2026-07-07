@@ -377,6 +377,14 @@ async function uploadProjectImage(event) {
                 </div>
                 </div>
             </EditableCollection>
+            <div class="mt-10 flex justify-center">
+                <a
+                    href="/projets/ravenala"
+                    class="btn btn-primary"
+                >
+                    Voir le projet RAVENALA
+                </a>
+            </div>
         </div>
     </section>
 </template>

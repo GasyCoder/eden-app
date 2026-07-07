@@ -33,10 +33,19 @@ const props = defineProps({
         type: Object,
         default: () => ({ fr: '/', en: '/en' }),
     },
+    anchorBase: {
+        type: String,
+        default: '',
+    },
+    activeSection: {
+        type: String,
+        default: '',
+    },
 });
 
 const currentLanguageName = computed(() => (props.locale === 'en' ? 'English' : 'Français'));
 const currentLanguageCode = computed(() => (props.locale === 'en' ? 'EN' : 'FR'));
+const anchorHref = (id) => `${props.anchorBase}#${id}`;
 
 const languages = computed(() => [
     { code: 'fr', name: 'Français', url: props.languageUrls?.fr ?? '/' },
@@ -125,12 +134,12 @@ onMounted(() => {
             </a>
 
             <nav id="mainNav" :class="{ open: isOpen }">
-                <a href="#about" @click="closeNav"><EditableText :value="nav?.about_label" fallback="À propos" content-key="nav.about_label" :can-edit="canEdit" /></a>
-                <a href="#organisation" @click="closeNav"><EditableText :value="nav?.organisation_label" fallback="Organisation" content-key="nav.organisation_label" :can-edit="canEdit" /></a>
-                <a href="#formation" @click="closeNav"><EditableText :value="nav?.formation_label" fallback="Formation" content-key="nav.formation_label" :can-edit="canEdit" /></a>
-                <a href="#recherche" @click="closeNav"><EditableText :value="nav?.recherche_label" fallback="Recherche" content-key="nav.recherche_label" :can-edit="canEdit" /></a>
-                <a href="#projets" @click="closeNav"><EditableText :value="nav?.projets_label" fallback="Projets" content-key="nav.projets_label" :can-edit="canEdit" /></a>
-                <a href="#contact" @click="closeNav"><EditableText :value="nav?.contact_label" fallback="Contact" content-key="nav.contact_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('about')" :class="{ 'is-active': activeSection === 'about' }" @click="closeNav"><EditableText :value="nav?.about_label" fallback="À propos" content-key="nav.about_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('organisation')" :class="{ 'is-active': activeSection === 'organisation' }" @click="closeNav"><EditableText :value="nav?.organisation_label" fallback="Organisation" content-key="nav.organisation_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('formation')" :class="{ 'is-active': activeSection === 'formation' }" @click="closeNav"><EditableText :value="nav?.formation_label" fallback="Formation" content-key="nav.formation_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('recherche')" :class="{ 'is-active': activeSection === 'recherche' }" @click="closeNav"><EditableText :value="nav?.recherche_label" fallback="Recherche" content-key="nav.recherche_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('projets')" :class="{ 'is-active': activeSection === 'projets' }" @click="closeNav"><EditableText :value="nav?.projets_label" fallback="Projets" content-key="nav.projets_label" :can-edit="canEdit" /></a>
+                <a :href="anchorHref('contact')" :class="{ 'is-active': activeSection === 'contact' }" @click="closeNav"><EditableText :value="nav?.contact_label" fallback="Contact" content-key="nav.contact_label" :can-edit="canEdit" /></a>
 
                 <a :href="nav?.cta_url ?? '#'" class="nav-cta" @click="closeNav">
                     <EditableText :value="nav?.cta_label" fallback="Banque de thèse" content-key="nav.cta_label" :can-edit="canEdit" />
