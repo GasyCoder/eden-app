@@ -1015,12 +1015,22 @@ html[data-theme="dark"] #header .logo-mark.has-logo img {
   margin-bottom: 0.65rem;
   font-size: 1.28rem;
   line-height: 1.24;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 .proj-description {
   margin-bottom: 1.05rem;
   color: var(--g600);
   font-size: 0.94rem;
   line-height: 1.72;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
 }
 .proj-details {
   display: grid;
@@ -1086,6 +1096,8 @@ html[data-theme="dark"] #header .logo-mark.has-logo img {
 .projects-list .proj-description {
   max-width: 680px;
   margin-bottom: 1.15rem;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 .projects-list .proj-details {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.82fr);

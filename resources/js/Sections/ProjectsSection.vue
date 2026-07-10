@@ -143,6 +143,10 @@ function projectPeriod(project) {
     return String(project.meta?.period ?? '').trim() || projectLabels.value.empty;
 }
 
+function projectDescription(project) {
+    return project.description ?? "Conservation et valorisation des espèces endémiques de la Région Boeny : inventaires, suivis fauniques et réseau d'aires protégées communautaires.";
+}
+
 function editProject(project) {
     uploadError.value = '';
     uploadingProjectImage.value = false;
@@ -462,7 +466,12 @@ async function uploadProjectImage(event) {
                                 <AdminEditButton v-if="canEdit && project.id" @click="editProject(project)" />
                             </div>
                             <h4>{{ project.title ?? 'BIODIVERS-BOENY' }}</h4>
-                            <p class="proj-description">{{ project.description ?? "Conservation et valorisation des espèces endémiques de la Région Boeny : inventaires, suivis fauniques et réseau d'aires protégées communautaires." }}</p>
+                            <p
+                                class="proj-description"
+                                :title="projectDescription(project)"
+                            >
+                                {{ projectDescription(project) }}
+                            </p>
                             <div class="proj-details">
                                 <span>
                                     <strong>{{ projectLabels.funding }}</strong>
