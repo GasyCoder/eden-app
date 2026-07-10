@@ -223,22 +223,30 @@ const workPackages = [
                     <div class="ravenala-note">
                         <strong>Coopération universitaire</strong>
                         <p>Une dynamique entre l’Europe, Madagascar et les Comores pour accompagner les enseignants, structurer des référents pédagogiques et diffuser des pratiques actives.</p>
-                        <img
-                            :src="projectImages.eu"
-                            alt="Co-funded by the European Union"
-                            width="800"
-                            height="178"
-                            loading="lazy"
-                            decoding="async"
-                        >
                     </div>
                 </aside>
             </div>
         </section>
 
-        <section id="about" class="ravenala-section">
-            <div class="ravenala-shell ravenala-two-columns">
-                <div>
+        <section class="ravenala-funding-strip" aria-label="Mention de financement européen">
+            <div class="ravenala-shell ravenala-funding-grid">
+                <img
+                    :src="projectImages.eu"
+                    alt="Co-funded by the European Union"
+                    width="800"
+                    height="178"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <p>
+                    Financé par l'Union européenne. Les points de vue et avis exprimés n'engagent toutefois que leur(s) auteur(s) et ne reflètent pas nécessairement ceux de l'Union européenne ou de l'Agence exécutive européenne pour l'éducation et la culture (EACEA). Ni l'Union européenne ni l'EACEA ne sauraient en être tenues pour responsables.
+                </p>
+            </div>
+        </section>
+
+        <section id="about" class="ravenala-section ravenala-about-section">
+            <div class="ravenala-shell ravenala-about-grid">
+                <div class="ravenala-about-copy">
                     <p class="ravenala-kicker">À propos</p>
                     <h2>Un projet de renforcement des capacités pédagogiques</h2>
                     <figure class="ravenala-about-visual">
@@ -252,13 +260,14 @@ const workPackages = [
                         >
                     </figure>
                 </div>
-                <div class="ravenala-rich-text">
+                <div class="ravenala-rich-text ravenala-about-panel">
                     <p>
                         RAVENALA rassemble des universités partenaires autour d’un objectif commun : améliorer durablement les pratiques pédagogiques dans l’enseignement supérieur, en favorisant l’innovation, l’inclusion et l’usage raisonné du numérique.
                     </p>
                     <p>
                         Pour l’Université de Mahajanga et l’École Doctorale EDEN, le projet représente une opportunité de renforcer les compétences des enseignants, d’accompagner la transformation des pratiques et de contribuer à la diffusion de ressources pédagogiques adaptées aux réalités locales.
                     </p>
+                    <strong class="ravenala-panel-label">Bénéficiaires directs</strong>
                     <div class="ravenala-beneficiaries">
                         <article v-for="beneficiary in beneficiaries" :key="beneficiary">
                             {{ beneficiary }}

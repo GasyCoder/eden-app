@@ -5,6 +5,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 test('ravenala project page is rendered', function () {
     $this->get('/projets/ravenala')
         ->assertOk()
+        ->assertSee('app-skeleton')
         ->assertInertia(fn (Assert $page) => $page
             ->component('Projets/Ravenala', false)
             ->where('locale', 'fr')

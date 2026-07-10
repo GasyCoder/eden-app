@@ -77,7 +77,7 @@
         @inertiaHead
     </head>
     <body>
-        @if (request()->routeIs('home') || request()->routeIs('home.en'))
+        @if (request()->routeIs('home') || request()->routeIs('home.en') || request()->routeIs('projects.ravenala'))
             {{-- Skeleton de premier chargement (retiré au montage de l'app) — réutilise les styles du skeleton de navigation --}}
             <div id="app-skeleton" class="eden-page-loading" role="status" aria-label="Chargement de la page">
                 <div class="eden-page-loading-bar" style="width: 42%"></div>
