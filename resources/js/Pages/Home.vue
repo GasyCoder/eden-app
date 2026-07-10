@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
         :international-partners="collections.partners_international"
         :can-edit="editMode"
     />
-    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :can-edit="editMode" />
+    <ProjectsSection :blocks="blocks.projets" :items="collections.projects" :locale="locale" :can-edit="editMode" />
     <ContactSection :blocks="blocks.contact" :image-variants="performance.contactMapImage" :can-edit="editMode" />
     <Footer
         :site="blocks.site"

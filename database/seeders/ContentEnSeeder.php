@@ -231,19 +231,19 @@ class ContentEnSeeder extends Seeder
                     'title' => 'BIODIVERS-BOENY',
                     'subtitle' => 'Ongoing',
                     'description' => 'Conservation and valorisation of endemic species in the Boeny Region: inventories, faunal monitoring and a network of community protected areas.',
-                    'meta' => ['icon' => '🌿', 'image_label' => 'Field — Boeny endemic forest', 'ead' => 'EAD 1', 'funding' => 'Funding: AFD', 'period' => '2023 – 2026', 'badge_class' => 'badge-active'],
+                    'meta' => ['icon' => '🌿', 'image_label' => 'Field — Boeny endemic forest', 'ead' => 'EAD 1', 'funding' => 'Funding: AFD', 'project_leader' => 'Project leader: To be specified', 'period' => '2023 – 2026', 'badge_class' => 'badge-active'],
                 ],
                 [
                     'title' => 'CORAL-MOZAMBIQUE',
                     'subtitle' => 'Ongoing',
                     'description' => 'Continuous monitoring and restoration of the Mozambique Channel coral reefs facing thermal bleaching and ocean acidification.',
-                    'meta' => ['icon' => '🐠', 'image_label' => 'Field — coral reef', 'ead' => 'EAD 2', 'funding' => 'Funding: European Union', 'period' => '2022 – 2025', 'badge_class' => 'badge-active'],
+                    'meta' => ['icon' => '🐠', 'image_label' => 'Field — coral reef', 'ead' => 'EAD 2', 'funding' => 'Funding: European Union', 'project_leader' => 'Project leader: To be specified', 'period' => '2022 – 2025', 'badge_class' => 'badge-active'],
                 ],
                 [
                     'title' => 'CLIMATE-COAST',
                     'subtitle' => 'Starting',
                     'description' => 'Assessment and adaptation strategies for the coastal and terrestrial ecosystems of the Boeny region facing the impacts of climate change.',
-                    'meta' => ['icon' => '🌊', 'image_label' => 'Field — mangroves and coastal area', 'ead' => 'EAD 1 & 2', 'funding' => 'Funding: GEF', 'period' => '2025 – 2028', 'badge_class' => 'badge-new'],
+                    'meta' => ['icon' => '🌊', 'image_label' => 'Field — mangroves and coastal area', 'ead' => 'EAD 1 & 2', 'funding' => 'Funding: GEF', 'project_leader' => 'Project leader: To be specified', 'period' => '2025 – 2028', 'badge_class' => 'badge-new'],
                 ],
             ],
             'footer_navigation' => [

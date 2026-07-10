@@ -92,6 +92,11 @@ const projectImages = {
     eu: '/images-projet/EN_Co-fundedbytheEU_RGB_BLACK.jpg',
 };
 
+const projectFacts = [
+    { label: 'Financement', value: 'Union européenne' },
+    { label: 'Chef de projet', value: 'À préciser' },
+];
+
 const beneficiaries = [
     'Enseignants et personnels de l’Université d’Antsiranana',
     'Enseignants et personnels de l’Université de Mahajanga',
@@ -218,6 +223,12 @@ const workPackages = [
                         <div>
                             <strong>5</strong>
                             <span>Work packages</span>
+                        </div>
+                    </div>
+                    <div class="ravenala-project-facts">
+                        <div v-for="fact in projectFacts" :key="fact.label">
+                            <span>{{ fact.label }}</span>
+                            <strong>{{ fact.value }}</strong>
                         </div>
                     </div>
                     <div class="ravenala-note">
