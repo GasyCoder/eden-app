@@ -11,6 +11,7 @@ import Field from '@/Components/ui/Field.vue';
 import Select from '@/Components/ui/Select.vue';
 import { useUnsavedGuard } from '@/Composables/useUnsavedGuard';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { useT } from '@/lib/i18n';
 import { buttonVariants, inputClass, textareaClass } from '@/lib/variants';
 
 const props = defineProps({
@@ -20,6 +21,7 @@ const props = defineProps({
 });
 
 const isNew = computed(() => !props.announcement.id);
+const t = useT();
 const locale = ref('fr');
 const form = useForm({
     title: { ...props.announcement.title },
@@ -151,7 +153,7 @@ const destroy = () => router.delete(`/admin/announcements/${props.announcement.i
                                 <div class="grid min-w-0 gap-5 px-5 py-4" :class="form.image && (preview.message?.length ?? 0) > 240 ? 'xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]' : ''">
                                     <figure v-if="form.image" class="grid min-w-0 gap-2">
                                         <div class="rounded-lg border bg-muted/60 p-2"><img :src="form.image" alt="" class="block max-h-96 w-full object-contain"></div>
-                                        <span class="text-sm font-medium text-eden-700 dark:text-eden-300">{{ locale === 'en' ? 'View full-size poster ↗' : 'Ouvrir l’affiche en grand ↗' }}</span>
+                                        <span class="text-sm font-medium text-eden-700 dark:text-eden-300">{{ t('viewAnnouncementPoster') }} ↗</span>
                                     </figure>
                                     <p v-if="preview.message" class="min-w-0 text-sm leading-7 break-words whitespace-pre-line text-muted-foreground">{{ preview.message }}</p>
                                 </div>
