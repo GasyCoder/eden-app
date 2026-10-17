@@ -1,6 +1,7 @@
 <script setup>
 import { computed, inject, ref, unref, watch } from 'vue';
 import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import { buttonVariants, textareaClass } from '@/lib/variants';
 import { adminPatch } from '@/Composables/useAdminRequest';
 
 const props = defineProps({
@@ -124,26 +125,25 @@ const save = () => {
 </script>
 
 <template>
-    <span class="eden-edit-block">
+    <span :class="editing ? 'block' : 'inline'">
         <template v-if="!editing">
             <span :style="textStyle">{{ display }}</span>
-            <AdminEditButton v-if="canEdit" @click="start" />
+            <AdminEditButton v-if="canEdit" title="Modifier le paragraphe" @click="start" />
         </template>
-        <template v-else>
-            <textarea v-model="draft" class="eden-edit-textarea" rows="4" :disabled="saving" @keydown.esc.prevent="cancel"></textarea>
-            <label class="eden-color-edit">
-                <span>Couleur du texte</span>
-                <span class="eden-color-control">
-                    <input v-model="useCustomColor" type="checkbox" :disabled="saving">
-                    <input v-model="draftTextColor" type="color" :disabled="saving || !useCustomColor">
-                    <span class="eden-color-value">{{ useCustomColor ? draftTextColor : 'Par défaut' }}</span>
-                </span>
-            </label>
-            <span class="eden-edit-actions">
-                <button type="button" :disabled="saving" @click="save">{{ saving ? 'Enregistrement...' : 'Enregistrer' }}</button>
-                <button type="button" :disabled="saving" @click="cancel">Annuler</button>
+        <span v-else class="my-2 grid w-full gap-3 rounded-xl border border-eden-600 bg-card p-4 text-left text-sm font-normal tracking-normal text-foreground normal-case not-italic shadow-[0_0_0_4px] shadow-eden-600/10" @click.stop>
+            <textarea v-model="draft" :class="textareaClass" class="text-base" rows="4" :disabled="saving" aria-label="Texte du paragraphe" @keydown.esc.prevent="cancel"></textarea>
+            <span class="flex flex-wrap items-center gap-3">
+                <label class="inline-flex cursor-pointer items-center gap-2 text-xs">
+                    <input v-model="useCustomColor" type="checkbox" class="size-4 accent-eden-600" :disabled="saving">
+                    Couleur personnalisée
+                </label>
+                <input v-if="useCustomColor" v-model="draftTextColor" class="h-7 w-10 cursor-pointer rounded border bg-background p-0.5" type="color" :disabled="saving" aria-label="Choisir la couleur du texte">
             </span>
-            <span v-if="error" class="eden-edit-error">{{ error }}</span>
-        </template>
+            <span v-if="error" class="text-xs font-medium text-destructive" role="alert">{{ error }}</span>
+            <span class="flex justify-end gap-2">
+                <button type="button" :class="buttonVariants({ variant: 'outline', size: 'sm' })" :disabled="saving" @click.stop.prevent="cancel">Annuler</button>
+                <button type="button" :class="buttonVariants({ size: 'sm' })" :disabled="saving" @click.stop.prevent="save">{{ saving ? 'Enregistrement…' : 'Enregistrer' }}</button>
+            </span>
+        </span>
     </span>
 </template>
