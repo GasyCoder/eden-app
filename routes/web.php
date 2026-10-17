@@ -68,8 +68,10 @@ Route::get('/en/journals', [JournalController::class, 'index'])->defaults('local
 Route::get('/revues/{journal:slug}/{issue:slug}', [JournalController::class, 'issue'])->defaults('locale', 'fr')->scopeBindings()->name('journals.issues.show');
 Route::get('/en/journals/{journal:slug}/{issue:slug}', [JournalController::class, 'issue'])->defaults('locale', 'en')->scopeBindings()->name('journals.issues.show.en');
 Route::get('/en/journals/{journal:slug}', [JournalController::class, 'show'])->defaults('locale', 'en')->name('journals.show.en');
-Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
+Route::post('/newsletter', [NewsletterController::class, 'store'])->middleware('throttle:5,1,newsletter-subscribe')->name('newsletter.store');
 Route::get('/newsletter/confirmation', [NewsletterController::class, 'confirmation'])->name('newsletter.confirmation');
+Route::get('/newsletter/verifier/{subscriber}/{token}', [NewsletterController::class, 'verify'])->where('token', '[A-Za-z0-9]{64}')->middleware(['signed', 'throttle:30,1,newsletter-verify'])->name('newsletter.verify');
+Route::post('/newsletter/confirmation/renvoyer', [NewsletterController::class, 'resend'])->middleware('throttle:3,10,newsletter-resend')->name('newsletter.resend');
 Route::get('/newsletter/desabonnement/{token}', [NewsletterController::class, 'unsubscribeForm'])->where('token', '[A-Za-z0-9]{20,64}')->name('newsletter.unsubscribe');
 Route::post('/newsletter/desabonnement/{token}', [NewsletterController::class, 'unsubscribe'])->where('token', '[A-Za-z0-9]{20,64}')->middleware('throttle:20,1')->name('newsletter.unsubscribe.confirm');
 
@@ -85,7 +87,7 @@ Route::middleware('guest')->group(function (): void {
     // Chemin d'authentification personnalisé (les chemins par défaut /login, /register,
     // mot de passe oublié n'existent pas et renvoient donc 404).
     Route::get('/me/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/me/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/me/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:admin-login');
 });
 
 Route::middleware('auth')->group(function (): void {
@@ -148,6 +150,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/newsletter/subscribers/bulk', [AdminNewsletterController::class, 'bulk'])->name('newsletter.subscribers.bulk');
     Route::post('/newsletter/subscribers', [AdminNewsletterController::class, 'store'])->name('newsletter.subscribers.store');
     Route::patch('/newsletter/subscribers/{subscriber}', [AdminNewsletterController::class, 'update'])->name('newsletter.subscribers.update');
+    Route::post('/newsletter/subscribers/{subscriber}/verification', [AdminNewsletterController::class, 'resend'])->middleware('throttle:10,1,newsletter-admin-resend')->name('newsletter.subscribers.verification');
     Route::delete('/newsletter/subscribers/{subscriber}', [AdminNewsletterController::class, 'destroy'])->name('newsletter.subscribers.destroy');
     Route::get('/newsletter/campaigns', [AdminNewsletterController::class, 'campaigns'])->name('newsletter.campaigns');
     Route::post('/newsletter/campaigns/{campaign}/cancel', [AdminNewsletterController::class, 'cancel'])->name('newsletter.campaigns.cancel');
@@ -191,3 +194,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/content-revisions/{contentRevision}/restore', [ContentRevisionController::class, 'restore'])
         ->name('content-revisions.restore');
 });
+
+// Les méthodes non prévues ne révèlent pas non plus l'existence des routes privées.
+Route::any('/admin/{path?}', fn () => abort(404))->where('path', '.*');
+Route::any('/me/{path?}', fn () => abort(404))->where('path', '.*');
