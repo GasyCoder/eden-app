@@ -1,5 +1,6 @@
 <script setup>
 import { usePage } from '@inertiajs/vue3';
+import { CircleAlert, CircleCheck, X } from '@lucide/vue';
 import { watch } from 'vue';
 import { useToasts } from '@/Composables/useToasts';
 
@@ -29,22 +30,26 @@ watch(
 </script>
 
 <template>
-    <div class="eden-toasts" aria-live="polite" aria-atomic="true">
-        <transition-group name="eden-toast">
-            <button
+    <div class="pointer-events-none fixed inset-x-3 bottom-[calc(var(--tabbar-h)+0.75rem)] sm:bottom-[calc(var(--tabbar-h)+1.25rem)] z-[150] grid gap-2 sm:inset-x-auto sm:right-5 sm:w-96" role="status" aria-live="polite" aria-atomic="false">
+        <transition-group
+            enter-active-class="transition duration-300 ease-out"
+            enter-from-class="translate-y-2 opacity-0"
+            leave-active-class="transition duration-200 ease-in"
+            leave-to-class="translate-y-2 opacity-0"
+        >
+            <div
                 v-for="toast in toasts"
                 :key="toast.id"
-                type="button"
-                class="eden-toast"
-                :class="`eden-toast-${toast.type}`"
-                @click="dismiss(toast.id)"
+                class="pointer-events-auto flex items-start gap-3 rounded-lg border bg-popover py-3 pr-2 pl-4 text-sm shadow-lg"
+                :role="toast.type === 'error' ? 'alert' : null"
             >
-                <span class="eden-toast-ic" aria-hidden="true">
-                    <svg v-if="toast.type === 'success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 8v5" /><path d="M12 16.5h.01" /></svg>
-                </span>
-                <span class="eden-toast-msg">{{ toast.message }}</span>
-            </button>
+                <CircleCheck v-if="toast.type === 'success'" class="mt-0.5 size-[18px] shrink-0 text-eden-600 dark:text-eden-400" aria-hidden="true" />
+                <CircleAlert v-else class="mt-0.5 size-[18px] shrink-0 text-destructive" aria-hidden="true" />
+                <span class="flex-1 pt-px font-medium">{{ toast.message }}</span>
+                <button type="button" class="-my-1 inline-grid size-7 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" aria-label="Fermer la notification" @click="dismiss(toast.id)">
+                    <X class="size-4" aria-hidden="true" />
+                </button>
+            </div>
         </transition-group>
     </div>
 </template>
