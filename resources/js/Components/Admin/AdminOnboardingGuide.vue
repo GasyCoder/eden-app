@@ -1,6 +1,8 @@
 <script setup>
 import { router, usePage } from '@inertiajs/vue3';
+import { ArrowLeftRight } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import { buttonVariants } from '@/lib/variants';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -14,27 +16,27 @@ const placement = ref('right');
 const steps = [
     {
         title: 'Bienvenue dans l’édition',
-        text: 'Vous pouvez modifier les contenus directement depuis la page publique, sans passer par un tableau de bord.',
+        text: 'Vous modifiez les contenus directement sur la page publique : ce que vous voyez est ce que verront les visiteurs.',
     },
     {
-        title: 'Activer ou masquer les outils',
-        text: 'La barre verticale à gauche permet d’afficher les crayons, d’ouvrir l’historique et d’accéder à votre profil.',
+        title: 'La barre d’administration',
+        text: 'En bas de l’écran : l’interrupteur « Outils d’édition » affiche ou masque les crayons. Vous y trouvez aussi l’historique, votre profil et la déconnexion.',
     },
     {
-        title: 'Modifier textes et chiffres',
-        text: 'Cliquez sur un crayon près d’un titre, paragraphe, bouton ou compteur, puis enregistrez ou annulez.',
+        title: 'Modifier un texte',
+        text: 'Cliquez sur le crayon à côté d’un titre, d’un paragraphe, d’un bouton ou d’un chiffre. Entrée enregistre, Échap annule.',
     },
     {
-        title: 'Remplacer les images',
-        text: 'Les crayons sur les images permettent de remplacer le visuel. Pour le hero et le directeur, vous pouvez rogner avant d’enregistrer.',
+        title: 'Remplacer une image',
+        text: 'Le bouton « Remplacer » apparaît en haut à droite des images. Pour la bannière et le portrait, vous choisissez ensuite le cadrage.',
     },
     {
         title: 'Gérer les cartes',
-        text: 'Sur les projets, partenaires, équipes et parcours, utilisez les actions ajouter, modifier, supprimer et réordonner.',
+        text: 'Projets, équipes, partenaires, étapes… Utilisez « Ajouter », le crayon pour modifier ou supprimer, et les flèches pour changer l’ordre.',
     },
     {
         title: 'Historique et rôles',
-        text: 'L’historique garde les dernières modifications. Un éditeur modifie les contenus, le superadmin gère aussi les zones protégées.',
+        text: 'Chaque modification est enregistrée et peut être restaurée. Les éditeurs gèrent les contenus ; le superadmin gère aussi le référencement, l’apparence et les comptes.',
     },
 ];
 
@@ -43,25 +45,19 @@ const isFirstStep = computed(() => currentStep.value === 0);
 const isLastStep = computed(() => currentStep.value === steps.length - 1);
 const progressLabel = computed(() => `${currentStep.value + 1} / ${steps.length}`);
 
-const setPlacement = (value) => {
-    placement.value = value;
-};
-
-const syncPlacementWithStep = () => {
-    placement.value = currentStep.value % 2 === 0 ? 'right' : 'left';
+const togglePlacement = () => {
+    placement.value = placement.value === 'right' ? 'left' : 'right';
 };
 
 const previous = () => {
     if (!isFirstStep.value) {
         currentStep.value -= 1;
-        syncPlacementWithStep();
     }
 };
 
 const next = () => {
     if (!isLastStep.value) {
         currentStep.value += 1;
-        syncPlacementWithStep();
     }
 };
 
@@ -87,56 +83,29 @@ watch(() => user.value?.id, () => {
 </script>
 
 <template>
-    <div
+    <section
         v-if="visible"
-        class="eden-onboarding"
-        :class="`is-${placement}`"
+        :class="['fixed inset-x-3 bottom-20 z-[61] grid gap-3 rounded-xl border bg-popover p-5 shadow-xl animate-in fade-in-0 slide-in-from-bottom-2 md:inset-x-auto md:bottom-24 md:w-96', placement === 'left' ? 'md:left-4' : 'md:right-4']"
         role="dialog"
         aria-live="polite"
-        aria-label="Guide d'utilisation du mode édition"
+        aria-labelledby="onboarding-title"
     >
-        <div class="eden-onboarding-top">
-            <span>Guide édition</span>
-            <div class="eden-onboarding-position" aria-label="Déplacer le guide">
-                <button
-                    type="button"
-                    :class="{ active: placement === 'left' }"
-                    title="Placer à gauche"
-                    aria-label="Placer le guide à gauche"
-                    @click="setPlacement('left')"
-                >
-                    ←
-                </button>
-                <button
-                    type="button"
-                    :class="{ active: placement === 'right' }"
-                    title="Placer à droite"
-                    aria-label="Placer le guide à droite"
-                    @click="setPlacement('right')"
-                >
-                    →
-                </button>
-            </div>
-        </div>
-
-        <div class="eden-onboarding-progress">
-            <span :style="{ width: `${((currentStep + 1) / steps.length) * 100}%` }"></span>
-        </div>
-
-        <p class="eden-onboarding-count">{{ progressLabel }}</p>
-        <h3>{{ steps[currentStep].title }}</h3>
-        <p>{{ steps[currentStep].text }}</p>
-
-        <div class="eden-onboarding-actions">
-            <button type="button" class="btn-mini ghost" :disabled="isFirstStep || processing" @click="previous">
-                Précédent
-            </button>
-            <button v-if="!isLastStep" type="button" class="btn-mini primary" @click="next">
-                Suivant
-            </button>
-            <button v-else type="button" class="btn-mini primary" :disabled="processing" @click="finish">
-                {{ processing ? '...' : 'Terminer' }}
+        <div class="-mt-1 -mr-2 flex items-center justify-between gap-3">
+            <span class="text-xs font-medium text-eden-700 dark:text-eden-300">Prise en main · {{ progressLabel }}</span>
+            <button type="button" :class="buttonVariants({ variant: 'ghost', size: 'icon-sm' })" :title="placement === 'right' ? 'Déplacer à gauche' : 'Déplacer à droite'" aria-label="Déplacer le guide" @click="togglePlacement">
+                <ArrowLeftRight aria-hidden="true" />
             </button>
         </div>
-    </div>
+        <ol class="flex gap-1.5" aria-hidden="true">
+            <li v-for="(step, index) in steps" :key="step.title" :class="['h-1 flex-1 rounded-full', index < currentStep ? 'bg-eden-600' : index === currentStep ? 'bg-gold-500' : 'bg-secondary']"></li>
+        </ol>
+        <h3 id="onboarding-title" class="text-base font-semibold">{{ steps[currentStep].title }}</h3>
+        <p class="text-sm leading-relaxed text-muted-foreground">{{ steps[currentStep].text }}</p>
+        <div class="mt-1 flex flex-wrap items-center justify-end gap-2">
+            <button v-if="!isLastStep" type="button" :class="buttonVariants({ variant: 'ghost', size: 'sm' })" class="mr-auto" :disabled="processing" @click="finish">Passer le guide</button>
+            <button v-if="!isFirstStep" type="button" :class="buttonVariants({ variant: 'outline', size: 'sm' })" :disabled="processing" @click="previous">Précédent</button>
+            <button v-if="!isLastStep" type="button" :class="buttonVariants({ size: 'sm' })" @click="next">Suivant</button>
+            <button v-else type="button" :class="buttonVariants({ size: 'sm' })" :disabled="processing" @click="finish">C’est parti</button>
+        </div>
+    </section>
 </template>
