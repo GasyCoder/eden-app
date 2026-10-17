@@ -1,12 +1,212 @@
 @import 'tailwindcss';
-@import './eden.css';
+@import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 @source '../js/**/*.vue';
+@source '../js/**/*.js';
 
+/* Le thème sombre est piloté par l'attribut data-theme posé sur <html> */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Palette officielle EDEN, mesurée sur le logo :
+ *   vert #13692C · rouge #AA0504 · or #D3A20A · noir.
+ * Échelles générées autour de ces teintes (600 = couleur du logo pour le vert et le rouge,
+ * 500 pour l'or).
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    --color-eden-50: #EEF7F0;
+    --color-eden-100: #D6EDDC;
+    --color-eden-200: #AEDBBA;
+    --color-eden-300: #7CC191;
+    --color-eden-400: #48A264;
+    --color-eden-500: #258646;
+    --color-eden-600: #13692C;
+    --color-eden-700: #105526;
+    --color-eden-800: #0E4421;
+    --color-eden-900: #0B381C;
+    --color-eden-950: #04200E;
+
+    --color-laterite-50: #FDF3F2;
+    --color-laterite-100: #FBE2E1;
+    --color-laterite-200: #F6C2C0;
+    --color-laterite-300: #EE928F;
+    --color-laterite-400: #E05652;
+    --color-laterite-500: #C92320;
+    --color-laterite-600: #AA0504;
+    --color-laterite-700: #8D0605;
+    --color-laterite-800: #740A08;
+    --color-laterite-900: #610D0B;
+    --color-laterite-950: #360403;
+
+    --color-gold-50: #FDF9EA;
+    --color-gold-100: #FAF0C6;
+    --color-gold-200: #F5DF8C;
+    --color-gold-300: #EFC952;
+    --color-gold-400: #E5B42A;
+    --color-gold-500: #D3A20A;
+    --color-gold-600: #B07F06;
+    --color-gold-700: #8C5D09;
+    --color-gold-800: #744A0F;
+    --color-gold-900: #633D12;
+    --color-gold-950: #391F06;
+
+    /* Héro : zoom lent des photos, vignette flottante, progression du diaporama */
+    --animate-hero-zoom: hero-zoom 18s ease-in-out infinite alternate;
+    --animate-hero-float: hero-float 7s ease-in-out infinite;
+    --animate-hero-progress: hero-progress 7s linear both;
+
+    @keyframes hero-zoom {
+        from { transform: scale(1) translate3d(0, 0, 0); }
+        to { transform: scale(1.12) translate3d(var(--zoom-x, 0), var(--zoom-y, 0), 0); }
+    }
+
+    @keyframes hero-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    @keyframes hero-progress {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+}
+
+/* Tokens sémantiques (nomenclature shadcn/ui) */
+:root {
+    --background: #FFFFFF;
+    --foreground: #101412;
+    --card: #FFFFFF;
+    --card-foreground: #101412;
+    --popover: #FFFFFF;
+    --popover-foreground: #101412;
+    --primary: var(--color-eden-600);
+    --primary-foreground: #FFFFFF;
+    --secondary: #F3F5F3;
+    --secondary-foreground: #18201B;
+    --muted: #F6F8F6;
+    --muted-foreground: #5F6A63;
+    --accent: #EEF3EF;
+    --accent-foreground: #18201B;
+    --destructive: var(--color-laterite-600);
+    --border: #E3E8E4;
+    --input: #D7DDD8;
+    --ring: var(--color-eden-500);
+    --radius: 0.625rem;
+}
+
+[data-theme="dark"] {
+    --background: #0B0F0C;
+    --foreground: #ECF0ED;
+    --card: #111713;
+    --card-foreground: #ECF0ED;
+    --popover: #141B16;
+    --popover-foreground: #ECF0ED;
+    --primary: var(--color-eden-500);
+    --primary-foreground: #FFFFFF;
+    --secondary: #1A221D;
+    --secondary-foreground: #ECF0ED;
+    --muted: #121813;
+    --muted-foreground: #9BA69F;
+    --accent: #1C2620;
+    --accent-foreground: #ECF0ED;
+    --destructive: var(--color-laterite-400);
+    --border: #222C25;
+    --input: #2C372F;
+    --ring: var(--color-eden-400);
+}
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    /* Hauteur de la barre d'onglets mobile : les éléments fixés en bas se placent au-dessus */
+    :root {
+        --tabbar-h: 0px;
+    }
+
+    @media (max-width: 63.99rem) {
+        html[data-tabbar] {
+            --tabbar-h: calc(4rem + env(safe-area-inset-bottom));
+        }
+    }
+
+    html {
+        @apply scroll-smooth scroll-pt-24 antialiased;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans;
+        font-feature-settings: 'cv11', 'ss01';
+    }
+
+    ::selection {
+        @apply bg-eden-100 text-eden-950;
+    }
+
+    [hidden] {
+        display: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+/* Contenu riche (Tiptap) : plugin officiel Typography, aux couleurs EDEN */
+@utility prose-eden {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
+    --tw-prose-links: var(--color-eden-700);
+    --tw-prose-bold: var(--foreground);
+    --tw-prose-quotes: var(--muted-foreground);
+    --tw-prose-quote-borders: var(--color-gold-500);
+    --tw-prose-bullets: var(--color-eden-500);
+    --tw-prose-counters: var(--muted-foreground);
+    --tw-prose-hr: var(--border);
+    --tw-prose-code: var(--foreground);
+    --tw-prose-pre-bg: var(--secondary);
+    --tw-prose-pre-code: var(--foreground);
+
+    [data-theme="dark"] & {
+        --tw-prose-links: var(--color-eden-300);
+    }
 }
