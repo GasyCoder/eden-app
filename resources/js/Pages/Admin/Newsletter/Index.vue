@@ -54,7 +54,18 @@ const submit = () => form.post('/admin/newsletter/subscribers', {
     onSuccess: () => { form.reset(); adding.value = false; },
 });
 
-const setStatus = (subscriber, status) => router.patch(`/admin/newsletter/subscribers/${subscriber.id}`, { status }, { preserveScroll: true });
+const setStatus = (subscriber, status) => {
+    const query = new URLSearchParams(window.location.search);
+    const list = Object.fromEntries(['q', 'status', 'page']
+        .filter((key) => query.has(key) && query.get(key) !== '')
+        .map((key) => [key, query.get(key)]));
+
+    router.patch(`/admin/newsletter/subscribers/${subscriber.id}`, { status, list }, {
+        preserveScroll: true,
+        preserveState: true,
+        showProgress: false,
+    });
+};
 
 const actions = (subscriber) => [
     ...(subscriber.status === 'pending' ? [{ label: 'Renvoyer la confirmation', icon: MailCheck, onSelect: () => router.post(`/admin/newsletter/subscribers/${subscriber.id}/verification`, {}, { preserveScroll: true }) }] : []),
