@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ContentBlock;
 use App\Models\ContentItem;
-use App\Models\User;
 use App\Services\ContentRevisionRecorder;
 use App\Services\ContentSanitizer;
 use App\Services\ImageVariantService;
@@ -66,13 +65,6 @@ class SiteSettingsController extends Controller
             'networks' => self::NETWORKS,
             'theme' => ['sections' => ThemeSettings::SECTIONS, 'colors' => ThemeSettings::all()],
             'defaults' => SeoSettings::DEFAULTS,
-            'editors' => User::query()->where('role', 'editor')->orderBy('name')->get(['id', 'name', 'email', 'created_at'])
-                ->map(fn (User $editor) => [
-                    'id' => $editor->id,
-                    'name' => $editor->name,
-                    'email' => $editor->email,
-                    'created_at' => $editor->created_at?->format('d/m/Y'),
-                ])->values()->all(),
         ]);
     }
 

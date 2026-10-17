@@ -9,24 +9,19 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => env('EDEN_ADMIN_EMAIL', 'admin@eden.test')],
-            [
-                'name' => env('EDEN_ADMIN_NAME', 'Administrateur EDEN'),
-                'password' => env('EDEN_ADMIN_PASSWORD', 'password'),
-                'is_admin' => true,
-                'role' => 'superadmin',
-            ],
-        );
+        $email = env('EDEN_ADMIN_EMAIL', 'bezaraflorent@gmail.com');
+        $admin = User::firstOrNew(['email' => $email]);
 
-        User::updateOrCreate(
-            ['email' => env('EDEN_EDITOR_EMAIL', 'editor@eden.test')],
-            [
-                'name' => env('EDEN_EDITOR_NAME', 'Éditeur EDEN'),
-                'password' => env('EDEN_EDITOR_PASSWORD', 'password'),
-                'is_admin' => true,
-                'role' => 'editor',
-            ],
-        );
+        if (! $admin->exists) {
+            $admin->fill([
+                'name' => env('EDEN_ADMIN_NAME', 'Administrateur EDEN'),
+                'password' => env('EDEN_ADMIN_PASSWORD', 'Dev@@2021!!'),
+            ]);
+            $admin->forceFill(['email_verified_at' => now()]);
+        }
+
+        // Promote the configured bootstrap account without resetting its password
+        // whenever seeders are run again.
+        $admin->forceFill(['is_admin' => true, 'role' => 'superadmin'])->save();
     }
 }

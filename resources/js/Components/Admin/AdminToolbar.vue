@@ -45,7 +45,7 @@ watch(pinned, (value) => {
     }
 });
 
-const roleLabel = computed(() => (user.value?.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
+const roleLabel = computed(() => (user.value?.role === 'superadmin' ? 'Admin' : 'Éditeur'));
 const userDisplayName = computed(() => user.value?.name || user.value?.email || 'Administrateur');
 const userInitial = computed(() => (user.value?.name || user.value?.email || 'A').charAt(0).toUpperCase());
 

@@ -1,9 +1,8 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { Image, Palette, Phone, Search, Share2, Users } from '@lucide/vue';
+import { Image, Palette, Phone, Search, Share2 } from '@lucide/vue';
 import { computed } from 'vue';
 import AdminPageHeader from '@/Components/Admin/Ui/AdminPageHeader.vue';
-import EditorAccounts from '@/Components/Admin/Ui/EditorAccounts.vue';
 import ImageField from '@/Components/Admin/Ui/ImageField.vue';
 import RepeatableList from '@/Components/Admin/Ui/RepeatableList.vue';
 import Field from '@/Components/ui/Field.vue';
@@ -19,7 +18,6 @@ const props = defineProps({
     networks: { type: Array, default: () => [] },
     theme: { type: Object, default: () => ({ sections: {}, colors: {} }) },
     defaults: { type: Object, default: () => ({}) },
-    editors: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -36,7 +34,6 @@ const nav = [
     { id: 'contact', label: 'Contact', icon: Phone },
     { id: 'reseaux', label: 'Réseaux sociaux', icon: Share2 },
     { id: 'apparence', label: 'Apparence', icon: Palette },
-    { id: 'utilisateurs', label: 'Comptes éditeurs', icon: Users },
 ];
 const robotsOptions = [
     { value: 'index', label: 'Visible par les moteurs de recherche' },
@@ -171,7 +168,6 @@ const card = 'scroll-mt-20 rounded-xl border bg-card p-5 text-card-foreground';
                     </div>
                     </form>
 
-                    <EditorAccounts :editors="editors" />
                 </div>
             </div>
         </div>

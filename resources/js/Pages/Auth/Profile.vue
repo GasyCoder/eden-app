@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? {});
 const isSuperAdmin = computed(() => user.value.role === 'superadmin');
-const roleLabel = computed(() => (isSuperAdmin.value ? 'Super administrateur' : 'Éditeur'));
+const roleLabel = computed(() => (isSuperAdmin.value ? 'Admin' : 'Éditeur'));
 const roleDescription = computed(() => (
     isSuperAdmin.value
         ? 'Accès complet : contenus, paramètres du site et comptes éditeurs.'

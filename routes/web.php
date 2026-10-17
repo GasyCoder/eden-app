@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Admin\SiteSettingsController;
 use App\Http\Controllers\Admin\VisitorPopupController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
@@ -88,6 +89,13 @@ Route::middleware('guest')->group(function (): void {
     // mot de passe oublié n'existent pas et renvoient donc 404).
     Route::get('/me/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/me/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:admin-login');
+    Route::post('/me/login/otp', [AuthenticatedSessionController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('login.otp.verify');
+    Route::post('/me/login/otp/resend', [AuthenticatedSessionController::class, 'resendOtp'])->middleware('throttle:3,10')->name('login.otp.resend');
+    Route::post('/me/login/otp/cancel', [AuthenticatedSessionController::class, 'cancelOtp'])->name('login.otp.cancel');
+    Route::get('/invitation/{token}', [UserController::class, 'acceptForm'])->where('token', '[A-Za-z0-9]{64}')->name('invitation.accept.form');
+    Route::post('/invitation/{token}', [UserController::class, 'accept'])->where('token', '[A-Za-z0-9]{64}')->middleware('throttle:10,1')->name('invitation.accept');
+    Route::get('/password/reset/{token}', [UserController::class, 'showPasswordReset'])->name('password.reset');
+    Route::post('/password/reset', [UserController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.update');
 });
 
 Route::middleware('auth')->group(function (): void {
@@ -98,9 +106,6 @@ Route::middleware('auth')->group(function (): void {
     Route::patch('/me/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/me/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/me/profile/photo', [ProfileController::class, 'updatePhoto'])->name('profile.photo');
-    Route::post('/me/users', [ProfileController::class, 'storeEditor'])->name('profile.users.store');
-    Route::patch('/me/users/{user}', [ProfileController::class, 'updateEditor'])->name('profile.users.update');
-    Route::delete('/me/users/{user}', [ProfileController::class, 'destroyEditor'])->name('profile.users.destroy');
     Route::post('/me/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
     // Référencement (SEO) + favicon — superadmin uniquement (vérifié dans le contrôleur)
@@ -110,6 +115,11 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
     // Espace d'administration des modules éditoriaux
     Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::post('/users/{user}/password-reset', [UserController::class, 'sendPasswordReset'])->middleware('throttle:10,1')->name('users.password-reset');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     Route::post('/posts/bulk', [AdminPostController::class, 'bulk'])->name('posts.bulk');
     Route::resource('posts', AdminPostController::class)->except('show');
     Route::resource('post-categories', PostCategoryController::class)->only(['store', 'update', 'destroy']);

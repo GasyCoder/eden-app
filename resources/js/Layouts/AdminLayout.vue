@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CalendarDays, ChevronsUpDown, ExternalLink, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, LogOut, Mail, Megaphone, Menu, Newspaper, PanelsTopLeft, Search, Settings, UserRound } from '@lucide/vue';
+import { CalendarDays, ChevronsUpDown, ExternalLink, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, LogOut, Mail, Megaphone, Menu, Newspaper, PanelsTopLeft, Search, Settings, UserRound, UsersRound } from '@lucide/vue';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuSeparator, DropdownMenuTrigger } from 'reka-ui';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import CommandMenu from '@/Components/Admin/CommandMenu.vue';
@@ -18,7 +18,7 @@ defineProps({
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? {});
-const roleLabel = computed(() => (user.value.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
+const roleLabel = computed(() => (user.value.role === 'superadmin' ? 'Admin' : 'Éditeur'));
 const initial = computed(() => (user.value.name || user.value.email || 'A').charAt(0).toUpperCase());
 const mobileOpen = ref(false);
 const commandOpen = ref(false);
@@ -38,6 +38,9 @@ const sections = computed(() => [
     { label: 'Communication', items: [
         { label: 'Newsletter', href: '/admin/newsletter', icon: Mail, match: /^\/admin\/newsletter/ },
     ] },
+    ...(isSuperAdmin.value ? [{ label: 'Administration', items: [
+        { label: 'Utilisateurs', href: '/admin/users', icon: UsersRound, match: /^\/admin\/users/ },
+    ] }] : []),
     { label: 'Site', items: [
         ...(isSuperAdmin.value ? [{ label: 'Paramètres', href: '/admin/settings', icon: Settings, match: /^\/admin\/settings/ }] : []),
         { label: 'Pages et textes du site', href: '/', icon: PanelsTopLeft, hint: 'Édition directe sur les pages' },
