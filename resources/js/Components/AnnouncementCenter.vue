@@ -1,5 +1,5 @@
 <script setup>
-import { CalendarDays, Info, Megaphone, OctagonAlert, Wrench, X } from '@lucide/vue';
+import { ArrowUpRight, CalendarDays, Info, Megaphone, OctagonAlert, Wrench } from '@lucide/vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import Dialog from '@/Components/ui/Dialog.vue';
 import { useT } from '@/lib/i18n';
@@ -47,6 +47,7 @@ const remember = (announcement) => {
 
 const visible = computed(() => (ready.value ? props.announcements.filter((item) => !dismissed.value.has(item.key)) : []));
 const dialogAnnouncement = computed(() => (props.suppressDialogs ? null : visible.value.find((item) => item.display === 'dialog') ?? null));
+const sideBySide = computed(() => Boolean(dialogAnnouncement.value?.image && (dialogAnnouncement.value.message?.length ?? 0) > 240));
 
 const icons = { info: Info, event: CalendarDays, maintenance: Wrench, important: Megaphone, urgent: OctagonAlert };
 const isExternal = (url) => /^https?:\/\//.test(url ?? '');
@@ -90,27 +91,43 @@ onBeforeUnmount(() => window.clearTimeout(timer));
         :open="dialogOpen"
         :title="dialogAnnouncement.title"
         :close-label="t('close')"
+        :class="dialogAnnouncement.image ? (sideBySide ? 'sm:max-w-4xl' : 'sm:max-w-xl') : ''"
         @update:open="closeDialog"
     >
-        <template #media>
-            <div v-if="dialogAnnouncement.image" class="aspect-[16/7] border-b bg-secondary">
-                <img :src="dialogAnnouncement.image" alt="" class="size-full object-cover" loading="lazy" decoding="async">
-            </div>
-            <div :class="cn('mx-6 mt-6 -mb-2 grid size-10 place-items-center rounded-lg', dialogTone[dialogAnnouncement.type] ?? dialogTone.important)">
+        <template #icon>
+            <div :class="cn('grid size-10 shrink-0 place-items-center rounded-lg', dialogTone[dialogAnnouncement.type] ?? dialogTone.important)">
                 <component :is="icons[dialogAnnouncement.type]" class="size-5" aria-hidden="true" />
             </div>
         </template>
-        <p v-if="dialogAnnouncement.message" class="text-sm leading-relaxed whitespace-pre-line">{{ dialogAnnouncement.message }}</p>
+        <div class="grid min-w-0 gap-5" :class="sideBySide ? 'sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] sm:items-start sm:gap-6' : ''">
+            <figure v-if="dialogAnnouncement.image" class="grid min-w-0 gap-2">
+                <a
+                    :href="dialogAnnouncement.image"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/60 p-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    :aria-label="`${t('viewAnnouncementPoster')} ${t('newTab')}`"
+                >
+                    <img :src="dialogAnnouncement.image" :alt="`${t('announcementPoster')} : ${dialogAnnouncement.title}`" class="block max-h-[48dvh] w-full object-contain" :class="sideBySide ? 'sm:max-h-[62dvh]' : 'sm:max-h-[52dvh]'" decoding="async">
+                </a>
+                <figcaption>
+                    <a :href="dialogAnnouncement.image" target="_blank" rel="noopener noreferrer" class="inline-flex min-h-11 items-center gap-1.5 rounded-md px-1 text-sm font-medium text-eden-700 underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:text-eden-300">
+                        {{ t('viewAnnouncementPoster') }}<ArrowUpRight class="size-4" aria-hidden="true" /><span class="sr-only">{{ t('newTab') }}</span>
+                    </a>
+                </figcaption>
+            </figure>
+            <p v-if="dialogAnnouncement.message" class="min-w-0 text-sm leading-7 break-words whitespace-pre-line text-muted-foreground">{{ dialogAnnouncement.message }}</p>
+        </div>
         <template #footer>
-            <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="closeDialog(false)">{{ t('close') }}</button>
+            <button type="button" :class="cn(buttonVariants({ variant: 'outline' }), 'min-h-11')" @click="closeDialog(false)">{{ t('close') }}</button>
             <a
                 v-if="dialogAnnouncement.cta_url"
                 :href="dialogAnnouncement.cta_url"
-                :class="buttonVariants()"
+                :class="cn(buttonVariants(), 'min-h-11 h-auto whitespace-normal py-2.5 text-center')"
                 :target="isExternal(dialogAnnouncement.cta_url) ? '_blank' : undefined"
                 :rel="isExternal(dialogAnnouncement.cta_url) ? 'noopener noreferrer' : undefined"
                 @click="remember(dialogAnnouncement)"
-            >{{ dialogAnnouncement.cta_label || t('learnMore') }}</a>
+            >{{ dialogAnnouncement.cta_label || t('learnMore') }}<ArrowUpRight v-if="isExternal(dialogAnnouncement.cta_url)" class="size-4 shrink-0" aria-hidden="true" /><span v-if="isExternal(dialogAnnouncement.cta_url)" class="sr-only">{{ t('newTab') }}</span></a>
         </template>
     </Dialog>
 </template>
