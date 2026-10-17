@@ -117,7 +117,7 @@ class ContentEnSeeder extends Seeder
             'popup.message' => 'New information is available for visitors of the EDEN Doctoral School.',
             'popup.button_label' => 'Learn more',
 
-            'seo.title' => 'EDEN-UMG — Doctoral School of Natural Ecosystems',
+            'seo.title' => 'EDEN-UMG | Doctoral School of Natural Ecosystems',
             'seo.description' => "Doctoral School of Natural Ecosystems (EDEN) at the University of Mahajanga: doctoral training and research on Madagascar's biodiversity — research teams, doctoral programme, themes, projects and partnerships.",
             'seo.keywords' => 'EDEN, Doctoral School, University of Mahajanga, UMG, Natural Ecosystems, PhD Madagascar, biodiversity research, thesis, Boeny, doctoral training, ecology, conservation',
         ];
