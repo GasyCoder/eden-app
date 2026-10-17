@@ -1,7 +1,12 @@
 <script setup>
 import { computed } from 'vue';
+import { Mail, Map, MapPin, Phone } from '@lucide/vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
+import SectionHeading from '@/Components/Portal/SectionHeading.vue';
+import { cn } from '@/lib/utils';
+import { containerClass } from '@/lib/variants';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
+import LinkEdit from '@/Components/Editable/LinkEdit.vue';
 
 const props = defineProps({
     blocks: {
@@ -52,109 +57,70 @@ const trustedMapUrl = (value) => {
 
 const mapEmbedUrl = computed(() => trustedMapUrl(props.blocks?.map_embed_url));
 const hasMapMedia = computed(() => Boolean(mapEmbedUrl.value || props.blocks?.map_image));
+const phoneHref = computed(() => {
+    const digits = String(props.blocks?.phone ?? '').replace(/[^\d+]/g, '');
+
+    // Pas de lien tant que le numéro n'est pas complet (ex. « +261 20 62 XXX XX »)
+    return digits.replace(/\D/g, '').length >= 8 && !/x/i.test(props.blocks?.phone ?? '') ? `tel:${digits}` : null;
+});
+const email = computed(() => props.blocks?.email || 'contact@eden.univ-mahajanga.mg');
 </script>
 
 <template>
-    <section id="contact">
-        <div class="container">
-            <div class="contact-info reveal">
-                <span class="eyebrow"><EditableText :value="blocks?.eyebrow" fallback="Contact" content-key="contact.eyebrow" :can-edit="canEdit" /></span>
-                <h2><EditableText :value="blocks?.title" fallback="Nous Contacter" content-key="contact.title" :can-edit="canEdit" /></h2>
-                <p>
-                    <EditableTextarea
-                        :value="blocks?.description"
-                        fallback="Pour toute question relative aux admissions, à la recherche ou aux partenariats, notre équipe est à votre disposition."
-                        content-key="contact.description"
-                        :can-edit="canEdit"
-                    />
-                </p>
-                <div class="c-items">
-                    <div class="c-item">
-                        <div class="c-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        </div>
-                        <div>
-                            <h4><EditableText :value="blocks?.address_label" fallback="Adresse" content-key="contact.address_label" :can-edit="canEdit" /></h4>
-                            <p>
-                                <EditableTextarea
-                                    :value="blocks?.address"
-                                    fallback="École Doctorale EDEN — Université de Mahajanga&#10;BP 652, Mahajanga 401, Madagascar"
-                                    content-key="contact.address"
-                                    :can-edit="canEdit"
-                                />
+    <section id="contact" class="bg-[var(--bg-contact,var(--background))] py-16 lg:py-20">
+        <div :class="cn(containerClass, 'grid items-center gap-12 lg:grid-cols-2 lg:gap-16')">
+            <div>
+                <SectionHeading>
+                    <EditableText :value="blocks?.title" fallback="Nous Contacter" content-key="contact.title" :can-edit="canEdit" />
+                    <template #description>
+                        <EditableTextarea
+                            :value="blocks?.description"
+                            fallback="Pour toute question relative aux admissions, à la recherche ou aux partenariats, notre équipe est à votre disposition."
+                            content-key="contact.description"
+                            :can-edit="canEdit"
+                        />
+                    </template>
+                </SectionHeading>
+                <ul class="mt-8 grid gap-5">
+                    <li class="flex items-start gap-3">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-md bg-eden-50 text-eden-700 dark:bg-eden-950 dark:text-eden-300"><MapPin class="size-4" aria-hidden="true" /></span>
+                        <div class="min-w-0">
+                            <h3 class="text-xs text-muted-foreground"><EditableText :value="blocks?.address_label" fallback="Adresse" content-key="contact.address_label" :can-edit="canEdit" /></h3>
+                            <p class="mt-0.5 text-sm leading-relaxed font-medium whitespace-pre-line">
+                                <EditableTextarea :value="blocks?.address" fallback="École Doctorale EDEN, Université de Mahajanga&#10;BP 652, Mahajanga 401, Madagascar" content-key="contact.address" :can-edit="canEdit" />
                             </p>
                         </div>
-                    </div>
-                    <div class="c-item">
-                        <div class="c-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2Z"/></svg>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-md bg-gold-50 text-gold-800 dark:bg-gold-950 dark:text-gold-300"><Phone class="size-4" aria-hidden="true" /></span>
+                        <div class="min-w-0">
+                            <h3 class="text-xs text-muted-foreground"><EditableText :value="blocks?.phone_label" fallback="Téléphone" content-key="contact.phone_label" :can-edit="canEdit" /></h3>
+                            <a v-if="phoneHref && !canEdit" :href="phoneHref" class="mt-0.5 block text-sm font-medium hover:text-eden-700 dark:hover:text-eden-300">{{ blocks?.phone }}</a>
+                            <p v-else class="mt-0.5 text-sm font-medium"><EditableText :value="blocks?.phone" fallback="+261 20 62 XXX XX" content-key="contact.phone" :can-edit="canEdit" /></p>
                         </div>
-                        <div>
-                            <h4><EditableText :value="blocks?.phone_label" fallback="Téléphone" content-key="contact.phone_label" :can-edit="canEdit" /></h4>
-                            <p><EditableText :value="blocks?.phone" fallback="+261 20 62 XXX XX" content-key="contact.phone" :can-edit="canEdit" /></p>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-md bg-laterite-50 text-laterite-700 dark:bg-laterite-950 dark:text-laterite-300"><Mail class="size-4" aria-hidden="true" /></span>
+                        <div class="min-w-0">
+                            <h3 class="text-xs text-muted-foreground"><EditableText :value="blocks?.email_label" fallback="Email" content-key="contact.email_label" :can-edit="canEdit" /></h3>
+                            <a :href="`mailto:${email}`" class="mt-0.5 block text-sm font-medium break-all text-eden-700 hover:underline hover:underline-offset-4 dark:text-eden-300"><EditableText :value="blocks?.email" fallback="contact@eden.univ-mahajanga.mg" content-key="contact.email" :can-edit="canEdit" /></a>
                         </div>
-                    </div>
-                    <div class="c-item">
-                        <div class="c-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-                        </div>
-                        <div>
-                            <h4><EditableText :value="blocks?.email_label" fallback="Email" content-key="contact.email_label" :can-edit="canEdit" /></h4>
-                            <p><a :href="`mailto:${blocks?.email ?? 'contact@eden.univ-mahajanga.mg'}`"><EditableText :value="blocks?.email" fallback="contact@eden.univ-mahajanga.mg" content-key="contact.email" :can-edit="canEdit" /></a></p>
-                        </div>
-                    </div>
-                    <div class="c-item">
-                        <div class="c-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg>
-                        </div>
-                        <div>
-                            <h4><EditableText :value="blocks?.website_label" fallback="Site Web de l'Université" content-key="contact.website_label" :can-edit="canEdit" /></h4>
-                            <p><EditableText :value="blocks?.website" fallback="www.univ-mahajanga.mg" content-key="contact.website" :can-edit="canEdit" /></p>
-                        </div>
-                    </div>
-                </div>
+                    </li>
+                </ul>
             </div>
-            <div class="map-ph img-ph reveal" :class="{ 'has-image': hasMapMedia }">
-                <iframe
-                    v-if="mapEmbedUrl"
-                    :src="mapEmbedUrl"
-                    title="Carte de localisation de l’Université de Mahajanga"
-                    loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade"
-                    allowfullscreen
-                ></iframe>
+            <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-secondary lg:aspect-[5/4]">
+                <iframe v-if="mapEmbedUrl" :src="mapEmbedUrl" title="Carte de localisation de l’Université de Mahajanga" class="block size-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
                 <picture v-else-if="blocks?.map_image">
-                    <source
-                        v-for="source in imageVariants?.sources ?? []"
-                        :key="source.type"
-                        :type="source.type"
-                        :srcset="source.srcset"
-                        :sizes="imageVariants?.sizes"
-                    >
-                    <img
-                        :src="blocks.map_image"
-                        alt="Carte de localisation de l’Université de Mahajanga"
-                        :width="imageVariants?.width ?? 680"
-                        :height="imageVariants?.height ?? 440"
-                        loading="lazy"
-                        decoding="async"
-                    >
+                    <source v-for="source in imageVariants?.sources ?? []" :key="source.type" :type="source.type" :srcset="source.srcset" :sizes="imageVariants?.sizes">
+                    <img :src="blocks.map_image" alt="Carte de localisation de l’Université de Mahajanga" class="size-full object-cover" :width="imageVariants?.width ?? 680" :height="imageVariants?.height ?? 440" loading="lazy" decoding="async">
                 </picture>
-                <template v-else>
-                    <div class="ic" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6l5-2Z"/><path d="M9 4v14M15 6v14"/></svg>
-                    </div>
+                <div v-else class="flex size-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Map class="size-8 opacity-60" aria-hidden="true" />
                     <span><EditableText :value="blocks?.map_label" fallback="Carte de localisation" content-key="contact.map_label" :can-edit="canEdit" /></span>
-                    <span style="font-size:0.72rem;margin-top:0.25rem;opacity:.6;"><EditableText :value="blocks?.map_caption" fallback="Université de Mahajanga — Madagascar" content-key="contact.map_caption" :can-edit="canEdit" /></span>
-                </template>
-                <span v-if="canEdit" class="eden-map-url-edit">
-                    <EditableText
-                        :value="blocks?.map_embed_url"
-                        fallback="URL carte"
-                        content-key="contact.map_embed_url"
-                        :can-edit="canEdit"
-                        type="link"
-                    />
+                    <small><EditableText :value="blocks?.map_caption" fallback="Université de Mahajanga, Madagascar" content-key="contact.map_caption" :can-edit="canEdit" /></small>
+                </div>
+                <span v-if="canEdit" class="absolute bottom-3 left-3 z-10" title="Lien Google Maps ou OpenStreetMap (intégration)">
+                    <LinkEdit :value="blocks?.map_embed_url" fallback="Ajouter l’URL de la carte" content-key="contact.map_embed_url" :can-edit="canEdit" />
                 </span>
             </div>
         </div>
