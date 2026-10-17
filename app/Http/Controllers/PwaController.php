@@ -4,12 +4,59 @@ namespace App\Http\Controllers;
 
 use App\Models\ContentBlock;
 use App\Support\ContentLocale;
+use App\Support\SeoSettings;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class PwaController extends Controller
 {
+    /**
+     * Manifeste de l'application installable, construit à partir des Paramètres du site
+     * (nom, description, logo) : aucune modification de fichier n'est nécessaire.
+     */
+    public function manifest(): JsonResponse
+    {
+        $blocks = ContentBlock::query()->whereIn('key', ['site.name', 'site.caption', 'site.logo', 'site.favicon'])
+            ->where('locale', ContentLocale::DEFAULT)->pluck('value', 'key');
+        $name = ($blocks['site.name'] ?? null) ?: 'EDEN';
+        $version = substr(md5(($blocks['site.logo'] ?? '').($blocks['site.favicon'] ?? '')), 0, 8);
+        $icon = fn (string $spec, string $size, string $purpose) => ['src' => "/pwa/icon-{$spec}.png?v={$version}", 'sizes' => $size, 'type' => 'image/png', 'purpose' => $purpose];
+        $shortcut = fn (string $name, string $url, string $description) => [
+            'name' => $name, 'short_name' => $name, 'url' => $url, 'description' => $description,
+            'icons' => [['src' => "/pwa/icon-192.png?v={$version}", 'sizes' => '192x192', 'type' => 'image/png']],
+        ];
+
+        return response()->json([
+            'id' => '/',
+            'name' => trim($name.' · '.(($blocks['site.caption'] ?? null) ?: 'Université de Mahajanga')),
+            'short_name' => $name,
+            'description' => SeoSettings::all()['description'],
+            'lang' => 'fr',
+            'dir' => 'ltr',
+            'start_url' => '/?source=pwa',
+            'scope' => '/',
+            'display' => 'standalone',
+            'display_override' => ['standalone', 'minimal-ui'],
+            'orientation' => 'any',
+            'background_color' => '#FFFFFF',
+            'theme_color' => '#13692C',
+            'categories' => ['education', 'science', 'news'],
+            'icons' => [
+                $icon('192', '192x192', 'any'),
+                $icon('512', '512x512', 'any'),
+                $icon('maskable-512', '512x512', 'maskable'),
+            ],
+            'shortcuts' => [
+                $shortcut('Actualités', '/actualites?source=pwa', 'Les dernières nouvelles de l’EDEN'),
+                $shortcut('Événements', '/evenements?source=pwa', 'Soutenances, séminaires et ateliers'),
+                $shortcut('Projets', '/projets?source=pwa', 'Projets de recherche et de coopération'),
+                $shortcut('Revues', '/revues?source=pwa', 'Le journal MaToY et les revues'),
+            ],
+        ], 200, ['Content-Type' => 'application/manifest+json', 'Cache-Control' => 'public, max-age=3600'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     /**
      * Génère une icône PWA carrée à partir du logo (ou du favicon) téléversé.
      * Repli sur le monogramme par défaut si aucune image personnalisée n'est disponible.
