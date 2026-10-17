@@ -107,6 +107,10 @@ class NewsletterController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'locale' => ['sometimes', Rule::in(ContentLocale::SUPPORTED)],
             'status' => ['sometimes', Rule::in(['subscribed', 'unsubscribed', 'rejected'])],
+            'list' => ['sometimes', 'array:q,status,page'],
+            'list.q' => ['nullable', 'string', 'max:255'],
+            'list.status' => ['nullable', Rule::in(NewsletterSubscription::STATUSES)],
+            'list.page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         if (($data['status'] ?? null) === 'unsubscribed') {
@@ -119,7 +123,7 @@ class NewsletterController extends Controller
 
         $subscriber->refresh()->fill(collect($data)->only(['name', 'locale'])->all())->save();
 
-        return back(303)->with('success', 'Abonné mis à jour.');
+        return redirect()->route('admin.newsletter.index', $data['list'] ?? [], 303)->with('success', 'Abonné mis à jour.');
     }
 
     public function resend(NewsletterSubscription $subscriber, SubscriptionVerification $verification): RedirectResponse
