@@ -1,5 +1,7 @@
 <script setup>
+import { X } from '@lucide/vue';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { buttonVariants } from '@/lib/variants';
 
 // URL publique (ne pas laisser Vite la transformer en import de module)
 const iconUrl = '/icons/icon-192.png';
@@ -121,18 +123,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <transition name="eden-install">
-        <div v-if="visible || iosHint" class="eden-install" role="dialog" aria-label="Installer l'application">
-            <img :src="iconUrl" alt="" class="eden-install-ic" width="46" height="46">
-            <div class="eden-install-body">
-                <strong>Installer l'application EDEN</strong>
-                <span v-if="!iosHint">Ajoutez le site à votre appareil pour un accès rapide, même hors connexion.</span>
-                <span v-else>Sur Safari : touchez <b>Partager</b> puis <b>« Sur l'écran d'accueil »</b>.</span>
+    <transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-3 opacity-0"
+        leave-active-class="transition duration-200 ease-in"
+        leave-to-class="translate-y-3 opacity-0"
+    >
+        <section v-if="visible || iosHint" class="fixed inset-x-3 bottom-[calc(var(--tabbar-h)+0.75rem)] sm:bottom-[calc(var(--tabbar-h)+1.25rem)] z-40 grid gap-4 rounded-xl border bg-popover p-5 shadow-lg sm:inset-x-auto sm:left-5 sm:w-[26rem]" role="dialog" aria-labelledby="install-title">
+            <div class="flex items-start gap-3">
+                <img :src="iconUrl" alt="" width="44" height="44" class="size-11 shrink-0 rounded-lg">
+                <div class="grid flex-1 gap-1">
+                    <p id="install-title" class="text-sm font-semibold">Installer l’application EDEN</p>
+                    <p v-if="!iosHint" class="text-sm text-muted-foreground">Ajoutez le site à votre appareil pour y accéder en un geste, même hors connexion.</p>
+                    <p v-else class="text-sm text-muted-foreground">Dans Safari, touchez <strong class="font-medium text-foreground">Partager</strong> puis <strong class="font-medium text-foreground">Sur l’écran d’accueil</strong>.</p>
+                </div>
+                <button type="button" class="-mt-1 -mr-2 inline-grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent" aria-label="Fermer" @click="dismiss"><X class="size-4" aria-hidden="true" /></button>
             </div>
-            <div class="eden-install-actions">
-                <button v-if="visible" type="button" class="eden-install-btn" @click="install">Installer</button>
-                <button type="button" class="eden-install-close" aria-label="Fermer" @click="dismiss">✕</button>
+            <div v-if="visible" class="flex gap-2 sm:justify-end">
+                <button type="button" :class="buttonVariants({ variant: 'outline', size: 'sm' })" class="flex-1 sm:flex-none" @click="dismiss">Plus tard</button>
+                <button type="button" :class="buttonVariants({ size: 'sm' })" class="flex-1 sm:flex-none" @click="install">Installer</button>
             </div>
-        </div>
+        </section>
     </transition>
 </template>
