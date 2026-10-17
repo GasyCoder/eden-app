@@ -1,6 +1,7 @@
 <?php
 
 use App\Mail\NewsletterItemMail;
+use App\Mail\NewsletterVerificationMail;
 use App\Models\Event;
 use App\Models\Journal;
 use App\Models\JournalIssue;
@@ -26,18 +27,21 @@ function postPayload(array $overrides = []): array
     ], $overrides);
 }
 
-test('visitors subscribe and resubscribe after unsubscribing', function () {
+test('visitors request a subscription without activating it and duplicates do not resend mail', function () {
+    Mail::fake();
     $this->post('/newsletter', ['email' => 'Doctorant@Example.MG'])->assertRedirect(route('newsletter.confirmation'));
     $subscription = NewsletterSubscription::query()->sole();
-    expect($subscription->email)->toBe('doctorant@example.mg')->and($subscription->token)->not->toBeEmpty();
+    expect($subscription->email)->toBe('doctorant@example.mg')->and($subscription->token)->not->toBeEmpty()
+        ->and($subscription->status)->toBe('pending')->and($subscription->subscribed_at)->toBeNull();
 
-    $subscription->unsubscribe();
     $this->post('/newsletter', ['email' => 'doctorant@example.mg']);
-    expect($subscription->fresh()->status)->toBe('subscribed');
+    expect(NewsletterSubscription::query()->count())->toBe(1)->and($subscription->fresh()->status)->toBe('pending');
+    Mail::assertSent(NewsletterVerificationMail::class, 1);
+    $this->get('/newsletter/confirmation')->assertInertia(fn (Assert $page) => $page->where('status', 'pending')->where('email', 'doctorant@example.mg'));
 });
 
 test('the unsubscribe link shows a confirmation and works in one click without csrf', function () {
-    $subscription = NewsletterSubscription::subscribe('lecteur@example.mg');
+    $subscription = NewsletterSubscription::factory()->active()->create(['email' => 'lecteur@example.mg']);
 
     $this->get("/newsletter/desabonnement/{$subscription->token}")
         ->assertOk()
@@ -51,9 +55,9 @@ test('the unsubscribe link shows a confirmation and works in one click without c
 
 test('publishing a post with the box checked emails active subscribers once', function () {
     Mail::fake();
-    NewsletterSubscription::subscribe('a@example.mg');
-    NewsletterSubscription::subscribe('b@example.mg', ['locale' => 'en']);
-    NewsletterSubscription::subscribe('c@example.mg')->unsubscribe();
+    NewsletterSubscription::factory()->active()->create(['email' => 'a@example.mg']);
+    NewsletterSubscription::factory()->active()->create(['email' => 'b@example.mg', 'locale' => 'en']);
+    NewsletterSubscription::factory()->active()->create(['email' => 'c@example.mg'])->unsubscribe();
     $editor = newsletterEditor();
 
     $this->actingAs($editor)->post('/admin/posts', postPayload())->assertSessionHas('success');
@@ -74,7 +78,7 @@ test('publishing a post with the box checked emails active subscribers once', fu
 
 test('a draft or future post waits for its publication before being sent', function () {
     Mail::fake();
-    NewsletterSubscription::subscribe('a@example.mg');
+    NewsletterSubscription::factory()->active()->create(['email' => 'a@example.mg']);
     $editor = newsletterEditor();
 
     $this->actingAs($editor)->post('/admin/posts', postPayload(['status' => 'draft']));
@@ -96,7 +100,7 @@ test('a draft or future post waits for its publication before being sent', funct
 
 test('events and journal issues can be sent to subscribers', function () {
     Mail::fake();
-    NewsletterSubscription::subscribe('a@example.mg');
+    NewsletterSubscription::factory()->active()->create(['email' => 'a@example.mg']);
     $editor = newsletterEditor();
     $event = Event::factory()->create();
     $issue = JournalIssue::factory()->for(Journal::factory())->create();
@@ -108,7 +112,7 @@ test('events and journal issues can be sent to subscribers', function () {
 });
 
 test('a scheduled campaign can be cancelled from the admin', function () {
-    NewsletterSubscription::subscribe('a@example.mg');
+    NewsletterSubscription::factory()->active()->create(['email' => 'a@example.mg']);
     $editor = newsletterEditor();
     $this->actingAs($editor)->post('/admin/posts', postPayload(['status' => 'draft']));
     $campaign = NewsletterCampaign::query()->sole();
@@ -119,6 +123,7 @@ test('a scheduled campaign can be cancelled from the admin', function () {
 });
 
 test('admins add subscribers manually or in bulk and export them', function () {
+    Mail::fake();
     $editor = newsletterEditor();
 
     $this->actingAs($editor)->post('/admin/newsletter/subscribers', ['emails' => 'un@example.mg', 'name' => 'Un', 'locale' => 'fr'])->assertSessionHasNoErrors();
@@ -129,13 +134,14 @@ test('admins add subscribers manually or in bulk and export them', function () {
         ->and(NewsletterSubscription::query()->where('email', 'un@example.mg')->value('source'))->toBe('manual')
         ->and(NewsletterSubscription::query()->where('email', 'deux@example.mg')->value('source'))->toBe('import');
 
-    $this->actingAs($editor)->get('/admin/newsletter')->assertOk()->assertInertia(fn (Assert $page) => $page->where('counts.active', 3));
+    $this->actingAs($editor)->get('/admin/newsletter')->assertOk()->assertInertia(fn (Assert $page) => $page->where('counts.active', 0)->where('counts.pending', 3));
+    Mail::assertSent(NewsletterVerificationMail::class, 3);
     $csv = $this->actingAs($editor)->get('/admin/newsletter/export')->assertOk()->streamedContent();
     expect($csv)->toContain('deux@example.mg')->toContain('email;nom;statut');
 });
 
 test('the newsletter email contains the unsubscribe link and header', function () {
-    $subscription = NewsletterSubscription::subscribe('a@example.mg');
+    $subscription = NewsletterSubscription::factory()->active()->create(['email' => 'a@example.mg']);
     $post = Post::factory()->create(['title' => ['fr' => 'Journée scientifique']]);
     $mail = new NewsletterItemMail($post, $subscription);
 
