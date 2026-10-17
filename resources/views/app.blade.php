@@ -3,6 +3,7 @@
 @php($pageProps = $page['props'] ?? [])
 @php($pageLanguageUrls = $pageProps['languageUrls'] ?? ['fr' => route('home'), 'en' => route('home.en')])
 @php($pageSeo = $pageProps['pageSeo'] ?? [])
+@php($privatePage = request()->is('admin', 'admin/*', 'me', 'me/*', 'logout', 'newsletter', 'newsletter/*'))
 <!DOCTYPE html>
 <html lang="{{ $pageLocale }}">
     <head>
@@ -35,18 +36,20 @@
         <meta name="description" content="{{ $seoDescription }}">
         <meta name="keywords" content="{{ $seo['keywords'] }}">
         <meta name="author" content="École Doctorale EDEN, Université de Mahajanga">
-        <meta name="robots" content="{{ $seo['robots'] ?? 'index, follow' }}">
+        <meta name="robots" content="{{ $privatePage ? 'noindex, nofollow, noarchive' : ($seo['robots'] ?? 'index, follow') }}">
         @if (! empty($seo['googleVerification']))
             <meta name="google-site-verification" content="{{ $seo['googleVerification'] }}">
         @endif
-        @if (! empty($seo['analyticsId']))
+        @if (! $privatePage && ! empty($seo['analyticsId']))
             <meta name="eden-analytics" content="{{ $seo['analyticsId'] }}">
         @endif
         <meta name="theme-color" content="#FFFFFF">
+        @if (! $privatePage)
         <link rel="canonical" href="{{ $pageUrl }}">
         <link rel="alternate" hreflang="fr" href="{{ $pageLanguageUrls['fr'] }}">
         <link rel="alternate" hreflang="en" href="{{ $pageLanguageUrls['en'] }}">
         <link rel="alternate" hreflang="x-default" href="{{ $pageLanguageUrls['fr'] }}">
+        @endif
 
         {{-- Open Graph / réseaux sociaux --}}
         <meta property="og:type" content="{{ $pageSeo['type'] ?? 'website' }}">
