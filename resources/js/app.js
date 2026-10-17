@@ -26,6 +26,10 @@ createInertiaApp({
                 let finishTimer = null;
 
                 const shouldShowSkeleton = (event) => {
+                    if (event.detail?.visit?.showProgress === false) {
+                        return false;
+                    }
+
                     const visitUrl = event.detail?.visit?.url?.toString?.() ?? '';
                     const path = new URL(visitUrl, window.location.origin).pathname;
 
