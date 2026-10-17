@@ -26,6 +26,28 @@ function newsletterVerificationUrl(NewsletterSubscription $subscriber): string
     return URL::temporarySignedRoute('newsletter.verify', now()->addDay(), ['subscriber' => $subscriber->id, 'token' => $subscriber->fresh()->verification_token]);
 }
 
+test('admin validation stays on the newsletter list without a referer or with a stale previous page', function () {
+    $subscriber = NewsletterSubscription::factory()->create();
+
+    $this->actingAs(newsletterApprovalAdmin())
+        ->withSession(['_previous' => ['url' => route('home')]])
+        ->patch("/admin/newsletter/subscribers/{$subscriber->id}", ['status' => 'subscribed'])
+        ->assertStatus(303)->assertRedirect(route('admin.newsletter.index'));
+
+    expect($subscriber->fresh()->isActive())->toBeTrue();
+});
+
+test('admin validation preserves newsletter filters and pagination in the redirect', function () {
+    $subscriber = NewsletterSubscription::factory()->create();
+    $list = ['q' => 'example', 'status' => 'pending', 'page' => 2];
+
+    $this->actingAs(newsletterApprovalAdmin())
+        ->patch("/admin/newsletter/subscribers/{$subscriber->id}", ['status' => 'subscribed', 'list' => $list])
+        ->assertStatus(303)->assertRedirect(route('admin.newsletter.index', $list));
+
+    expect($subscriber->fresh()->isActive())->toBeTrue();
+});
+
 test('confirmation of ownership waits for admin approval and the link is idempotent', function () {
     Mail::fake();
     $this->post('/newsletter', ['email' => 'lecteur@example.mg'])->assertSessionHasNoErrors();
