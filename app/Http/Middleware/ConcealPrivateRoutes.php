@@ -14,7 +14,14 @@ class ConcealPrivateRoutes
         $sensitive = $private || $request->is('newsletter', 'newsletter/*');
 
         // Aucune redirection vers la connexion, même sur un POST ou un identifiant inconnu.
-        if ($private && ! $request->is('me/login')) {
+        $loginFlow = $request->routeIs(
+            'login',
+            'login.otp.verify',
+            'login.otp.resend',
+            'login.otp.cancel',
+        );
+
+        if ($private && ! $loginFlow) {
             abort_unless($request->user()?->is_admin, 404);
         }
 
