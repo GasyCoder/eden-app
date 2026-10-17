@@ -115,7 +115,7 @@ const destroy = () => router.delete(`/admin/announcements/${props.announcement.i
                             <Field v-slot="{ id, invalid, describedBy }" :label="locale === 'fr' ? 'Titre' : 'Title'" :hint="`${(form.title[locale] || '').length} / 160`" :error="err('title')">
                                 <input :id="id" v-model="form.title[locale]" :class="inputClass" maxlength="160" :aria-invalid="invalid" :aria-describedby="describedBy">
                             </Field>
-                            <Field v-slot="{ id, describedBy }" label="Message" optional :hint="display === 'banner' ? 'Restez bref : le bandeau tient sur une ligne.' : ''" :error="err('message')">
+                            <Field v-slot="{ id, describedBy }" label="Message" optional :hint="display === 'banner' ? 'Restez bref : le bandeau tient sur une ligne.' : 'Reprenez les informations essentielles de l’affiche (date, lieu, objet) pour qu’elles soient lisibles sans l’image.'" :error="err('message')">
                                 <textarea :id="id" v-model="form.message[locale]" :class="textareaClass" rows="3" maxlength="1000" :aria-describedby="describedBy"></textarea>
                             </Field>
                             <div class="grid items-start gap-4 sm:grid-cols-2 sm:gap-x-5">
@@ -142,11 +142,19 @@ const destroy = () => router.delete(`/admin/announcements/${props.announcement.i
                                     <X class="size-4 text-muted-foreground" />
                                 </div>
                             </div>
-                            <div v-else class="mx-auto max-w-md overflow-hidden rounded-xl border bg-popover shadow-lg">
-                                <div v-if="form.image" class="aspect-[16/7] border-b bg-secondary [&_img]:size-full [&_img]:object-cover"><img :src="form.image" alt=""></div>
-                                <div class="mx-6 mt-6 -mb-2 grid size-10 place-items-center rounded-lg bg-eden-50 text-eden-700 dark:bg-eden-950 dark:text-eden-300 [&_svg]:size-5" :class="`is-${form.type}`"><component :is="currentType?.icon" /></div>
-                                <div class="flex items-start justify-between gap-4 px-6 pt-6"><p class="text-lg font-semibold">{{ preview.title }}</p></div>
-                                <div class="px-6 py-4"><p class="text-sm leading-relaxed whitespace-pre-line">{{ preview.message }}</p></div>
+                            <div v-else class="mx-auto overflow-hidden rounded-xl border bg-popover shadow-lg" :class="(preview.message?.length ?? 0) > 240 && form.image ? '' : 'max-w-xl'">
+                                <div class="flex items-start gap-3 px-5 pt-5">
+                                    <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-eden-50 text-eden-700 dark:bg-eden-950 dark:text-eden-300 [&_svg]:size-5"><component :is="currentType?.icon" /></span>
+                                    <p class="min-w-0 flex-1 py-1.5 text-lg leading-snug font-semibold break-words">{{ preview.title }}</p>
+                                    <X class="mt-2 size-5 shrink-0 text-muted-foreground" />
+                                </div>
+                                <div class="grid min-w-0 gap-5 px-5 py-4" :class="form.image && (preview.message?.length ?? 0) > 240 ? 'xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]' : ''">
+                                    <figure v-if="form.image" class="grid min-w-0 gap-2">
+                                        <div class="rounded-lg border bg-muted/60 p-2"><img :src="form.image" alt="" class="block max-h-96 w-full object-contain"></div>
+                                        <span class="text-sm font-medium text-eden-700 dark:text-eden-300">{{ locale === 'en' ? 'View full-size poster ↗' : 'Ouvrir l’affiche en grand ↗' }}</span>
+                                    </figure>
+                                    <p v-if="preview.message" class="min-w-0 text-sm leading-7 break-words whitespace-pre-line text-muted-foreground">{{ preview.message }}</p>
+                                </div>
                                 <div class="flex flex-wrap justify-end gap-2 border-t bg-muted/50 px-6 py-4"><span :class="buttonVariants({ variant: 'outline', size: 'sm' })">Fermer</span><span v-if="preview.cta" :class="buttonVariants({ size: 'sm' })">{{ preview.cta }}</span></div>
                             </div>
                         </div>
@@ -170,7 +178,7 @@ const destroy = () => router.delete(`/admin/announcements/${props.announcement.i
                         </div>
                     </section>
                     <section v-if="display === 'dialog'" class="rounded-xl border bg-card p-5 text-card-foreground">
-                        <ImageField v-model="form.image" label="Image (facultative)" aspect="16 / 7" hint="Affichée en haut de la fenêtre." :error="form.errors.image" />
+                        <ImageField v-model="form.image" label="Affiche ou image (facultative)" compact hint="L’image est affichée entière, sans recadrage. Une affiche verticale est acceptée et peut être ouverte en grand." :error="form.errors.image" />
                     </section>
                     <section class="rounded-xl border p-5 text-card-foreground grid gap-3 bg-muted [&_p]:flex [&_p]:gap-2 [&_p]:text-xs [&_p]:leading-relaxed [&_svg]:mt-0.5 [&_svg]:size-4 [&_svg]:shrink-0">
                         <p><PanelTop aria-hidden="true" /> Un seul bandeau et une seule fenêtre à la fois : les plus prioritaires.</p>
