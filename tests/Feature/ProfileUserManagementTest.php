@@ -144,12 +144,19 @@ test('superadmin profile receives editor list', function () {
         'role' => 'editor',
     ]);
 
+    // Les comptes éditeurs se gèrent dans Paramètres ; le profil ne garde que le compte et la sécurité
+    $this->actingAs($superadmin)
+        ->get('/admin/settings')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Settings/Edit', false)
+            ->has('editors', 1)
+            ->where('editors.0.email', 'visible@example.com'));
+
     $this->actingAs($superadmin)
         ->get('/me/profile')
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('editors', 1)
-            ->where('editors.0.email', 'visible@example.com'));
+        ->assertInertia(fn (Assert $page) => $page->component('Auth/Profile', false)->missing('editors'));
 });
 
 test('authenticated admin can update profile information through method spoofing', function () {
