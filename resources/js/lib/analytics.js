@@ -13,9 +13,18 @@ const consentGiven = () => {
 };
 
 let loaded = false;
+const isPrivate = (url) => /^\/(admin|me|logout|newsletter)(\/|$)/.test(new URL(url, window.location.origin).pathname);
+
+const trackPage = (id, url) => {
+    const hidden = isPrivate(url);
+    window[`ga-disable-${id}`] = hidden;
+    if (loaded && !hidden) {
+        window.gtag('event', 'page_view', { page_path: url });
+    }
+};
 
 const load = (id) => {
-    if (loaded || !id || !consentGiven()) {
+    if (loaded || !id || !consentGiven() || isPrivate(window.location.href)) {
         return;
     }
 
@@ -30,7 +39,8 @@ const load = (id) => {
         window.dataLayer.push(arguments);
     };
     window.gtag('js', new Date());
-    window.gtag('config', id, { anonymize_ip: true });
+    window.gtag('config', id, { anonymize_ip: true, send_page_view: false });
+    trackPage(id, window.location.pathname + window.location.search);
 };
 
 export function setupAnalytics() {
@@ -42,9 +52,10 @@ export function setupAnalytics() {
 
     load(id);
     window.addEventListener('eden:cookie-consent', () => load(id));
+    router.on('start', (event) => {
+        window[`ga-disable-${id}`] = isPrivate(event.detail.visit.url);
+    });
     router.on('navigate', (event) => {
-        if (loaded && !event.detail.page.url.startsWith('/admin')) {
-            window.gtag('event', 'page_view', { page_path: event.detail.page.url });
-        }
+        trackPage(id, event.detail.page.url);
     });
 }
