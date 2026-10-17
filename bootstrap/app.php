@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Middleware\ConcealPrivateRoutes;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,8 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            ConcealPrivateRoutes::class,
             HandleInertiaRequests::class,
         ]);
+
+        $middleware->appendToPriorityList(StartSession::class, ConcealPrivateRoutes::class);
 
         // Désinscription « en un clic » envoyée par les messageries (en-tête List-Unsubscribe-Post)
         $middleware->validateCsrfTokens(except: ['newsletter/desabonnement/*']);
@@ -29,4 +35,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
+            if ($response->getStatusCode() !== 404) {
+                return $response;
+            }
+
+            $headers = ['Cache-Control' => 'private, no-store, max-age=0', 'X-Robots-Tag' => 'noindex, nofollow, noarchive', 'Referrer-Policy' => 'no-referrer'];
+
+            return ($request->is('api/*') || ($request->wantsJson() && ! $request->header('X-Inertia')))
+                ? response()->json(['message' => 'Not Found.'], 404, $headers)
+                : response()->view('errors.404', [], 404, $headers);
+        });
     })->create();
