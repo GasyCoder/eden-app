@@ -20,13 +20,15 @@ class AuthenticatedSessionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'email', 'max:255'],
+            'password' => ['required', 'string', 'max:1024'],
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        $credentials['email'] = mb_strtolower(trim($credentials['email']));
+
+        if (! Auth::attempt([...$credentials, 'is_admin' => true], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'email' => 'Les identifiants sont incorrects.',
             ]);
         }
 
