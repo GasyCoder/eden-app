@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Support\SeoSettings;
-use App\Support\ThemeSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,28 +16,7 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): Response
     {
-        $editors = $request->user()?->isSuperAdmin()
-            ? User::query()
-                ->where('role', 'editor')
-                ->orderBy('name')
-                ->get(['id', 'name', 'email', 'created_at'])
-                ->map(fn (User $editor): array => [
-                    'id' => $editor->id,
-                    'name' => $editor->name,
-                    'email' => $editor->email,
-                    'created_at' => $editor->created_at?->format('d/m/Y'),
-                ])
-                ->values()
-            : [];
-
-        return Inertia::render('Auth/Profile', [
-            'seo' => SeoSettings::all(),
-            'theme' => [
-                'sections' => ThemeSettings::SECTIONS,
-                'colors' => ThemeSettings::all(),
-            ],
-            'editors' => $editors,
-        ]);
+        return Inertia::render('Auth/Profile');
     }
 
     public function update(Request $request): RedirectResponse
