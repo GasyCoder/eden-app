@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'admin' => [
+        'email' => env('EDEN_ADMIN_EMAIL'),
+        'name' => env('EDEN_ADMIN_NAME'),
+        'password' => env('EDEN_ADMIN_PASSWORD'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Blocs réservés au superadmin

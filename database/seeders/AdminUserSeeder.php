@@ -9,13 +9,20 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $email = env('EDEN_ADMIN_EMAIL', 'bezaraflorent@gmail.com');
+        $email = config('eden.admin.email');
+        $name = config('eden.admin.name');
+        $password = config('eden.admin.password');
+
+        if (! filled($email) || ! filled($name) || ! filled($password)) {
+            throw new \RuntimeException('Définissez EDEN_ADMIN_EMAIL, EDEN_ADMIN_NAME et EDEN_ADMIN_PASSWORD dans le fichier .env avant de lancer ce seeder.');
+        }
+
         $admin = User::firstOrNew(['email' => $email]);
 
         if (! $admin->exists) {
             $admin->fill([
-                'name' => env('EDEN_ADMIN_NAME', 'Administrateur EDEN'),
-                'password' => env('EDEN_ADMIN_PASSWORD', 'Dev@@2021!!'),
+                'name' => $name,
+                'password' => $password,
             ]);
             $admin->forceFill(['email_verified_at' => now()]);
         }
