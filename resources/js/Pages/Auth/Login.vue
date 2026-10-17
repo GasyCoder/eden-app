@@ -1,6 +1,10 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowLeft, Eye, EyeOff } from '@lucide/vue';
 import { ref } from 'vue';
+import BrandStripe from '@/Components/Layout/BrandStripe.vue';
+import { cn } from '@/lib/utils';
+import { buttonVariants, inputClass } from '@/lib/variants';
 
 const showPassword = ref(false);
 
@@ -20,101 +24,63 @@ const submit = () => {
 <template>
     <Head title="Connexion" />
 
-    <main class="login-page">
-        <div class="login-card">
-            <!-- Volet institutionnel -->
-            <aside class="login-brand">
-                <div class="login-mark" aria-hidden="true">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 21V9" />
-                        <path d="M12 12.5C12 8.5 9 6.2 4.5 6.2c0 4 3 6.3 7.5 6.3Z" />
-                        <path d="M12 10c0-3.6 3-5.8 7.5-5.8 0 3.6-3 5.8-7.5 5.8Z" />
-                    </svg>
-                </div>
-                <div>
-                    <h2>EDEN-UMG</h2>
-                    <p class="login-brand-caption">École Doctorale Écosystèmes Naturels — Université de Mahajanga</p>
-                </div>
-                <p class="login-brand-text">
-                    Espace d'administration du site. Connectez-vous pour gérer les contenus,
-                    les images et les réglages de l'École Doctorale.
-                </p>
-                <ul class="login-points">
-                    <li class="login-point">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                        <span>Édition du contenu en direct</span>
-                    </li>
-                    <li class="login-point">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                        <span>Gestion des images et du référencement</span>
-                    </li>
-                    <li class="login-point">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-                        <span>Accès sécurisé et réservé</span>
-                    </li>
-                </ul>
-            </aside>
+    <main id="main" class="flex min-h-dvh flex-col bg-muted">
+        <BrandStripe />
+        <div class="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-10">
+            <div class="w-full max-w-sm rounded-xl border bg-card p-6 shadow-sm sm:p-8">
+                <Link href="/" class="flex items-center gap-2.5 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                    <span class="grid size-9 place-items-center rounded-lg bg-eden-600 text-white" aria-hidden="true">
+                        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9" /><path d="M12 12.5C12 8.5 9 6.2 4.5 6.2c0 4 3 6.3 7.5 6.3Z" /><path d="M12 10c0-3.6 3-5.8 7.5-5.8 0 3.6-3 5.8-7.5 5.8Z" /></svg>
+                    </span>
+                    <span class="grid leading-tight">
+                        <span class="text-sm font-bold">EDEN</span>
+                        <span class="text-xs text-muted-foreground">École Doctorale Écosystèmes Naturels</span>
+                    </span>
+                </Link>
 
-            <!-- Formulaire -->
-            <div class="login-form">
-                <span class="eyebrow">Administration</span>
-                <h1 class="login-title">Connexion</h1>
-                <p class="login-subtitle">Accédez à votre espace pour gérer le site.</p>
+                <div class="mt-7">
+                    <h1 class="text-2xl font-semibold tracking-tight">Connexion</h1>
+                    <p class="mt-1.5 text-sm text-muted-foreground">Espace réservé à l’équipe qui gère le site.</p>
+                </div>
 
-                <form @submit.prevent="submit">
-                    <div class="login-field">
-                        <label for="email">Email</label>
-                        <input
-                            id="email"
-                            v-model="form.email"
-                            class="login-input"
-                            type="email"
-                            autocomplete="email"
-                            required
-                            autofocus
-                            placeholder="vous@exemple.mg"
-                        >
-                        <span v-if="form.errors.email" class="login-error">{{ form.errors.email }}</span>
+                <form class="mt-6 grid gap-4" novalidate @submit.prevent="submit">
+                    <div class="grid gap-2">
+                        <label class="text-sm font-medium" for="email">Adresse e-mail</label>
+                        <input id="email" v-model="form.email" :class="inputClass" type="email" autocomplete="email" required autofocus placeholder="vous@exemple.mg" :aria-invalid="form.errors.email ? 'true' : null" aria-describedby="email-error">
+                        <p v-if="form.errors.email" id="email-error" class="text-xs font-medium text-destructive" role="alert">{{ form.errors.email }}</p>
                     </div>
 
-                    <div class="login-field">
-                        <label for="password">Mot de passe</label>
-                        <div class="login-password">
-                            <input
-                                id="password"
-                                v-model="form.password"
-                                class="login-input"
-                                :type="showPassword ? 'text' : 'password'"
-                                autocomplete="current-password"
-                                required
-                                placeholder="••••••••"
-                            >
+                    <div class="grid gap-2">
+                        <label class="text-sm font-medium" for="password">Mot de passe</label>
+                        <div class="relative">
+                            <input id="password" v-model="form.password" :class="cn(inputClass, 'pr-11')" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required :aria-invalid="form.errors.password ? 'true' : null" aria-describedby="password-error">
                             <button
                                 type="button"
-                                class="login-eye"
+                                :class="cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground')"
                                 :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
-                                :title="showPassword ? 'Masquer' : 'Afficher'"
+                                :aria-pressed="showPassword ? 'true' : 'false'"
                                 @click="showPassword = !showPassword"
                             >
-                                <svg v-if="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A11 11 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M6.6 6.6A18.6 18.6 0 0 0 2 11s3.5 7 10 7a11 11 0 0 0 3.6-.6" /><path d="m3 3 18 18" /></svg>
+                                <EyeOff v-if="showPassword" aria-hidden="true" />
+                                <Eye v-else aria-hidden="true" />
                             </button>
                         </div>
-                        <span v-if="form.errors.password" class="login-error">{{ form.errors.password }}</span>
+                        <p v-if="form.errors.password" id="password-error" class="text-xs font-medium text-destructive" role="alert">{{ form.errors.password }}</p>
                     </div>
 
-                    <label class="login-remember">
-                        <input v-model="form.remember" type="checkbox">
-                        <span>Rester connecté</span>
+                    <label class="inline-flex cursor-pointer items-center gap-2 text-sm">
+                        <input v-model="form.remember" type="checkbox" class="size-4 accent-eden-600">
+                        Rester connecté sur cet appareil
                     </label>
 
-                    <button class="btn btn-primary login-submit" type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Connexion...' : 'Se connecter' }}
+                    <button :class="cn(buttonVariants(), 'mt-2 w-full')" type="submit" :disabled="form.processing">
+                        <span v-if="form.processing" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+                        {{ form.processing ? 'Connexion…' : 'Se connecter' }}
                     </button>
                 </form>
-
-                <Link href="/" class="login-back">← Retour au site</Link>
             </div>
+
+            <Link href="/" :class="buttonVariants({ variant: 'ghost', size: 'sm' })"><ArrowLeft aria-hidden="true" />Retour au site</Link>
         </div>
     </main>
 </template>
