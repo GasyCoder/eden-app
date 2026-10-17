@@ -5,7 +5,18 @@ import { adminDelete, adminPatch, withContentLocale } from '@/Composables/useAdm
 export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload) {
     const editingId = ref(null);
     const creating = ref(false);
+    const saving = ref(false);
     const form = ref(blankForm());
+
+    const trackSaving = (options) => ({
+        ...options,
+        onStart: () => {
+            saving.value = true;
+        },
+        onFinish: () => {
+            saving.value = false;
+        },
+    });
 
     function startCreate() {
         form.value = blankForm();
@@ -26,27 +37,28 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
     }
 
     function createItem() {
-        router.post(`/admin/content-items/${collectionKey}`, withContentLocale(toPayload(form.value)), {
+        router.post(`/admin/content-items/${collectionKey}`, withContentLocale(toPayload(form.value)), trackSaving({
             preserveScroll: true,
             onSuccess: cancelEdit,
-        });
+        }));
     }
 
     function saveItem(item) {
-        adminPatch(`/admin/content-items/${item.id}`, toPayload(form.value), {
+        adminPatch(`/admin/content-items/${item.id}`, toPayload(form.value), trackSaving({
             preserveScroll: true,
             onSuccess: cancelEdit,
-        });
+        }));
     }
 
     function deleteItem(item) {
-        if (!window.confirm('Supprimer cet élément ?')) {
+        if (!window.confirm('Supprimer cet élément ? Cette action est enregistrée dans l’historique.')) {
             return;
         }
 
-        adminDelete(`/admin/content-items/${item.id}`, {}, {
+        adminDelete(`/admin/content-items/${item.id}`, {}, trackSaving({
             preserveScroll: true,
-        });
+            onSuccess: cancelEdit,
+        }));
     }
 
     function reorderItems(items, index, direction) {
@@ -71,6 +83,7 @@ export function useContentItemEditor(collectionKey, blankForm, toForm, toPayload
     return {
         editingId,
         creating,
+        saving,
         form,
         startCreate,
         editItem,
