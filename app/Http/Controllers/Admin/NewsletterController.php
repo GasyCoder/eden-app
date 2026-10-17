@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NewsletterCampaign;
 use App\Models\NewsletterSubscription;
 use App\Services\Newsletter\NewsletterDispatcher;
+use App\Services\Newsletter\SubscriptionVerification;
 use App\Support\ContentLocale;
 use App\Support\Paginated;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
  * Newsletter : abonnés (ajout manuel, import par liste, export CSV) et historique des envois.
@@ -38,16 +40,20 @@ class NewsletterController extends Controller
         return Inertia::render('Admin/Newsletter/Index', [
             'subscribers' => Paginated::from($subscribers, fn (NewsletterSubscription $subscription) => $subscription->toAdminRow()),
             'filters' => ['q' => $search, 'status' => $status],
+            'mailer' => config('mail.default'),
             'counts' => [
                 'active' => NewsletterSubscription::query()->active()->count(),
                 'unsubscribed' => NewsletterSubscription::query()->where('status', 'unsubscribed')->count(),
+                'pending' => NewsletterSubscription::query()->where('status', 'pending')->count(),
+                'pending_approval' => NewsletterSubscription::query()->where('status', 'pending_approval')->count(),
+                'rejected' => NewsletterSubscription::query()->where('status', 'rejected')->count(),
                 'month' => NewsletterSubscription::query()->active()->where('subscribed_at', '>=', now()->subDays(30))->count(),
             ],
         ]);
     }
 
     /** Ajout manuel : une ou plusieurs adresses (une par ligne, ou séparées par des virgules). */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SubscriptionVerification $verification): RedirectResponse
     {
         $data = $request->validate([
             'emails' => ['required', 'string', 'max:20000'],
@@ -56,7 +62,12 @@ class NewsletterController extends Controller
         ], ['emails.required' => 'Saisissez au moins une adresse.']);
 
         $emails = collect(preg_split('/[\s,;]+/', $data['emails']))->map(fn ($email) => mb_strtolower(trim($email)))->filter()->unique();
-        $invalid = $emails->reject(fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL));
+
+        if ($emails->isEmpty()) {
+            throw ValidationException::withMessages(['emails' => 'Saisissez au moins une adresse.']);
+        }
+
+        $invalid = $emails->reject(fn ($email) => mb_strlen($email) <= 255 && filter_var($email, FILTER_VALIDATE_EMAIL));
 
         if ($invalid->isNotEmpty()) {
             throw ValidationException::withMessages(['emails' => 'Adresse(s) invalide(s) : '.$invalid->take(5)->implode(', ').($invalid->count() > 5 ? '…' : '')]);
@@ -64,20 +75,30 @@ class NewsletterController extends Controller
 
         $single = $emails->count() === 1;
         $created = 0;
+        $failed = 0;
 
         foreach ($emails as $email) {
-            $existed = NewsletterSubscription::query()->where('email', $email)->exists();
-            NewsletterSubscription::subscribe($email, [
+            $subscription = NewsletterSubscription::subscribe($email, [
                 'name' => $single ? ($data['name'] ?? null) : null,
                 'locale' => $data['locale'],
-                ...($existed ? [] : ['source' => $single ? 'manual' : 'import']),
+                'source' => $single ? 'manual' : 'import',
             ]);
-            $created += $existed ? 0 : 1;
+
+            if ($subscription->wasRecentlyCreated) {
+                $created++;
+                try {
+                    $verification->send($subscription);
+                } catch (TransportExceptionInterface $exception) {
+                    report($exception);
+                    $failed++;
+                }
+            }
         }
 
         $updated = $emails->count() - $created;
 
-        return back(303)->with('success', trim(($created ? "{$created} abonné(s) ajouté(s). " : '').($updated ? "{$updated} adresse(s) déjà connue(s), réactivée(s) si besoin." : '')));
+        return back(303)->with('success', "{$created} demande(s) créée(s), en attente de validation. {$updated} adresse(s) déjà connue(s), inchangée(s).")
+            ->with('error', $failed ? "{$failed} e-mail(s) non envoyé(s). Utilisez « Renvoyer la confirmation » pour réessayer." : null);
     }
 
     public function update(Request $request, NewsletterSubscription $subscriber): RedirectResponse
@@ -85,18 +106,33 @@ class NewsletterController extends Controller
         $data = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'locale' => ['sometimes', Rule::in(ContentLocale::SUPPORTED)],
-            'status' => ['sometimes', Rule::in(NewsletterSubscription::STATUSES)],
+            'status' => ['sometimes', Rule::in(['subscribed', 'unsubscribed', 'rejected'])],
         ]);
 
-        if (($data['status'] ?? null) === 'unsubscribed' && $subscriber->status === 'subscribed') {
+        if (($data['status'] ?? null) === 'unsubscribed') {
             $subscriber->unsubscribe();
-        } elseif (($data['status'] ?? null) === 'subscribed' && $subscriber->status !== 'subscribed') {
-            NewsletterSubscription::subscribe($subscriber->email);
+        } elseif (($data['status'] ?? null) === 'subscribed') {
+            $subscriber->approve($request->user());
+        } elseif (($data['status'] ?? null) === 'rejected') {
+            $subscriber->reject();
         }
 
         $subscriber->refresh()->fill(collect($data)->only(['name', 'locale'])->all())->save();
 
         return back(303)->with('success', 'Abonné mis à jour.');
+    }
+
+    public function resend(NewsletterSubscription $subscriber, SubscriptionVerification $verification): RedirectResponse
+    {
+        try {
+            $verification->send($subscriber);
+        } catch (TransportExceptionInterface $exception) {
+            report($exception);
+
+            return back(303)->with('error', 'L’e-mail n’a pas pu être envoyé. Réessayez dans quelques instants.');
+        }
+
+        return back(303)->with('success', 'Lien de confirmation envoyé (valable 24 heures).');
     }
 
     public function destroy(NewsletterSubscription $subscriber): RedirectResponse
@@ -116,17 +152,22 @@ class NewsletterController extends Controller
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF"); // BOM : accents corrects dans Excel
-            fputcsv($out, ['email', 'nom', 'statut', 'langue', 'origine', 'inscrit le', 'désinscrit le'], ';');
+            fputcsv($out, ['email', 'nom', 'statut', 'langue', 'origine', 'inscrit le', 'désinscrit le', 'e-mail confirmé le', 'validé le', 'refusé le', 'confirmation admin le', 'administrateur id'], ';');
 
             $rows->each(function (NewsletterSubscription $subscription) use ($out): void {
                 fputcsv($out, [
                     $subscription->email,
                     $subscription->name,
-                    $subscription->status === 'subscribed' ? 'abonné' : 'désinscrit',
+                    NewsletterSubscription::STATUS_LABELS[$subscription->status] ?? $subscription->status,
                     $subscription->locale,
                     $subscription->source,
                     $subscription->subscribed_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
                     $subscription->unsubscribed_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
+                    $subscription->email_verified_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
+                    $subscription->approved_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
+                    $subscription->rejected_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
+                    $subscription->admin_confirmed_at?->timezone(config('eden.timezone'))->format('Y-m-d H:i'),
+                    $subscription->approved_by,
                 ], ';');
             });
 
@@ -182,8 +223,9 @@ class NewsletterController extends Controller
     protected function bulkActions(): array
     {
         return [
-            'unsubscribe' => ['%d abonné(s) désinscrit(s).', fn (Collection $items) => $items->where('status', 'subscribed')->each->unsubscribe()],
-            'resubscribe' => ['%d abonné(s) réabonné(s).', fn (Collection $items) => $items->each(fn (NewsletterSubscription $item) => NewsletterSubscription::subscribe($item->email))],
+            'unsubscribe' => ['%d abonné(s) désinscrit(s).', fn (Collection $items) => $items->each->unsubscribe()],
+            'approve' => ['%d demande(s) validée(s).', fn (Collection $items) => $items->each(fn (NewsletterSubscription $item) => $item->approve(auth()->user()))],
+            'reject' => ['%d demande(s) refusée(s).', fn (Collection $items) => $items->each->reject()],
             'locale_fr' => ['%d abonné(s) passé(s) en français.', fn (Collection $items) => $items->each->update(['locale' => 'fr'])],
             'locale_en' => ['%d abonné(s) passé(s) en anglais.', fn (Collection $items) => $items->each->update(['locale' => 'en'])],
             'delete' => ['%d abonné(s) supprimé(s).', fn (Collection $items) => $items->each->delete()],
