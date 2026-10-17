@@ -15,4 +15,30 @@ return [
         'footer.copyright',
         'footer.credit',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Fuseau horaire éditorial
+    |--------------------------------------------------------------------------
+    |
+    | Les dates sont stockées en UTC. Les dates saisies dans l'administration
+    | (événements, publications, annonces) et leur affichage public utilisent
+    | l'heure de Madagascar.
+    |
+    */
+    'timezone' => env('EDEN_TIMEZONE', 'Indian/Antananarivo'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | File d'attente (newsletter)
+    |--------------------------------------------------------------------------
+    |
+    | true : le planificateur (cron « schedule:run » chaque minute) traite aussi la
+    | file d'attente, adapté à un hébergement mutualisé. false : un worker
+    | « php artisan queue:work » tourne en continu (Supervisor, systemd).
+    |
+    */
+
+    'queue_via_scheduler' => env('EDEN_QUEUE_VIA_SCHEDULER', true),
+
 ];
