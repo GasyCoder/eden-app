@@ -76,11 +76,11 @@ test('draft news are hidden from visitors but previewable by admins', function (
 /* ─── Actualités : administration ─────────────────────────── */
 
 test('guests and non admins cannot reach the admin area', function () {
-    $this->get('/admin')->assertRedirect('/me/login');
-    $this->get('/admin/posts')->assertRedirect('/me/login');
+    $this->get('/admin')->assertNotFound();
+    $this->get('/admin/posts')->assertNotFound();
 
-    $this->actingAs(portalVisitorAccount())->get('/admin/posts')->assertForbidden();
-    $this->actingAs(portalVisitorAccount())->post('/admin/posts', [])->assertForbidden();
+    $this->actingAs(portalVisitorAccount())->get('/admin/posts')->assertNotFound();
+    $this->actingAs(portalVisitorAccount())->post('/admin/posts', [])->assertNotFound();
 });
 
 test('admin dashboard and lists are available to editors', function () {
@@ -342,8 +342,8 @@ test('non admins cannot manage any editorial module', function (string $base) {
     $user = portalVisitorAccount();
 
     if ($base !== 'post-categories') {
-        $this->actingAs($user)->get("/admin/{$base}")->assertForbidden();
+        $this->actingAs($user)->get("/admin/{$base}")->assertNotFound();
     }
 
-    $this->actingAs($user)->post("/admin/{$base}", [])->assertForbidden();
+    $this->actingAs($user)->post("/admin/{$base}", [])->assertNotFound();
 })->with(['posts', 'events', 'journals', 'announcements', 'post-categories']);
