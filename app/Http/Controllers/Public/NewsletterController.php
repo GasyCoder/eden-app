@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsletterSubscription;
+use App\Support\ContentLocale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,16 +19,13 @@ class NewsletterController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $email = mb_strtolower(trim($validated['email']));
-
-        NewsletterSubscription::updateOrCreate(
-            ['email' => $email],
-            ['subscribed_at' => now()],
-        );
+        $subscription = NewsletterSubscription::subscribe($validated['email'], [
+            'locale' => ContentLocale::fromRequest($request),
+        ]);
 
         return redirect()
             ->route('newsletter.confirmation')
-            ->with('newsletter_email', $email);
+            ->with('newsletter_email', $subscription->email);
     }
 
     public function confirmation(Request $request): Response|RedirectResponse
@@ -40,5 +39,30 @@ class NewsletterController extends Controller
         return Inertia::render('NewsletterConfirmation', [
             'email' => $email,
         ]);
+    }
+
+    /** Page de désinscription (lien présent dans chaque email). */
+    public function unsubscribeForm(string $token): Response
+    {
+        $subscription = NewsletterSubscription::query()->where('token', $token)->firstOrFail();
+
+        return Inertia::render('NewsletterUnsubscribe', [
+            'email' => $subscription->email,
+            'token' => $token,
+            'unsubscribed' => $subscription->status === 'unsubscribed',
+        ]);
+    }
+
+    /** Désinscription : bouton de la page ou « un clic » depuis la messagerie. */
+    public function unsubscribe(Request $request, string $token): RedirectResponse|HttpResponse
+    {
+        $subscription = NewsletterSubscription::query()->where('token', $token)->firstOrFail();
+        $subscription->unsubscribe();
+
+        if ($request->has('List-Unsubscribe')) {
+            return response('', 200);
+        }
+
+        return redirect()->route('newsletter.unsubscribe', $token);
     }
 }
