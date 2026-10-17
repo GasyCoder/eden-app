@@ -1,5 +1,7 @@
 <script setup>
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { ChevronDown, History, LayoutDashboard, LogOut, Pencil, UserRound } from '@lucide/vue';
+import { SwitchRoot, SwitchThumb } from 'reka-ui';
 import { computed, onMounted, ref, watch } from 'vue';
 import AdminHistoryPanel from '@/Components/Admin/AdminHistoryPanel.vue';
 
@@ -20,7 +22,7 @@ const page = usePage();
 const user = computed(() => page.props.auth?.user);
 const historyOpen = ref(false);
 
-// Barre épinglée (ouverte) ou réduite en pastille — préférence mémorisée
+// Barre épinglée (ouverte) ou réduite en pastille, préférence mémorisée
 const PIN_KEY = 'eden_admin_pinned';
 const pinned = ref(true);
 
@@ -45,6 +47,7 @@ watch(pinned, (value) => {
 
 const roleLabel = computed(() => (user.value?.role === 'superadmin' ? 'Super administrateur' : 'Éditeur'));
 const userDisplayName = computed(() => user.value?.name || user.value?.email || 'Administrateur');
+const userInitial = computed(() => (user.value?.name || user.value?.email || 'A').charAt(0).toUpperCase());
 
 const toggleEditMode = () => {
     emit('update:editMode', !props.editMode);
@@ -63,80 +66,67 @@ const logout = () => {
 
 <template>
     <template v-if="canEdit">
-        <aside v-if="pinned" class="eden-admin-toolbar" aria-label="Mode édition administrateur">
-            <button
-                class="eden-admin-status"
-                :class="{ 'has-photo': user?.profile_photo_url }"
-                type="button"
-                :title="`${userDisplayName} — ${roleLabel}`"
-                :aria-label="`Profil de ${user?.name ?? 'l’administrateur'}`"
-                @click="goProfile"
-            >
-                <img
-                    v-if="user?.profile_photo_url"
-                    :src="user.profile_photo_url"
-                    :alt="`Photo de ${user?.name ?? 'administrateur'}`"
-                    width="38"
-                    height="38"
-                    loading="lazy"
-                    decoding="async"
-                >
-                <span v-else>{{ (user?.email ?? 'A').charAt(0).toUpperCase() }}</span>
-            </button>
-            <span class="eden-admin-sep"></span>
-
-            <button
-                class="eden-admin-btn"
-                :class="{ 'is-active': editMode }"
-                type="button"
-                :title="editMode ? 'Masquer les outils d’édition' : 'Afficher les outils d’édition'"
-                :aria-label="editMode ? 'Masquer les outils' : 'Afficher les outils'"
-                @click="toggleEditMode"
-            >
-                <svg v-if="editMode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A11 11 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M6.6 6.6A18.6 18.6 0 0 0 2 11s3.5 7 10 7a11 11 0 0 0 3.6-.6" /><path d="m3 3 18 18" /></svg>
+        <div
+            v-if="pinned"
+            class="admin-bar fixed inset-x-2 bottom-[calc(var(--tabbar-h)+0.5rem)] z-[60] flex items-center justify-between gap-1 rounded-full bg-foreground p-1.5 text-background shadow-2xl md:inset-x-auto md:bottom-[calc(var(--tabbar-h)+1rem)] md:left-1/2 md:w-max md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:justify-start"
+            role="toolbar"
+            aria-label="Barre d’administration"
+        >
+            <button class="flex shrink-0 items-center gap-2 rounded-full py-0.5 pr-2.5 pl-0.5 text-left hover:bg-background/10" type="button" :title="`${userDisplayName} (${roleLabel})`" @click="goProfile">
+                <span class="grid size-9 place-items-center overflow-hidden rounded-full bg-background/15 text-sm font-semibold">
+                    <img v-if="user?.profile_photo_url" :src="user.profile_photo_url" :alt="`Photo de ${userDisplayName}`" class="size-full object-cover" loading="lazy" decoding="async">
+                    <template v-else>{{ userInitial }}</template>
+                </span>
+                <span class="hidden leading-tight lg:grid">
+                    <strong class="max-w-36 truncate text-sm font-semibold">{{ userDisplayName }}</strong>
+                    <small class="text-xs text-background/65">{{ roleLabel }}</small>
+                </span>
             </button>
 
-            <button class="eden-admin-btn" type="button" title="Paramètres" aria-label="Paramètres" @click="goProfile">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" /></svg>
+            <span class="mx-1 hidden h-6 w-px bg-background/20 md:block" aria-hidden="true"></span>
+
+            <label class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none cursor-pointer" :title="editMode ? 'Masquer les crayons d’édition' : 'Afficher les crayons d’édition'">
+                <SwitchRoot :model-value="editMode" class="inline-flex h-5 w-9 shrink-0 items-center rounded-full bg-background/25 transition-colors data-[state=checked]:bg-eden-400" @update:model-value="toggleEditMode">
+                    <SwitchThumb class="block size-4 translate-x-0.5 rounded-full bg-white shadow transition-transform data-[state=checked]:translate-x-[18px]" />
+                </SwitchRoot>
+                <span class="hidden md:inline">Outils d’édition</span>
+                <span class="sr-only md:hidden">Outils d’édition</span>
+            </label>
+
+            <Link href="/admin" class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none" title="Tableau de bord : actualités, événements, revues, annonces">
+                <LayoutDashboard class="size-[18px]" aria-hidden="true" /><span class="hidden md:inline">Administration</span>
+            </Link>
+            <button class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none" type="button" title="Historique des modifications" @click="historyOpen = true">
+                <History class="size-[18px]" aria-hidden="true" /><span class="hidden md:inline">Historique</span>
+            </button>
+            <button class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none" type="button" title="Mon profil et les réglages" @click="goProfile">
+                <UserRound class="size-[18px]" aria-hidden="true" /><span class="hidden md:inline">Profil</span>
+            </button>
+            <button class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none hover:bg-laterite-500/25 hover:text-laterite-200" type="button" title="Se déconnecter" @click="logout">
+                <LogOut class="size-[18px]" aria-hidden="true" /><span class="hidden md:inline">Déconnexion</span>
             </button>
 
-            <button class="eden-admin-btn" type="button" title="Historique des modifications" aria-label="Historique" @click="historyOpen = true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5" /><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8" /><path d="M12 7v5l4 2" /></svg>
-            </button>
+            <span class="mx-1 hidden h-6 w-px bg-background/20 md:block" aria-hidden="true"></span>
 
-            <button class="eden-admin-btn eden-admin-btn-danger" type="button" title="Déconnexion" aria-label="Déconnexion" @click="logout">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /></svg>
+            <button class="inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-background/10 focus-visible:ring-[3px] focus-visible:ring-gold-400/60 focus-visible:outline-none px-2.5" type="button" title="Réduire la barre" aria-label="Réduire la barre" @click="pinned = false">
+                <ChevronDown class="size-[18px]" aria-hidden="true" />
             </button>
-
-            <span class="eden-admin-sep"></span>
-
-            <button class="eden-admin-btn" type="button" title="Réduire la barre" aria-label="Réduire la barre" @click="pinned = false">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-            </button>
-        </aside>
+        </div>
 
         <button
             v-else
-            class="eden-admin-mini"
+            class="admin-bar fixed bottom-[calc(var(--tabbar-h)+1rem)] left-4 z-[60] rounded-full bg-foreground p-1 shadow-2xl"
             type="button"
-            :title="userDisplayName"
-            :aria-label="`Afficher la barre d’édition de ${userDisplayName}`"
+            :title="`Afficher la barre d’administration (${userDisplayName})`"
+            :aria-label="`Afficher la barre d’administration de ${userDisplayName}`"
             @click="pinned = true"
         >
-            <img
-                v-if="user?.profile_photo_url"
-                :src="user.profile_photo_url"
-                :alt="`Photo de ${user?.name ?? 'administrateur'}`"
-                width="46"
-                height="46"
-                loading="lazy"
-                decoding="async"
-            >
-            <span v-else class="eden-admin-mini-initial">{{ (user?.email ?? 'A').charAt(0).toUpperCase() }}</span>
-            <span class="eden-admin-mini-tooltip" role="tooltip">{{ userDisplayName }}</span>
-            <span class="eden-admin-mini-edit" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <span class="grid size-11 place-items-center overflow-hidden rounded-full bg-background/15 text-sm font-semibold text-background">
+                <img v-if="user?.profile_photo_url" :src="user.profile_photo_url" :alt="`Photo de ${userDisplayName}`" class="size-full object-cover" loading="lazy" decoding="async">
+                <template v-else>{{ userInitial }}</template>
+            </span>
+            <span class="absolute -right-0.5 -bottom-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-gold-500 text-eden-950" aria-hidden="true">
+                <Pencil class="size-2.5" />
             </span>
         </button>
 
