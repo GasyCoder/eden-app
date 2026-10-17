@@ -312,7 +312,7 @@ const iconKey = (name = '') => {
                         <input
                             id="newsletter-email"
                             v-model="newsletterForm.email"
-                            class="h-10 flex-1 rounded-md border border-white/20 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-eden-100/50 focus-visible:border-gold-400 focus-visible:ring-[3px] focus-visible:ring-gold-400/30 aria-invalid:border-laterite-400"
+                            class="h-12 min-h-12 w-full min-w-0 shrink-0 rounded-md border border-white/20 bg-white/5 px-3 text-base text-white outline-none placeholder:text-eden-100/50 focus-visible:border-gold-400 focus-visible:ring-[3px] focus-visible:ring-gold-400/30 aria-invalid:border-laterite-400 sm:h-10 sm:min-h-10 sm:w-auto sm:flex-1 sm:text-sm"
                             type="email"
                             autocomplete="email"
                             :placeholder="t.email"
@@ -320,7 +320,7 @@ const iconKey = (name = '') => {
                             :aria-invalid="newsletterForm.errors.email ? 'true' : null"
                             aria-describedby="newsletter-error"
                         >
-                        <button type="submit" :class="buttonVariants({ variant: 'inverse' })" :disabled="newsletterForm.processing">
+                        <button type="submit" :class="cn(buttonVariants({ variant: 'inverse' }), 'h-12 sm:h-10')" :disabled="newsletterForm.processing">
                             <span v-if="newsletterForm.processing" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
                             {{ newsletterForm.processing ? t.sending : t.subscribe }}
                         </button>
