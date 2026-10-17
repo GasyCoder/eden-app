@@ -1,8 +1,14 @@
 <script setup>
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import AddItemButton from '@/Components/Editable/AddItemButton.vue';
+import EditField from '@/Components/Editable/EditField.vue';
+import ItemEditor from '@/Components/Editable/ItemEditor.vue';
+import ItemTools from '@/Components/Editable/ItemTools.vue';
+import { CircleCheck, UserRound } from '@lucide/vue';
+import SectionHeading from '@/Components/Portal/SectionHeading.vue';
 import { useContentItemEditor } from '@/Composables/useContentItemEditor';
+import { containerClass } from '@/lib/variants';
 
 const props = defineProps({
     blocks: {
@@ -58,6 +64,7 @@ const textToThemes = (value = '') => value.split('\n').map((line) => line.trim()
 const {
     editingId,
     creating,
+    saving,
     form,
     startCreate,
     editItem,
@@ -87,75 +94,60 @@ const {
 </script>
 
 <template>
-    <section id="organisation">
-        <div class="container">
-            <div class="section-header reveal">
-                <span class="eyebrow"><EditableText :value="blocks?.eyebrow" fallback="Organisation" content-key="organisation.eyebrow" :can-edit="canEdit" /></span>
-                <h2><EditableText :value="blocks?.title" fallback="Équipes d'Accueil Doctoral" content-key="organisation.title" :can-edit="canEdit" /></h2>
-                <p>
+    <section id="organisation" class="bg-[var(--bg-organisation,var(--muted))] py-16 lg:py-20">
+        <div :class="containerClass">
+            <SectionHeading>
+                <EditableText :value="blocks?.title" fallback="Équipes d'Accueil Doctoral" content-key="organisation.title" :can-edit="canEdit" />
+                <template #description>
                     <EditableTextarea
                         :value="blocks?.description"
                         fallback="L'EDEN est structurée autour de deux Équipes d'Accueil Doctoral (EAD) regroupant chercheurs et doctorants autour de thématiques scientifiques complémentaires."
                         content-key="organisation.description"
                         :can-edit="canEdit"
                     />
-                </p>
-            </div>
-            <div v-if="canEdit" class="eden-collection-toolbar">
-                <button type="button" @click="startCreate">Ajouter une équipe</button>
-            </div>
-            <div class="ead-grid">
-                <div v-if="creating" class="ead-card reveal visible">
-                    <div class="ead-head">
-                        <div class="eden-project-edit">
-                            <input v-model="form.number" class="eden-collection-input" type="text" placeholder="Numéro">
-                            <input v-model="form.title" class="eden-collection-input" type="text" placeholder="Titre">
-                            <input v-model="form.subtitle" class="eden-collection-input" type="text" placeholder="Responsable">
-                        </div>
+                </template>
+            </SectionHeading>
+            <div v-if="canEdit && !creating" class="mt-8"><AddItemButton label="Ajouter une équipe" @click="startCreate" /></div>
+            <ItemEditor v-if="creating" class="mt-8" title="Nouvelle équipe" :busy="saving" @save="createItem" @cancel="cancelEdit">
+                <EditField v-model="form.number" label="Code" placeholder="EAD 3" />
+                <EditField v-model="form.title" label="Nom de l’équipe" />
+                <EditField v-model="form.subtitle" label="Responsable" placeholder="Responsable : Dr …" wide />
+                <EditField v-model="form.themes" label="Thématiques" type="textarea" :rows="5" hint="Une thématique par ligne." wide />
+            </ItemEditor>
+            <div class="mt-10 grid gap-6 lg:grid-cols-2">
+                <article v-for="(team, index) in teamsForDisplay()" :key="team.id ?? team.title" class="relative flex flex-col overflow-hidden rounded-xl border bg-card shadow-xs">
+                    <div v-if="editingId === team.id" class="p-5">
+                        <ItemEditor title="Modifier l’équipe" deletable :busy="saving" @save="saveItem(team)" @cancel="cancelEdit" @delete="deleteItem(team)">
+                            <EditField v-model="form.number" label="Code" />
+                            <EditField v-model="form.title" label="Nom de l’équipe" />
+                            <EditField v-model="form.subtitle" label="Responsable" wide />
+                            <EditField v-model="form.themes" label="Thématiques" type="textarea" :rows="6" hint="Une thématique par ligne." wide />
+                        </ItemEditor>
                     </div>
-                    <div class="ead-body">
-                        <textarea v-model="form.themes" class="eden-collection-textarea" placeholder="Une thématique par ligne"></textarea>
-                        <div class="eden-collection-actions">
-                            <button type="button" @click="createItem">Enregistrer</button>
-                            <button type="button" @click="cancelEdit">Annuler</button>
-                        </div>
-                    </div>
-                </div>
-                <div v-for="(team, index) in teamsForDisplay()" :key="team.id ?? team.title" class="ead-card reveal">
-                    <div class="ead-head">
-                        <template v-if="editingId === team.id">
-                            <div class="eden-project-edit">
-                                <input v-model="form.number" class="eden-collection-input" type="text">
-                                <input v-model="form.title" class="eden-collection-input" type="text">
-                                <input v-model="form.subtitle" class="eden-collection-input" type="text">
-                            </div>
-                        </template>
-                        <template v-else>
-                            <p class="ead-num">{{ team.meta?.number ?? 'EAD 1' }} <AdminEditButton v-if="canEdit && team.id" @click="editItem(team)" /></p>
-                            <h3>{{ team.title }}</h3>
-                            <p class="resp">{{ team.subtitle }}</p>
-                        </template>
-                    </div>
-                    <div class="ead-body">
-                        <template v-if="editingId === team.id">
-                            <textarea v-model="form.themes" class="eden-collection-textarea"></textarea>
-                            <div class="eden-collection-actions">
-                                <button type="button" @click="saveItem(team)">Enregistrer</button>
-                                <button type="button" @click="cancelEdit">Annuler</button>
-                                <button type="button" @click="deleteItem(team)">Supprimer</button>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <div class="ead-themes">
-                                <div v-for="theme in (team.meta?.themes ?? [])" :key="theme" class="ead-t">{{ theme }}</div>
-                            </div>
-                            <div v-if="canEdit && team.id" class="eden-collection-actions">
-                                <button type="button" @click="reorderItems(teamsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click="reorderItems(teamsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
+                    <template v-else>
+                        <header class="border-b p-6">
+                            <span class="inline-flex rounded-md bg-eden-50 px-2 py-0.5 text-xs font-semibold text-eden-700 dark:bg-eden-950 dark:text-eden-300">{{ team.meta?.number ?? 'EAD 1' }}</span>
+                            <h3 class="mt-3 text-lg font-semibold tracking-tight">{{ team.title }}</h3>
+                            <p class="mt-1.5 flex items-center gap-2 text-sm text-muted-foreground">
+                                <UserRound class="size-4 shrink-0" aria-hidden="true" />{{ team.subtitle }}
+                            </p>
+                        </header>
+                        <ul class="grid gap-3 p-6">
+                            <li v-for="theme in (team.meta?.themes ?? [])" :key="theme" class="flex items-start gap-3 text-sm leading-relaxed">
+                                <CircleCheck class="mt-0.5 size-4 shrink-0 text-eden-600 dark:text-eden-400" aria-hidden="true" />{{ theme }}
+                            </li>
+                        </ul>
+                        <ItemTools
+                            v-if="canEdit && team.id"
+                            floating
+                            :first="index === 0"
+                            :last="index === teamsForDisplay().length - 1"
+                            @edit="editItem(team)"
+                            @up="reorderItems(teamsForDisplay(), index, -1)"
+                            @down="reorderItems(teamsForDisplay(), index, 1)"
+                        />
+                    </template>
+                </article>
             </div>
         </div>
     </section>
