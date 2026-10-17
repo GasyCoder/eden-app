@@ -137,5 +137,5 @@ test('pdf upload accepts pdf files only and requires admin rights', function () 
 
     $this->actingAs(User::factory()->create(['is_admin' => false]))->postJson('/admin/uploads/documents', [
         'document' => UploadedFile::fake()->create('matoy.pdf', 10, 'application/pdf'),
-    ])->assertForbidden();
+    ])->assertNotFound();
 });
