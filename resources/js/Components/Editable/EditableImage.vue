@@ -1,7 +1,9 @@
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue';
-import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import { ImageUp, Minus, Plus, X } from '@lucide/vue';
 import { adminPatch } from '@/Composables/useAdminRequest';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/lib/variants';
 
 const props = defineProps({
     contentKey: {
@@ -9,6 +11,11 @@ const props = defineProps({
         required: true,
     },
     canEdit: {
+        type: Boolean,
+        default: false,
+    },
+    // Pastille ronde (logo) plutôt que bouton libellé
+    compact: {
         type: Boolean,
         default: false,
     },
@@ -311,66 +318,65 @@ const uploadFile = async (file) => {
 </script>
 
 <template>
-    <span v-if="canEdit" class="eden-edit-image">
-        <AdminEditButton :title="uploading ? 'Téléversement...' : 'Remplacer l’image'" :disabled="uploading || processingCrop" @click="choose" />
+    <span v-if="canEdit" :class="cn('absolute z-10 grid justify-items-end gap-2', compact ? '-top-2 -right-2' : 'top-3 right-3')">
+        <button
+            type="button"
+            :class="cn(
+                'inline-flex items-center gap-1.5 rounded-full border bg-background/95 text-xs font-semibold text-foreground shadow-md transition-colors hover:border-eden-600 hover:bg-eden-600 hover:text-white focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-60',
+                compact ? 'size-6 justify-center p-0' : 'h-8 px-3',
+            )"
+            :disabled="uploading || processingCrop"
+            :aria-label="uploading ? 'Téléversement en cours' : 'Remplacer l’image'"
+            @click.stop.prevent="choose"
+        >
+            <ImageUp :class="compact ? 'size-3' : 'size-4'" aria-hidden="true" />
+            <span v-if="!compact">{{ uploading ? 'Envoi…' : 'Remplacer' }}</span>
+        </button>
         <input ref="input" type="file" accept="image/*" hidden @change="onFileChange">
-        <span v-if="error" class="eden-edit-error">{{ error }}</span>
+        <span v-if="error" class="max-w-56 rounded-md bg-laterite-50 px-2.5 py-1.5 text-xs font-medium text-laterite-700" role="alert">{{ error }}</span>
     </span>
 
-    <teleport to="body">
-        <div v-if="cropOpen" class="eden-crop-backdrop" role="dialog" aria-modal="true" @keydown.esc.prevent="closeCropper">
-            <div class="eden-crop-modal">
-                <header class="eden-crop-header">
+    <Teleport to="body">
+        <div v-if="cropOpen" class="fixed inset-0 z-[100] grid place-items-center overflow-y-auto bg-black/50 p-4" role="presentation" @keydown.esc.prevent="closeCropper">
+            <section class="flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border bg-popover shadow-lg" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+                <header class="flex items-start justify-between gap-4 px-6 pt-6">
                     <div>
-                        <strong>{{ preset?.title }}</strong>
-                        <span>{{ preset?.hint }}</span>
+                        <h2 id="crop-title" class="text-lg font-semibold">{{ preset?.title }}</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">{{ preset?.hint }} Faites glisser l’image pour choisir le cadrage.</p>
                     </div>
-                    <button type="button" :disabled="processingCrop" aria-label="Fermer" @click="closeCropper">×</button>
+                    <button type="button" :class="buttonVariants({ variant: 'ghost', size: 'icon-sm' })" :disabled="processingCrop" aria-label="Fermer" @click="closeCropper"><X aria-hidden="true" /></button>
                 </header>
-
-                <div class="eden-crop-body">
+                <div class="px-6 py-5">
                     <div
                         ref="cropFrame"
-                        class="eden-crop-frame"
-                        :class="{ 'is-dragging': drag.active }"
+                        :class="cn('relative mx-auto w-full max-w-xl touch-none overflow-hidden rounded-lg bg-neutral-950 select-none', drag.active ? 'cursor-grabbing' : 'cursor-grab')"
                         :style="cropFrameStyle"
                         @pointerdown.prevent="startDrag"
                         @pointermove.prevent="moveDrag"
                         @pointerup.prevent="endDrag"
                         @pointercancel.prevent="endDrag"
                     >
-                        <img
-                            ref="cropImageElement"
-                            :src="objectUrl"
-                            alt=""
-                            :style="cropImageStyle"
-                            draggable="false"
-                            @load="onImageLoaded"
-                        >
-                        <span class="eden-crop-grid" aria-hidden="true"></span>
+                        <img ref="cropImageElement" :src="objectUrl" alt="" class="pointer-events-none absolute top-1/2 left-1/2 max-w-none" :style="cropImageStyle" draggable="false" @load="onImageLoaded">
+                        <span class="pointer-events-none absolute inset-0 rounded-lg border-2 border-white/85 bg-[linear-gradient(to_right,transparent_33%,rgba(255,255,255,.35)_33%,rgba(255,255,255,.35)_calc(33%+1px),transparent_calc(33%+1px),transparent_66%,rgba(255,255,255,.35)_66%,rgba(255,255,255,.35)_calc(66%+1px),transparent_calc(66%+1px)),linear-gradient(to_bottom,transparent_33%,rgba(255,255,255,.35)_33%,rgba(255,255,255,.35)_calc(33%+1px),transparent_calc(33%+1px),transparent_66%,rgba(255,255,255,.35)_66%,rgba(255,255,255,.35)_calc(66%+1px),transparent_calc(66%+1px))]" aria-hidden="true"></span>
                     </div>
-
-                    <div class="eden-crop-controls">
-                        <button type="button" :disabled="processingCrop" aria-label="Zoom arrière" @click="zoomBy(-0.1)">−</button>
-                        <input v-model="crop.zoom" type="range" min="1" max="3" step="0.01" :disabled="processingCrop" @input="onZoom">
-                        <button type="button" :disabled="processingCrop" aria-label="Zoom avant" @click="zoomBy(0.1)">+</button>
+                    <div class="mx-auto mt-5 flex w-full max-w-md items-center gap-3">
+                        <button type="button" :class="buttonVariants({ variant: 'outline', size: 'icon-sm' })" :disabled="processingCrop" aria-label="Zoom arrière" @click="zoomBy(-0.1)"><Minus aria-hidden="true" /></button>
+                        <input v-model="crop.zoom" type="range" min="1" max="3" step="0.01" class="flex-1 accent-eden-600" aria-label="Zoom" :disabled="processingCrop" @input="onZoom">
+                        <button type="button" :class="buttonVariants({ variant: 'outline', size: 'icon-sm' })" :disabled="processingCrop" aria-label="Zoom avant" @click="zoomBy(0.1)"><Plus aria-hidden="true" /></button>
                     </div>
                 </div>
-
-                <footer class="eden-crop-actions">
-                    <button type="button" :disabled="processingCrop" @click="closeCropper">Annuler</button>
-                    <button type="button" :disabled="processingCrop" @click="confirmCrop">
-                        {{ processingCrop ? 'Préparation...' : 'Utiliser cette image' }}
+                <footer class="flex flex-col-reverse gap-2 border-t bg-muted/50 px-6 py-4 sm:flex-row sm:justify-end">
+                    <button type="button" :class="buttonVariants({ variant: 'outline' })" :disabled="processingCrop" @click="closeCropper">Annuler</button>
+                    <button type="button" :class="buttonVariants()" :disabled="processingCrop" @click="confirmCrop">
+                        <span v-if="processingCrop" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+                        {{ processingCrop ? 'Préparation…' : 'Utiliser cette image' }}
                     </button>
                 </footer>
-            </div>
+            </section>
         </div>
-    </teleport>
+    </Teleport>
 
-    <span v-if="canEdit && uploading" class="eden-upload-skeleton" role="status" aria-live="polite">
-        <span class="eden-upload-content">
-            <span class="eden-upload-spinner"></span>
-            <span>Téléversement...</span>
-        </span>
+    <span v-if="canEdit && uploading" class="absolute inset-0 z-[5] grid place-items-center bg-background/80 text-sm font-medium backdrop-blur-[2px]" role="status" aria-live="polite">
+        <span class="inline-flex items-center gap-2"><span class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span> Téléversement…</span>
     </span>
 </template>
