@@ -1,8 +1,14 @@
 <script setup>
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import AddItemButton from '@/Components/Editable/AddItemButton.vue';
+import EditField from '@/Components/Editable/EditField.vue';
+import ItemEditor from '@/Components/Editable/ItemEditor.vue';
+import ItemTools from '@/Components/Editable/ItemTools.vue';
+import { BookOpenCheck, ClipboardCheck } from '@lucide/vue';
+import SectionHeading from '@/Components/Portal/SectionHeading.vue';
 import { useContentItemEditor } from '@/Composables/useContentItemEditor';
+import { containerClass } from '@/lib/variants';
 
 const props = defineProps({
     blocks: {
@@ -83,145 +89,117 @@ const unitEditor = useContentItemEditor(
     (item) => ({ title: item.title ?? '' }),
     (form) => ({ title: form.title }),
 );
+
+// Deux listes simples (conditions, unités) partagent le même gabarit
+const simpleLists = [
+    { id: 'conditions', titleKey: 'conditions_title', titleFallback: "Conditions d'Admission", items: conditionsForDisplay, editor: conditionEditor, itemLabel: 'Condition', addLabel: 'Ajouter une condition', icon: ClipboardCheck },
+    { id: 'units', titleKey: 'units_title', titleFallback: 'Unités de Formation', items: unitsForDisplay, editor: unitEditor, itemLabel: 'Unité de formation', addLabel: 'Ajouter une unité', icon: BookOpenCheck },
+];
 </script>
 
 <template>
-    <section id="formation">
-        <div class="container">
-            <div class="section-header reveal">
-                <span class="eyebrow"><EditableText :value="blocks?.eyebrow" fallback="Formation" content-key="formation.eyebrow" :can-edit="canEdit" /></span>
-                <h2><EditableText :value="blocks?.title" fallback="Parcours Doctoral" content-key="formation.title" :can-edit="canEdit" /></h2>
-                <p>
+    <section id="formation" class="bg-[var(--bg-formation,var(--background))] py-16 lg:py-20">
+        <div :class="containerClass">
+            <SectionHeading>
+                <EditableText :value="blocks?.title" fallback="Parcours Doctoral" content-key="formation.title" :can-edit="canEdit" />
+                <template #description>
                     <EditableTextarea
                         :value="blocks?.description"
                         fallback="L'EDEN offre une formation de 3 ans alliant excellence scientifique, encadrement personnalisé et développement des compétences du chercheur."
                         content-key="formation.description"
                         :can-edit="canEdit"
                     />
-                </p>
+                </template>
+            </SectionHeading>
+
+            <div class="mt-14 mb-6 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-lg font-semibold"><EditableText :value="blocks?.path_title" fallback="Parcours en 3 Ans" content-key="formation.path_title" :can-edit="canEdit" /></h3>
+                <AddItemButton v-if="canEdit && !stepEditor.creating.value" label="Ajouter une étape" @click="stepEditor.startCreate" />
             </div>
-            <div class="formation-grid">
-                <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;"><EditableText :value="blocks?.conditions_title" fallback="Conditions d'Admission" content-key="formation.conditions_title" :can-edit="canEdit" /></h3>
-                    <div v-if="canEdit" class="eden-collection-toolbar">
-                        <button type="button" @click="conditionEditor.startCreate">Ajouter</button>
-                    </div>
-                    <div class="check-list">
-                        <div v-if="conditionEditor.creating.value" class="check-i">
-                            <span class="eden-project-edit">
-                                <input v-model="conditionEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Condition">
-                                <span class="eden-collection-actions">
-                                    <button type="button" @click="conditionEditor.createItem">Enregistrer</button>
-                                    <button type="button" @click="conditionEditor.cancelEdit">Annuler</button>
-                                </span>
-                            </span>
+            <ItemEditor v-if="stepEditor.creating.value" class="mb-6" title="Nouvelle étape" :busy="stepEditor.saving.value" @save="stepEditor.createItem" @cancel="stepEditor.cancelEdit">
+                <EditField v-model="stepEditor.form.value.number" label="Numéro" placeholder="4" />
+                <EditField v-model="stepEditor.form.value.subtitle" label="Période" placeholder="Année 4" />
+                <EditField v-model="stepEditor.form.value.title" label="Titre" wide />
+                <EditField v-model="stepEditor.form.value.description" label="Description" type="textarea" wide />
+            </ItemEditor>
+            <ol class="grid gap-6 md:grid-cols-3">
+                <li v-for="(step, index) in stepsForDisplay()" :key="step.id ?? step.title" class="relative">
+                    <ItemEditor
+                        v-if="stepEditor.editingId.value === step.id"
+                        title="Modifier l’étape"
+                        compact
+                        deletable
+                        :busy="stepEditor.saving.value"
+                        @save="stepEditor.saveItem(step)"
+                        @cancel="stepEditor.cancelEdit"
+                        @delete="stepEditor.deleteItem(step)"
+                    >
+                        <EditField v-model="stepEditor.form.value.number" label="Numéro" />
+                        <EditField v-model="stepEditor.form.value.subtitle" label="Période" />
+                        <EditField v-model="stepEditor.form.value.title" label="Titre" />
+                        <EditField v-model="stepEditor.form.value.description" label="Description" type="textarea" />
+                    </ItemEditor>
+                    <div v-else class="h-full rounded-xl border bg-card p-6 shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <span class="grid size-11 shrink-0 place-items-center rounded-full bg-eden-600 text-base font-bold text-white ring-4 ring-eden-50 dark:ring-eden-950">{{ step.meta?.number ?? index + 1 }}</span>
+                            <span v-if="index < stepsForDisplay().length - 1" class="hidden h-px flex-1 border-t-2 border-dashed border-eden-200 md:block dark:border-eden-800" aria-hidden="true"></span>
                         </div>
-                        <div v-for="(condition, index) in conditionsForDisplay()" :key="condition.id ?? condition.title" class="check-i">
-                            <template v-if="conditionEditor.editingId.value === condition.id">
-                                <span class="eden-project-edit">
-                                    <input v-model="conditionEditor.form.value.title" class="eden-collection-input" type="text">
-                                    <span class="eden-collection-actions">
-                                        <button type="button" @click="conditionEditor.saveItem(condition)">Enregistrer</button>
-                                        <button type="button" @click="conditionEditor.cancelEdit">Annuler</button>
-                                        <button type="button" @click="conditionEditor.deleteItem(condition)">Supprimer</button>
-                                    </span>
-                                </span>
-                            </template>
+                        <p class="mt-5 text-sm font-semibold text-gold-700 dark:text-gold-400">{{ step.subtitle }}</p>
+                        <h4 class="mt-1 text-xl font-semibold tracking-tight">{{ step.title }}</h4>
+                        <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{{ step.description }}</p>
+                        <div v-if="canEdit && step.id" class="mt-4">
+                            <ItemTools
+                                :first="index === 0"
+                                :last="index === stepsForDisplay().length - 1"
+                                @edit="stepEditor.editItem(step)"
+                                @up="stepEditor.reorderItems(stepsForDisplay(), index, -1)"
+                                @down="stepEditor.reorderItems(stepsForDisplay(), index, 1)"
+                            />
+                        </div>
+                    </div>
+                </li>
+            </ol>
+
+            <div class="mt-8 grid gap-6 lg:grid-cols-2">
+                <div v-for="list in simpleLists" :key="list.id" class="rounded-xl border bg-muted/60 p-7">
+                    <div class="mb-6 flex items-center gap-3">
+                        <span class="grid size-10 place-items-center rounded-lg bg-background text-eden-700 shadow-xs ring-1 ring-border dark:text-eden-300"><component :is="list.icon" class="size-5" aria-hidden="true" /></span>
+                        <h3 class="text-lg font-semibold"><EditableText :value="blocks?.[list.titleKey]" :fallback="list.titleFallback" :content-key="`formation.${list.titleKey}`" :can-edit="canEdit" /></h3>
+                        <AddItemButton v-if="canEdit && !list.editor.creating.value" class="ml-auto" compact :label="list.addLabel" @click="list.editor.startCreate" />
+                    </div>
+                    <ItemEditor v-if="list.editor.creating.value" class="mb-4" :title="list.addLabel" compact :busy="list.editor.saving.value" @save="list.editor.createItem" @cancel="list.editor.cancelEdit">
+                        <EditField v-model="list.editor.form.value.title" :label="list.itemLabel" />
+                    </ItemEditor>
+                    <ul class="grid gap-3">
+                        <li v-for="(entry, index) in list.items()" :key="entry.id ?? entry.title" class="flex items-start gap-3 text-sm leading-relaxed">
+                            <ItemEditor
+                                v-if="list.editor.editingId.value === entry.id"
+                                :title="`Modifier : ${list.itemLabel.toLowerCase()}`"
+                                compact
+                                deletable
+                                :busy="list.editor.saving.value"
+                                @save="list.editor.saveItem(entry)"
+                                @cancel="list.editor.cancelEdit"
+                                @delete="list.editor.deleteItem(entry)"
+                            >
+                                <EditField v-model="list.editor.form.value.title" :label="list.itemLabel" />
+                            </ItemEditor>
                             <template v-else>
-                                {{ condition.title }}
-                                <AdminEditButton v-if="canEdit && condition.id" @click="conditionEditor.editItem(condition)" />
-                                <span v-if="canEdit && condition.id" class="eden-collection-actions">
-                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                    <button type="button" @click="conditionEditor.reorderItems(conditionsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
+                                <span class="mt-1 grid size-5 shrink-0 place-items-center rounded-full bg-eden-600 text-white" aria-hidden="true">
+                                    <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
                                 </span>
+                                <span class="flex-1">{{ entry.title }}</span>
+                                <ItemTools
+                                    v-if="canEdit && entry.id"
+                                    :first="index === 0"
+                                    :last="index === list.items().length - 1"
+                                    @edit="list.editor.editItem(entry)"
+                                    @up="list.editor.reorderItems(list.items(), index, -1)"
+                                    @down="list.editor.reorderItems(list.items(), index, 1)"
+                                />
                             </template>
-                        </div>
-                    </div>
-                </div>
-                <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;"><EditableText :value="blocks?.path_title" fallback="Parcours en 3 Ans" content-key="formation.path_title" :can-edit="canEdit" /></h3>
-                    <div v-if="canEdit" class="eden-collection-toolbar">
-                        <button type="button" @click="stepEditor.startCreate">Ajouter</button>
-                    </div>
-                    <div class="parcours">
-                        <div v-if="stepEditor.creating.value" class="step">
-                            <div class="step-l"><div class="step-dot">{{ stepEditor.form.value.number }}</div><div class="step-line"></div></div>
-                            <div class="step-r eden-project-edit">
-                                <input v-model="stepEditor.form.value.number" class="eden-collection-input" type="text" placeholder="Numéro">
-                                <input v-model="stepEditor.form.value.subtitle" class="eden-collection-input" type="text" placeholder="Année">
-                                <input v-model="stepEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Titre">
-                                <textarea v-model="stepEditor.form.value.description" class="eden-collection-textarea" placeholder="Description"></textarea>
-                                <div class="eden-collection-actions">
-                                    <button type="button" @click="stepEditor.createItem">Enregistrer</button>
-                                    <button type="button" @click="stepEditor.cancelEdit">Annuler</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-for="(step, index) in stepsForDisplay()" :key="step.id ?? step.title" class="step">
-                            <div class="step-l"><div class="step-dot">{{ step.meta?.number ?? '1' }}</div><div class="step-line"></div></div>
-                            <div class="step-r">
-                                <template v-if="stepEditor.editingId.value === step.id">
-                                    <div class="eden-project-edit">
-                                        <input v-model="stepEditor.form.value.number" class="eden-collection-input" type="text">
-                                        <input v-model="stepEditor.form.value.subtitle" class="eden-collection-input" type="text">
-                                        <input v-model="stepEditor.form.value.title" class="eden-collection-input" type="text">
-                                        <textarea v-model="stepEditor.form.value.description" class="eden-collection-textarea"></textarea>
-                                        <div class="eden-collection-actions">
-                                            <button type="button" @click="stepEditor.saveItem(step)">Enregistrer</button>
-                                            <button type="button" @click="stepEditor.cancelEdit">Annuler</button>
-                                            <button type="button" @click="stepEditor.deleteItem(step)">Supprimer</button>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <p class="step-yr">{{ step.subtitle }} <AdminEditButton v-if="canEdit && step.id" @click="stepEditor.editItem(step)" /></p>
-                                    <p class="step-t">{{ step.title }}</p>
-                                    <p class="step-d">{{ step.description }}</p>
-                                    <div v-if="canEdit && step.id" class="eden-collection-actions">
-                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                        <button type="button" @click="stepEditor.reorderItems(stepsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card reveal">
-                    <h3 style="font-size:1.1rem;margin-bottom:1.25rem;"><EditableText :value="blocks?.units_title" fallback="Unités de Formation" content-key="formation.units_title" :can-edit="canEdit" /></h3>
-                    <div v-if="canEdit" class="eden-collection-toolbar">
-                        <button type="button" @click="unitEditor.startCreate">Ajouter</button>
-                    </div>
-                    <div class="check-list">
-                        <div v-if="unitEditor.creating.value" class="check-i">
-                            <span class="eden-project-edit">
-                                <input v-model="unitEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Unité">
-                                <span class="eden-collection-actions">
-                                    <button type="button" @click="unitEditor.createItem">Enregistrer</button>
-                                    <button type="button" @click="unitEditor.cancelEdit">Annuler</button>
-                                </span>
-                            </span>
-                        </div>
-                        <div v-for="(unit, index) in unitsForDisplay()" :key="unit.id ?? unit.title" class="check-i">
-                            <template v-if="unitEditor.editingId.value === unit.id">
-                                <span class="eden-project-edit">
-                                    <input v-model="unitEditor.form.value.title" class="eden-collection-input" type="text">
-                                    <span class="eden-collection-actions">
-                                        <button type="button" @click="unitEditor.saveItem(unit)">Enregistrer</button>
-                                        <button type="button" @click="unitEditor.cancelEdit">Annuler</button>
-                                        <button type="button" @click="unitEditor.deleteItem(unit)">Supprimer</button>
-                                    </span>
-                                </span>
-                            </template>
-                            <template v-else>
-                                {{ unit.title }}
-                                <AdminEditButton v-if="canEdit && unit.id" @click="unitEditor.editItem(unit)" />
-                                <span v-if="canEdit && unit.id" class="eden-collection-actions">
-                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                    <button type="button" @click="unitEditor.reorderItems(unitsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                                </span>
-                            </template>
-                        </div>
-                    </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
