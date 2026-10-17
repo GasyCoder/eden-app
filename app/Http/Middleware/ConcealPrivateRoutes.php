@@ -16,6 +16,7 @@ class ConcealPrivateRoutes
         // Aucune redirection vers la connexion, même sur un POST ou un identifiant inconnu.
         $loginFlow = $request->routeIs(
             'login',
+            'login.authenticate',
             'login.otp.verify',
             'login.otp.resend',
             'login.otp.cancel',

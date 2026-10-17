@@ -3,6 +3,8 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Eye, EyeOff, MailCheck } from '@lucide/vue';
 import { nextTick, onMounted, ref } from 'vue';
 import BrandStripe from '@/Components/Layout/BrandStripe.vue';
+import Toast from '@/Components/Toast.vue';
+import { useToasts } from '@/Composables/useToasts';
 import { cn } from '@/lib/utils';
 import { buttonVariants, inputClass } from '@/lib/variants';
 
@@ -12,6 +14,7 @@ const props = defineProps({
 });
 
 const showPassword = ref(false);
+const { push } = useToasts();
 const otpDigits = ref(Array(6).fill(''));
 const otpInputs = ref([]);
 
@@ -26,6 +29,9 @@ const cancelForm = useForm({});
 
 const submit = () => {
     form.post(window.location.pathname, {
+        onError: (errors) => {
+            push(errors.email || errors.password || 'Connexion impossible. Vérifiez vos identifiants puis réessayez.', 'error');
+        },
         onFinish: () => form.reset('password'),
     });
 };
@@ -69,6 +75,7 @@ onMounted(() => {
 
 <template>
     <Head title="Connexion"><meta name="robots" content="noindex, nofollow, noarchive"></Head>
+    <Toast />
 
     <main id="main" class="flex min-h-dvh flex-col bg-muted">
         <BrandStripe />

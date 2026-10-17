@@ -88,7 +88,9 @@ Route::middleware('guest')->group(function (): void {
     // Chemin d'authentification personnalisé (les chemins par défaut /login, /register,
     // mot de passe oublié n'existent pas et renvoient donc 404).
     Route::get('/me/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/me/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:admin-login');
+    Route::post('/me/login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:admin-login')
+        ->name('login.authenticate');
     Route::post('/me/login/otp', [AuthenticatedSessionController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('login.otp.verify');
     Route::post('/me/login/otp/resend', [AuthenticatedSessionController::class, 'resendOtp'])->middleware('throttle:3,10')->name('login.otp.resend');
     Route::post('/me/login/otp/cancel', [AuthenticatedSessionController::class, 'cancelOtp'])->name('login.otp.cancel');
