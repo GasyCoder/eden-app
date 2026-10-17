@@ -2,8 +2,14 @@
 import { ref } from 'vue';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import AddItemButton from '@/Components/Editable/AddItemButton.vue';
+import EditField from '@/Components/Editable/EditField.vue';
+import ItemEditor from '@/Components/Editable/ItemEditor.vue';
+import ItemTools from '@/Components/Editable/ItemTools.vue';
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
+import SectionHeading from '@/Components/Portal/SectionHeading.vue';
 import { useContentItemEditor } from '@/Composables/useContentItemEditor';
+import { containerClass } from '@/lib/variants';
 
 const props = defineProps({
     blocks: {
@@ -61,97 +67,82 @@ const eadTwoEditor = useContentItemEditor(
     (item) => ({ title: item.title ?? '', description: item.description ?? '' }),
     themePayload,
 );
+
+const tabs = [
+    { id: 't1', tabKey: 'tab_ead_1', tabFallback: 'EAD 1 : Écosystèmes Terrestres', items: eadOneForDisplay, editor: eadOneEditor },
+    { id: 't2', tabKey: 'tab_ead_2', tabFallback: 'EAD 2 : Aquatique & Marin', items: eadTwoForDisplay, editor: eadTwoEditor },
+];
+
 </script>
 
 <template>
-    <section id="recherche">
-        <div class="container">
-            <div class="section-header reveal">
-                <span class="eyebrow"><EditableText :value="blocks?.eyebrow" fallback="Recherche" content-key="recherche.eyebrow" :can-edit="canEdit" /></span>
-                <h2><EditableText :value="blocks?.title" fallback="Thématiques de Recherche" content-key="recherche.title" :can-edit="canEdit" /></h2>
-                <p>
+    <section id="recherche" class="bg-[var(--bg-recherche,var(--background))] py-16 lg:py-20">
+        <div :class="containerClass">
+            <SectionHeading>
+                <EditableText :value="blocks?.title" fallback="Thématiques de Recherche" content-key="recherche.title" :can-edit="canEdit" />
+                <template #description>
                     <EditableTextarea
                         :value="blocks?.description"
                         fallback="Les activités de l'EDEN couvrent un large spectre, des forêts tropicales aux récifs coralliens, en passant par les zones humides et les agroécosystèmes malgaches."
                         content-key="recherche.description"
                         :can-edit="canEdit"
                     />
-                </p>
-            </div>
-            <div class="reveal">
-                <div class="res-tabs">
-                    <button class="tab-btn" :class="{ active: activeTab === 't1' }" type="button" @click="activeTab = 't1'"><EditableText :value="blocks?.tab_ead_1" fallback="EAD 1 — Écosystèmes Terrestres" content-key="recherche.tab_ead_1" :can-edit="canEdit" /></button>
-                    <button class="tab-btn" :class="{ active: activeTab === 't2' }" type="button" @click="activeTab = 't2'"><EditableText :value="blocks?.tab_ead_2" fallback="EAD 2 — Aquatique & Marin" content-key="recherche.tab_ead_2" :can-edit="canEdit" /></button>
-                </div>
-                <div id="t1" class="tab-pane" :class="{ active: activeTab === 't1' }">
-                    <div v-if="canEdit" class="res-card">
-                        <button type="button" class="admin-edit-button" title="Ajouter" @click="eadOneEditor.startCreate">+</button>
-                        <div v-if="eadOneEditor.creating.value" class="eden-project-edit">
-                            <input v-model="eadOneEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Titre">
-                            <textarea v-model="eadOneEditor.form.value.description" class="eden-collection-textarea" placeholder="Description"></textarea>
-                            <div class="eden-collection-actions">
-                                <button type="button" @click="eadOneEditor.createItem">Enregistrer</button>
-                                <button type="button" @click="eadOneEditor.cancelEdit">Annuler</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-for="(theme, index) in eadOneForDisplay()" :key="theme.id ?? theme.title" class="res-card">
-                        <template v-if="eadOneEditor.editingId.value === theme.id">
-                            <div class="eden-project-edit">
-                                <input v-model="eadOneEditor.form.value.title" class="eden-collection-input" type="text">
-                                <textarea v-model="eadOneEditor.form.value.description" class="eden-collection-textarea"></textarea>
-                                <div class="eden-collection-actions">
-                                    <button type="button" @click="eadOneEditor.saveItem(theme)">Enregistrer</button>
-                                    <button type="button" @click="eadOneEditor.cancelEdit">Annuler</button>
-                                    <button type="button" @click="eadOneEditor.deleteItem(theme)">Supprimer</button>
+                </template>
+            </SectionHeading>
+
+            <TabsRoot v-model="activeTab" class="mt-12">
+                <TabsList class="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-secondary p-1" aria-label="Équipes d’accueil doctoral">
+                    <TabsTrigger
+                        v-for="tab in tabs"
+                        :key="tab.id"
+                        :value="tab.id"
+                        class="inline-flex h-9 items-center rounded-md px-4 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs dark:data-[state=active]:bg-accent"
+                    >
+                        <EditableText :value="blocks?.[tab.tabKey]" :fallback="tab.tabFallback" :content-key="`recherche.${tab.tabKey}`" :can-edit="canEdit" />
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent v-for="tab in tabs" :key="tab.id" :value="tab.id" class="mt-8 outline-none">
+                    <div v-if="canEdit && !tab.editor.creating.value" class="mb-6"><AddItemButton label="Ajouter une thématique" @click="tab.editor.startCreate" /></div>
+                    <ItemEditor v-if="tab.editor.creating.value" class="mb-6" title="Nouvelle thématique" :busy="tab.editor.saving.value" @save="tab.editor.createItem" @cancel="tab.editor.cancelEdit">
+                        <EditField v-model="tab.editor.form.value.title" label="Titre" wide />
+                        <EditField v-model="tab.editor.form.value.description" label="Description" type="textarea" wide />
+                    </ItemEditor>
+                    <div class="grid gap-5 md:grid-cols-2">
+                        <article v-for="(theme, index) in tab.items()" :key="theme.id ?? theme.title" class="relative flex gap-5 rounded-xl border bg-card p-6 shadow-xs transition-shadow hover:shadow-md">
+                            <ItemEditor
+                                v-if="tab.editor.editingId.value === theme.id"
+                                title="Modifier la thématique"
+                                compact
+                                deletable
+                                :busy="tab.editor.saving.value"
+                                @save="tab.editor.saveItem(theme)"
+                                @cancel="tab.editor.cancelEdit"
+                                @delete="tab.editor.deleteItem(theme)"
+                            >
+                                <EditField v-model="tab.editor.form.value.title" label="Titre" />
+                                <EditField v-model="tab.editor.form.value.description" label="Description" type="textarea" />
+                            </ItemEditor>
+                            <template v-else>
+                                <span class="text-2xl leading-none font-bold tabular-nums text-gold-500">{{ String(index + 1).padStart(2, '0') }}</span>
+                                <div class="grid gap-2">
+                                    <h3 class="pr-16 text-lg font-semibold tracking-tight">{{ theme.title }}</h3>
+                                    <p class="text-sm leading-relaxed text-muted-foreground">{{ theme.description }}</p>
                                 </div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <h4>{{ theme.title }} <AdminEditButton v-if="canEdit && theme.id" @click="eadOneEditor.editItem(theme)" /></h4>
-                            <p>{{ theme.description }}</p>
-                            <div v-if="canEdit && theme.id" class="eden-collection-actions">
-                                <button type="button" @click="eadOneEditor.reorderItems(eadOneForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click="eadOneEditor.reorderItems(eadOneForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </div>
-                        </template>
+                                <ItemTools
+                                    v-if="canEdit && theme.id"
+                                    floating
+                                    :first="index === 0"
+                                    :last="index === tab.items().length - 1"
+                                    @edit="tab.editor.editItem(theme)"
+                                    @up="tab.editor.reorderItems(tab.items(), index, -1)"
+                                    @down="tab.editor.reorderItems(tab.items(), index, 1)"
+                                />
+                            </template>
+                        </article>
                     </div>
-                </div>
-                <div id="t2" class="tab-pane" :class="{ active: activeTab === 't2' }">
-                    <div v-if="canEdit" class="res-card">
-                        <button type="button" class="admin-edit-button" title="Ajouter" @click="eadTwoEditor.startCreate">+</button>
-                        <div v-if="eadTwoEditor.creating.value" class="eden-project-edit">
-                            <input v-model="eadTwoEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Titre">
-                            <textarea v-model="eadTwoEditor.form.value.description" class="eden-collection-textarea" placeholder="Description"></textarea>
-                            <div class="eden-collection-actions">
-                                <button type="button" @click="eadTwoEditor.createItem">Enregistrer</button>
-                                <button type="button" @click="eadTwoEditor.cancelEdit">Annuler</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div v-for="(theme, index) in eadTwoForDisplay()" :key="theme.id ?? theme.title" class="res-card">
-                        <template v-if="eadTwoEditor.editingId.value === theme.id">
-                            <div class="eden-project-edit">
-                                <input v-model="eadTwoEditor.form.value.title" class="eden-collection-input" type="text">
-                                <textarea v-model="eadTwoEditor.form.value.description" class="eden-collection-textarea"></textarea>
-                                <div class="eden-collection-actions">
-                                    <button type="button" @click="eadTwoEditor.saveItem(theme)">Enregistrer</button>
-                                    <button type="button" @click="eadTwoEditor.cancelEdit">Annuler</button>
-                                    <button type="button" @click="eadTwoEditor.deleteItem(theme)">Supprimer</button>
-                                </div>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <h4>{{ theme.title }} <AdminEditButton v-if="canEdit && theme.id" @click="eadTwoEditor.editItem(theme)" /></h4>
-                            <p>{{ theme.description }}</p>
-                            <div v-if="canEdit && theme.id" class="eden-collection-actions">
-                                <button type="button" @click="eadTwoEditor.reorderItems(eadTwoForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click="eadTwoEditor.reorderItems(eadTwoForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-            </div>
+                </TabsContent>
+            </TabsRoot>
         </div>
     </section>
 </template>
