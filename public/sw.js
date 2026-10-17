@@ -1,5 +1,5 @@
 /* Service worker EDEN : application installable, lecture hors ligne des pages consultées. */
-const VERSION = 'v4';
+const VERSION = 'v5';
 const STATIC_CACHE = `eden-static-${VERSION}`;
 const PAGES_CACHE = `eden-pages-${VERSION}`;
 const IMAGES_CACHE = `eden-images-${VERSION}`;
@@ -59,7 +59,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok && response.type === 'basic') {
+          if (response.ok && response.type === 'basic' && !response.headers.get('Cache-Control')?.includes('no-store')) {
             const copy = response.clone();
             caches.open(PAGES_CACHE).then((cache) => cache.put(request, copy)).then(() => trim(PAGES_CACHE, MAX_PAGES));
           }
