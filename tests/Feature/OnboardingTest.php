@@ -25,7 +25,7 @@ test('non admin cannot complete onboarding guide', function () {
 
     $this->actingAs($user)
         ->post('/me/onboarding/complete')
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect($user->refresh()->onboarding_completed_at)->toBeNull();
 });
