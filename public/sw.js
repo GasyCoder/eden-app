@@ -1,77 +1,102 @@
-/* Service worker EDEN-UMG — PWA */
-const CACHE = 'eden-cache-v3';
-const APP_SHELL = ['/'];
+/* Service worker EDEN : application installable, lecture hors ligne des pages consultées. */
+const VERSION = 'v4';
+const STATIC_CACHE = `eden-static-${VERSION}`;
+const PAGES_CACHE = `eden-pages-${VERSION}`;
+const IMAGES_CACHE = `eden-images-${VERSION}`;
+const OFFLINE_URL = '/offline.html';
+const PRECACHE = [OFFLINE_URL, '/pwa/icon-192.png', '/icons/favicon-32.png'];
+const MAX_PAGES = 40;
+const MAX_IMAGES = 120;
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(APP_SHELL)).catch(() => {})
-  );
-  self.skipWaiting();
+  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)).catch(() => {}));
 });
 
 self.addEventListener('activate', (event) => {
+  const keep = [STATIC_CACHE, PAGES_CACHE, IMAGES_CACHE];
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => !keep.includes(key)).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
+// La page propose « Mettre à jour » : la nouvelle version prend la main
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
-  if (req.method !== 'GET') {
+const trim = async (cacheName, max) => {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  await Promise.all(keys.slice(0, Math.max(0, keys.length - max)).map((key) => cache.delete(key)));
+};
+
+const isImage = (url) => /\.(png|jpe?g|webp|avif|gif|svg)$/i.test(url.pathname);
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  if (request.method !== 'GET') {
     return;
   }
 
-  const url = new URL(req.url);
+  const url = new URL(request.url);
 
-  // Même origine uniquement
   if (url.origin !== self.location.origin) {
     return;
   }
 
-  // Ne jamais intercepter l'administration, l'authentification ou les uploads
-  if (
-    url.pathname.startsWith('/admin') ||
-    url.pathname.startsWith('/me') ||
-    url.pathname.startsWith('/logout') ||
-    url.pathname.startsWith('/storage')
-  ) {
+  // Jamais : administration, compte, documents PDF, requêtes Inertia (données JSON)
+  if (/^\/(admin|me|logout|newsletter|up)(\/|$)/.test(url.pathname) || url.pathname.startsWith('/storage/documents') || request.headers.get('X-Inertia')) {
     return;
   }
 
-  // Navigations (pages) : réseau d'abord, repli sur le cache puis l'accueil
-  if (req.mode === 'navigate') {
+  // Pages : réseau d'abord ; hors ligne, la dernière version consultée ou la page hors ligne
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-          return res;
+      fetch(request)
+        .then((response) => {
+          if (response.ok && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(PAGES_CACHE).then((cache) => cache.put(request, copy)).then(() => trim(PAGES_CACHE, MAX_PAGES));
+          }
+          return response;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match('/')))
+        .catch(async () => (await caches.match(request, { ignoreSearch: true })) || caches.match(OFFLINE_URL))
     );
     return;
   }
 
-  // Ressources statiques (build, icônes, polices) : cache d'abord
-  if (
-    url.pathname.startsWith('/build/') ||
-    url.pathname.startsWith('/icons/') ||
-    /\.(css|js|woff2?|ttf|png|jpe?g|svg|webp|avif|ico)$/i.test(url.pathname)
-  ) {
+  // Fichiers versionnés du build, icônes, polices : cache d'abord
+  if (url.pathname.startsWith('/build/') || url.pathname.startsWith('/icons/') || url.pathname.startsWith('/pwa/') || /\.(woff2?|ttf)$/i.test(url.pathname)) {
     event.respondWith(
-      caches.match(req).then(
-        (cached) =>
-          cached ||
-          fetch(req).then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-            return res;
-          })
-      )
+      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      }))
+    );
+    return;
+  }
+
+  // Photos (contenus, projets) : affichage immédiat depuis le cache, mise à jour en arrière-plan
+  if (isImage(url)) {
+    event.respondWith(
+      caches.open(IMAGES_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
+        const network = fetch(request).then((response) => {
+          if (response.ok) {
+            cache.put(request, response.clone()).then(() => trim(IMAGES_CACHE, MAX_IMAGES));
+          }
+          return response;
+        }).catch(() => cached);
+        return cached || network;
+      })
     );
   }
 });
