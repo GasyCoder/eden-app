@@ -30,7 +30,7 @@ test('confirmation of ownership waits for admin approval and the link is idempot
     Mail::fake();
     $this->post('/newsletter', ['email' => 'lecteur@example.mg'])->assertSessionHasNoErrors();
     $subscriber = NewsletterSubscription::query()->sole();
-    $url = newsletterVerificationUrl($subscriber);
+    $url = Mail::sent(NewsletterVerificationMail::class)->sole()->verificationUrl;
 
     Mail::assertSent(NewsletterVerificationMail::class, fn ($mail) => $mail->hasTo($subscriber->email) && $mail->verificationUrl === $url);
     $this->get($url)->assertRedirect(route('newsletter.confirmation'));
