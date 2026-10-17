@@ -1,8 +1,21 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { Moon, Sun } from '@lucide/vue';
+import { computed, onMounted, ref } from 'vue';
+import { useT } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/lib/variants';
+
+defineProps({
+    labeled: {
+        type: Boolean,
+        default: false,
+    },
+});
 
 const STORAGE_KEY = 'eden_theme';
 const theme = ref('light');
+
+const systemTheme = () => (window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light');
 
 const applyTheme = (value) => {
     theme.value = value === 'dark' ? 'dark' : 'light';
@@ -15,7 +28,7 @@ const applyTheme = (value) => {
     document.documentElement.style.colorScheme = theme.value;
 
     const themeColor = document.querySelector('meta[name="theme-color"]');
-    themeColor?.setAttribute('content', theme.value === 'dark' ? '#0F1712' : '#0F5132');
+    themeColor?.setAttribute('content', theme.value === 'dark' ? '#0B0D0C' : '#FFFFFF');
 };
 
 const toggleTheme = () => {
@@ -29,30 +42,28 @@ const toggleTheme = () => {
     }
 };
 
+const { t } = useT();
+const label = computed(() => (theme.value === 'dark' ? t('toLight') : t('toDark')));
+
 onMounted(() => {
     try {
-        const stored = window.localStorage.getItem(STORAGE_KEY);
-        applyTheme(stored ?? 'light');
+        applyTheme(window.localStorage.getItem(STORAGE_KEY) ?? systemTheme());
     } catch {
-        applyTheme('light');
+        applyTheme(systemTheme());
     }
 });
 </script>
 
 <template>
     <button
-        class="theme-toggle"
+        :class="labeled ? buttonVariants({ variant: 'outline', size: 'sm' }) : cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'text-muted-foreground')"
         type="button"
-        :title="theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'"
-        :aria-label="theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'"
+        :title="label"
+        :aria-label="label"
         @click="toggleTheme"
     >
-        <svg v-if="theme === 'dark'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-        </svg>
-        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
-        </svg>
+        <Sun v-if="theme === 'dark'" class="size-[18px]" aria-hidden="true" />
+        <Moon v-else class="size-[18px]" aria-hidden="true" />
+        <span v-if="labeled">{{ theme === 'dark' ? t('lightMode') : t('darkMode') }}</span>
     </button>
 </template>
