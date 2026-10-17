@@ -61,9 +61,9 @@ test('events, announcements, journals and projects support their bulk actions', 
 
 test('newsletter subscribers can be unsubscribed and exported in bulk', function () {
     $editor = bulkEditor();
-    $first = NewsletterSubscription::subscribe('un@example.mg');
-    $second = NewsletterSubscription::subscribe('deux@example.mg');
-    NewsletterSubscription::subscribe('trois@example.mg');
+    $first = NewsletterSubscription::factory()->active()->create(['email' => 'un@example.mg']);
+    $second = NewsletterSubscription::factory()->active()->create(['email' => 'deux@example.mg']);
+    NewsletterSubscription::factory()->active()->create(['email' => 'trois@example.mg']);
 
     $this->actingAs($editor)->post('/admin/newsletter/subscribers/bulk', ['action' => 'unsubscribe', 'ids' => [$first->id, $second->id]])
         ->assertSessionHas('success', '2 abonné(s) désinscrit(s).');
@@ -78,7 +78,7 @@ test('visitors without admin rights cannot run bulk actions', function () {
 
     $this->actingAs(User::factory()->create(['is_admin' => false]))
         ->post('/admin/posts/bulk', ['action' => 'delete', 'ids' => [$post->id]])
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect($post->fresh())->not->toBeNull();
 });
