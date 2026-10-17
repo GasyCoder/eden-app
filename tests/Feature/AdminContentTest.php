@@ -18,7 +18,7 @@ test('guest cannot update content blocks', function () {
 
     $this->patch('/admin/content-blocks/hero.title', [
         'value' => 'New title',
-    ])->assertRedirect('/me/login');
+    ])->assertNotFound();
 });
 
 test('english homepage receives locale and falls back to french content', function () {
@@ -142,7 +142,7 @@ test('non admin cannot update content blocks', function () {
             'value' => 'New title',
             'type' => 'text',
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 
     expect(ContentBlock::where('key', 'hero.title')->value('value'))->toBe('Old title');
 });
@@ -239,7 +239,7 @@ test('non admin cannot upload content images', function () {
         ->postJson('/admin/uploads/images', [
             'image' => UploadedFile::fake()->image('hero.jpg'),
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('admin can list content revisions', function () {
@@ -323,7 +323,7 @@ test('non admin cannot list content revisions', function () {
 
     $this->actingAs($user)
         ->getJson('/admin/content-revisions')
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('editor cannot update superadmin-only footer blocks', function () {
@@ -590,7 +590,7 @@ test('authenticated admin can change password with correct current password', fu
 });
 
 test('guest cannot access profile', function () {
-    $this->get('/me/profile')->assertRedirect('/me/login');
+    $this->get('/me/profile')->assertNotFound();
 });
 
 test('superadmin can update seo settings', function () {
