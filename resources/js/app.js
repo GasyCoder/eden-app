@@ -1,19 +1,14 @@
 import '../css/app.css';
 
-// Polices auto-hébergées (accents FR via latin-ext inclus)
-// Titres : Libre Baskerville (serif académique) — Texte : Source Sans 3 (sans-serif humaniste)
-import '@fontsource/source-sans-3/400.css';
-import '@fontsource/source-sans-3/500.css';
-import '@fontsource/source-sans-3/600.css';
-import '@fontsource/source-sans-3/700.css';
-import '@fontsource/libre-baskerville/400.css';
-import '@fontsource/libre-baskerville/400-italic.css';
-import '@fontsource/libre-baskerville/700.css';
+// Police auto-hébergée (Inter variable, accents FR via latin-ext inclus)
+import '@fontsource-variable/inter/index.css';
 
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, h, onBeforeUnmount, ref } from 'vue';
 import PageLoadingSkeleton from '@/Components/Layout/PageLoadingSkeleton.vue';
+import { setupAnalytics } from '@/lib/analytics';
+import { setupPwa } from '@/lib/pwa';
 
 createInertiaApp({
     title: (title) => `${title} - EDEN-UMG`,
@@ -92,11 +87,13 @@ createInertiaApp({
             .use(plugin)
             .mount(el);
 
+        setupAnalytics();
+
         // Retire le skeleton de premier chargement (rendu côté serveur) en fondu
         const skeleton = document.getElementById('app-skeleton');
         if (skeleton) {
             requestAnimationFrame(() => {
-                skeleton.classList.add('is-gone');
+                skeleton.classList.add('opacity-0', 'pointer-events-none');
                 setTimeout(() => skeleton.remove(), 400);
             });
         }
@@ -111,9 +108,5 @@ router.on('navigate', (event) => {
     }
 });
 
-// PWA : enregistrement du service worker (production uniquement)
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
-    });
-}
+// PWA : service worker, mise à jour proposée, navigation hors ligne
+setupPwa();
