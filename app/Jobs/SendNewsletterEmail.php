@@ -38,7 +38,7 @@ class SendNewsletterEmail implements ShouldQueue
         $subscription = $delivery->subscription;
         $item = $delivery->campaign?->notifiable;
 
-        if (! $subscription || $subscription->status !== 'subscribed' || ! $item instanceof Newsletterable) {
+        if (! $subscription || ! $subscription->isActive() || ! $item instanceof Newsletterable) {
             $delivery->update(['status' => 'skipped']);
 
             return;
