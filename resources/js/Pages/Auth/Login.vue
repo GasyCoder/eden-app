@@ -15,14 +15,14 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/me/login', {
+    form.post(window.location.pathname, {
         onFinish: () => form.reset('password'),
     });
 };
 </script>
 
 <template>
-    <Head title="Connexion" />
+    <Head title="Connexion"><meta name="robots" content="noindex, nofollow, noarchive"></Head>
 
     <main id="main" class="flex min-h-dvh flex-col bg-muted">
         <BrandStripe />
