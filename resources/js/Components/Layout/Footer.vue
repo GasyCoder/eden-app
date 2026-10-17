@@ -1,9 +1,15 @@
 <script setup>
 import { computed } from 'vue';
 import { useForm, usePage } from '@inertiajs/vue3';
+import BrandStripe from '@/Components/Layout/BrandStripe.vue';
+import { cn } from '@/lib/utils';
+import { buttonVariants, containerClass } from '@/lib/variants';
 import EditableText from '@/Components/Editable/EditableText.vue';
 import EditableTextarea from '@/Components/Editable/EditableTextarea.vue';
-import AdminEditButton from '@/Components/Editable/AdminEditButton.vue';
+import AddItemButton from '@/Components/Editable/AddItemButton.vue';
+import EditField from '@/Components/Editable/EditField.vue';
+import ItemEditor from '@/Components/Editable/ItemEditor.vue';
+import ItemTools from '@/Components/Editable/ItemTools.vue';
 import { useContentItemEditor } from '@/Composables/useContentItemEditor';
 
 // Seul un superadmin peut éditer les mentions légales du footer (copyright + crédit)
@@ -46,7 +52,33 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    locale: {
+        type: String,
+        default: 'fr',
+    },
+    homeHref: {
+        type: String,
+        default: '#',
+    },
 });
+
+const t = computed(() => (props.locale === 'en'
+    ? {
+        newsletterTitle: 'Stay informed',
+        newsletterText: 'Receive news from the Doctoral School by email.',
+        email: 'Your email address',
+        subscribe: 'Subscribe',
+        sending: 'Sending…',
+        socials: 'Social networks',
+    }
+    : {
+        newsletterTitle: 'Restez informé',
+        newsletterText: 'Recevez les actualités de l’École Doctorale par e-mail.',
+        email: 'Votre adresse e-mail',
+        subscribe: 'S’inscrire',
+        sending: 'Envoi…',
+        socials: 'Réseaux sociaux',
+    }));
 
 const fallbackNavigationLinks = [
     { title: 'À propos', link_url: '#about' },
@@ -110,6 +142,12 @@ const socialEditor = useContentItemEditor(
     linkPayload,
 );
 
+const columns = [
+    { id: 'navigation', titleKey: 'navigation_title', titleFallback: 'Navigation', items: navigationForDisplay, editor: navigationEditor },
+    { id: 'research', titleKey: 'research_title', titleFallback: 'Recherche', items: researchForDisplay, editor: researchEditor },
+    { id: 'information', titleKey: 'information_title', titleFallback: 'Informations', items: informationForDisplay, editor: informationEditor },
+];
+
 const submitNewsletter = () => {
     newsletterForm.post('/newsletter', {
         preserveScroll: true,
@@ -139,201 +177,163 @@ const iconKey = (name = '') => {
 </script>
 
 <template>
-    <footer>
-        <div class="container">
-            <div class="ft-grid">
-                <div class="ft-brand">
-                    <a href="#" class="logo">
-                        <div class="logo-mark" :class="{ 'has-logo': site?.logo }">
-                            <picture v-if="site?.logo">
-                                <source
-                                    v-for="source in logoVariants?.sources ?? []"
-                                    :key="source.type"
-                                    :type="source.type"
-                                    :srcset="source.srcset"
-                                    :sizes="logoVariants?.sizes"
-                                >
-                                <img
-                                    :src="site.logo"
-                                    alt="Logo EDEN-UMG"
-                                    :width="logoVariants?.width ?? 56"
-                                    :height="logoVariants?.height ?? 56"
-                                    loading="lazy"
-                                    decoding="async"
-                                >
+    <footer class="bg-[var(--bg-footer,var(--color-eden-950))] text-sm text-eden-100/75">
+        <div :class="cn(containerClass, 'pt-16 pb-8')">
+            <div class="grid gap-12 lg:grid-cols-[1.1fr_2fr]">
+                <div class="grid max-w-sm content-start gap-5">
+                    <a :href="homeHref" class="flex items-center gap-3">
+                        <span :class="cn('grid size-12 shrink-0 place-items-center rounded-lg', site?.logo ? 'bg-white p-0.5' : 'bg-eden-600 text-white')">
+                            <picture v-if="site?.logo" class="size-full">
+                                <source v-for="source in logoVariants?.sources ?? []" :key="source.type" :type="source.type" :srcset="source.srcset" :sizes="logoVariants?.sizes">
+                                <img :src="site.logo" alt="Logo EDEN" :width="logoVariants?.width ?? 56" :height="logoVariants?.height ?? 56" class="size-full object-contain" loading="lazy" decoding="async">
                             </picture>
-                            <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
-                                 stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 21V9" />
-                                <path d="M12 12.5C12 8.5 9 6.2 4.5 6.2c0 4 3 6.3 7.5 6.3Z" />
-                                <path d="M12 10c0-3.6 3-5.8 7.5-5.8 0 3.6-3 5.8-7.5 5.8Z" />
-                            </svg>
-                        </div>
-                        <div class="logo-text">
-                            <span class="logo-name"><EditableText :value="site?.name" fallback="EDEN-UMG" content-key="site.name" :can-edit="canEdit" /></span>
-                            <span class="logo-caption"><EditableText :value="site?.caption" fallback="Université de Mahajanga" content-key="site.caption" :can-edit="canEdit" /></span>
-                        </div>
+                            <svg v-else class="size-6" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9" /><path d="M12 12.5C12 8.5 9 6.2 4.5 6.2c0 4 3 6.3 7.5 6.3Z" /><path d="M12 10c0-3.6 3-5.8 7.5-5.8 0 3.6-3 5.8-7.5 5.8Z" /></svg>
+                        </span>
+                        <span class="grid leading-tight">
+                            <!-- Nom et légende se modifient depuis l'en-tête -->
+                            <span class="text-base font-bold text-white">{{ site?.name || 'EDEN' }}</span>
+                            <span class="text-xs text-eden-100/70">{{ site?.caption || 'Université de Mahajanga' }}</span>
+                        </span>
                     </a>
-                    <p>
+                    <p class="leading-relaxed">
                         <EditableTextarea
                             :value="blocks?.description"
-                            fallback="École Doctorale Écosystèmes Naturels — Former les chercheurs de demain pour la préservation des écosystèmes malgaches et le développement durable."
+                            fallback="École Doctorale Écosystèmes Naturels : former les chercheurs de demain pour la préservation des écosystèmes malgaches et le développement durable."
                             content-key="footer.description"
                             :can-edit="canEdit"
                         />
                     </p>
 
-                    <div class="ft-socials">
-                        <template v-for="(social, index) in socialsForDisplay()" :key="social.id ?? social.title">
-                            <span v-if="socialEditor.editingId.value === social.id" class="eden-project-edit">
-                                <input v-model="socialEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Nom (ex. Facebook)">
-                                <input v-model="socialEditor.form.value.link_url" class="eden-collection-input" type="text" placeholder="Lien (https://…)">
-                                <span class="eden-collection-actions">
-                                    <button type="button" @click="socialEditor.saveItem(social)">Enregistrer</button>
-                                    <button type="button" @click="socialEditor.cancelEdit">Annuler</button>
-                                    <button type="button" @click="socialEditor.deleteItem(social)">Supprimer</button>
-                                </span>
-                            </span>
-                            <span v-else class="ft-social-item">
-                                <a :href="social.link_url ?? '#'" class="ft-social" target="_blank" rel="noopener noreferrer" :title="social.title" :aria-label="social.title">
-                                    <svg v-if="iconKey(social.title) !== 'link'" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path :d="brandPaths[iconKey(social.title)]" /></svg>
-                                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></svg>
-                                </a>
-                                <span v-if="canEdit && social.id" class="eden-collection-actions">
-                                    <AdminEditButton @click="socialEditor.editItem(social)" />
-                                    <button type="button" @click="socialEditor.reorderItems(socialsForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6" /></svg></button>
-                                    <button type="button" @click="socialEditor.reorderItems(socialsForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6" /></svg></button>
-                                </span>
-                            </span>
-                        </template>
-
-                        <span v-if="socialEditor.creating.value" class="eden-project-edit">
-                            <input v-model="socialEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Nom (ex. Facebook)">
-                            <input v-model="socialEditor.form.value.link_url" class="eden-collection-input" type="text" placeholder="Lien (https://…)">
-                            <span class="eden-collection-actions">
-                                <button type="button" @click="socialEditor.createItem">Enregistrer</button>
-                                <button type="button" @click="socialEditor.cancelEdit">Annuler</button>
-                            </span>
-                        </span>
-                        <button v-if="canEdit && !socialEditor.creating.value" type="button" class="ft-social-add" title="Ajouter un réseau social" aria-label="Ajouter un réseau social" @click="socialEditor.startCreate">+</button>
-                    </div>
-
-                    <form class="ft-newsletter" @submit.prevent="submitNewsletter">
-                        <label for="newsletter-email">Newsletter</label>
-                        <div class="ft-newsletter-row">
-                            <input
-                                id="newsletter-email"
-                                v-model="newsletterForm.email"
-                                type="email"
-                                autocomplete="email"
-                                placeholder="Votre email"
-                                required
+                    <ul class="flex flex-wrap items-center gap-2" :aria-label="t.socials">
+                        <li v-for="(social, index) in socialsForDisplay()" :key="social.id ?? social.title" :class="{ 'basis-full': socialEditor.editingId.value === social.id }">
+                            <ItemEditor
+                                v-if="socialEditor.editingId.value === social.id"
+                                title="Modifier le réseau social"
+                                compact
+                                deletable
+                                :busy="socialEditor.saving.value"
+                                @save="socialEditor.saveItem(social)"
+                                @cancel="socialEditor.cancelEdit"
+                                @delete="socialEditor.deleteItem(social)"
                             >
-                            <button type="submit" :disabled="newsletterForm.processing">
-                                {{ newsletterForm.processing ? '...' : "S'inscrire" }}
-                            </button>
-                        </div>
-                        <span v-if="newsletterForm.errors.email" class="ft-newsletter-error">{{ newsletterForm.errors.email }}</span>
-                    </form>
+                                <EditField v-model="socialEditor.form.value.title" label="Nom" placeholder="Facebook, LinkedIn, YouTube…" hint="L’icône est choisie d’après ce nom." />
+                                <EditField v-model="socialEditor.form.value.link_url" label="Adresse de la page" placeholder="https://…" />
+                            </ItemEditor>
+                            <span v-else class="inline-flex items-center gap-1">
+                                <a :href="social.link_url ?? '#'" class="grid size-9 place-items-center rounded-md border border-white/15 text-white transition-colors hover:border-gold-400 hover:text-gold-300" target="_blank" rel="noopener noreferrer" :title="social.title" :aria-label="social.title">
+                                    <svg v-if="iconKey(social.title) !== 'link'" class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path :d="brandPaths[iconKey(social.title)]" /></svg>
+                                    <svg v-else class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z" /></svg>
+                                </a>
+                                <ItemTools
+                                    v-if="canEdit && social.id"
+                                    :first="index === 0"
+                                    :last="index === socialsForDisplay().length - 1"
+                                    @edit="socialEditor.editItem(social)"
+                                    @up="socialEditor.reorderItems(socialsForDisplay(), index, -1)"
+                                    @down="socialEditor.reorderItems(socialsForDisplay(), index, 1)"
+                                />
+                            </span>
+                        </li>
+                        <li v-if="canEdit && !socialEditor.creating.value">
+                            <AddItemButton compact on-dark label="Ajouter un réseau social" @click="socialEditor.startCreate" />
+                        </li>
+                    </ul>
+                    <ItemEditor
+                        v-if="socialEditor.creating.value"
+                        title="Nouveau réseau social"
+                        compact
+                        :busy="socialEditor.saving.value"
+                        @save="socialEditor.createItem"
+                        @cancel="socialEditor.cancelEdit"
+                    >
+                        <EditField v-model="socialEditor.form.value.title" label="Nom" placeholder="Facebook, LinkedIn, YouTube…" hint="L’icône est choisie d’après ce nom." />
+                        <EditField v-model="socialEditor.form.value.link_url" label="Adresse de la page" placeholder="https://…" />
+                    </ItemEditor>
                 </div>
-                <div class="ft-col">
-                    <h5><EditableText :value="blocks?.navigation_title" fallback="Navigation" content-key="footer.navigation_title" :can-edit="canEdit" /></h5>
-                    <button v-if="canEdit" class="admin-edit-button" type="button" title="Ajouter" @click="navigationEditor.startCreate">+</button>
-                    <span v-if="navigationEditor.creating.value" class="eden-project-edit">
-                        <input v-model="navigationEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Label">
-                        <input v-model="navigationEditor.form.value.link_url" class="eden-collection-input" type="text" placeholder="Lien">
-                        <span class="eden-collection-actions">
-                            <button type="button" @click="navigationEditor.createItem">Enregistrer</button>
-                            <button type="button" @click="navigationEditor.cancelEdit">Annuler</button>
-                        </span>
-                    </span>
-                    <template v-for="(link, index) in navigationForDisplay()" :key="link.id ?? link.title">
-                        <span v-if="navigationEditor.editingId.value === link.id" class="eden-project-edit">
-                            <input v-model="navigationEditor.form.value.title" class="eden-collection-input" type="text">
-                            <input v-model="navigationEditor.form.value.link_url" class="eden-collection-input" type="text">
-                            <span class="eden-collection-actions">
-                                <button type="button" @click="navigationEditor.saveItem(link)">Enregistrer</button>
-                                <button type="button" @click="navigationEditor.cancelEdit">Annuler</button>
-                                <button type="button" @click="navigationEditor.deleteItem(link)">Supprimer</button>
-                            </span>
-                        </span>
-                        <a v-else :href="link.link_url ?? '#'">
-                            {{ link.title }}
-                            <AdminEditButton v-if="canEdit && link.id" @click.prevent="navigationEditor.editItem(link)" />
-                            <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click.prevent="navigationEditor.reorderItems(navigationForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </span>
-                        </a>
-                    </template>
-                </div>
-                <div class="ft-col">
-                    <h5><EditableText :value="blocks?.research_title" fallback="Recherche" content-key="footer.research_title" :can-edit="canEdit" /></h5>
-                    <button v-if="canEdit" class="admin-edit-button" type="button" title="Ajouter" @click="researchEditor.startCreate">+</button>
-                    <span v-if="researchEditor.creating.value" class="eden-project-edit">
-                        <input v-model="researchEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Label">
-                        <input v-model="researchEditor.form.value.link_url" class="eden-collection-input" type="text" placeholder="Lien">
-                        <span class="eden-collection-actions">
-                            <button type="button" @click="researchEditor.createItem">Enregistrer</button>
-                            <button type="button" @click="researchEditor.cancelEdit">Annuler</button>
-                        </span>
-                    </span>
-                    <template v-for="(link, index) in researchForDisplay()" :key="link.id ?? link.title">
-                        <span v-if="researchEditor.editingId.value === link.id" class="eden-project-edit">
-                            <input v-model="researchEditor.form.value.title" class="eden-collection-input" type="text">
-                            <input v-model="researchEditor.form.value.link_url" class="eden-collection-input" type="text">
-                            <span class="eden-collection-actions">
-                                <button type="button" @click="researchEditor.saveItem(link)">Enregistrer</button>
-                                <button type="button" @click="researchEditor.cancelEdit">Annuler</button>
-                                <button type="button" @click="researchEditor.deleteItem(link)">Supprimer</button>
-                            </span>
-                        </span>
-                        <a v-else :href="link.link_url ?? '#'">
-                            {{ link.title }}
-                            <AdminEditButton v-if="canEdit && link.id" @click.prevent="researchEditor.editItem(link)" />
-                            <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click.prevent="researchEditor.reorderItems(researchForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </span>
-                        </a>
-                    </template>
-                </div>
-                <div class="ft-col">
-                    <h5><EditableText :value="blocks?.information_title" fallback="Informations" content-key="footer.information_title" :can-edit="canEdit" /></h5>
-                    <button v-if="canEdit" class="admin-edit-button" type="button" title="Ajouter" @click="informationEditor.startCreate">+</button>
-                    <span v-if="informationEditor.creating.value" class="eden-project-edit">
-                        <input v-model="informationEditor.form.value.title" class="eden-collection-input" type="text" placeholder="Label">
-                        <input v-model="informationEditor.form.value.link_url" class="eden-collection-input" type="text" placeholder="Lien">
-                        <span class="eden-collection-actions">
-                            <button type="button" @click="informationEditor.createItem">Enregistrer</button>
-                            <button type="button" @click="informationEditor.cancelEdit">Annuler</button>
-                        </span>
-                    </span>
-                    <template v-for="(link, index) in informationForDisplay()" :key="link.id ?? link.title">
-                        <span v-if="informationEditor.editingId.value === link.id" class="eden-project-edit">
-                            <input v-model="informationEditor.form.value.title" class="eden-collection-input" type="text">
-                            <input v-model="informationEditor.form.value.link_url" class="eden-collection-input" type="text">
-                            <span class="eden-collection-actions">
-                                <button type="button" @click="informationEditor.saveItem(link)">Enregistrer</button>
-                                <button type="button" @click="informationEditor.cancelEdit">Annuler</button>
-                                <button type="button" @click="informationEditor.deleteItem(link)">Supprimer</button>
-                            </span>
-                        </span>
-                        <a v-else :href="link.link_url ?? '#'">
-                            {{ link.title }}
-                            <AdminEditButton v-if="canEdit && link.id" @click.prevent="informationEditor.editItem(link)" />
-                            <span v-if="canEdit && link.id" class="eden-collection-actions">
-                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, -1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Monter</title><path d="m6 15 6-6 6 6"/></svg></button>
-                                <button type="button" @click.prevent="informationEditor.reorderItems(informationForDisplay(), index, 1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><title>Descendre</title><path d="m6 9 6 6 6-6"/></svg></button>
-                            </span>
-                        </a>
-                    </template>
+
+                <div class="grid grid-cols-2 gap-8 sm:grid-cols-3">
+                    <nav v-for="col in columns" :key="col.id" class="last:col-span-2 sm:last:col-span-1" :aria-labelledby="`footer-${col.id}`">
+                        <h2 :id="`footer-${col.id}`" class="mb-4 flex items-center gap-2 text-sm font-semibold text-white">
+                            <EditableText :value="blocks?.[col.titleKey]" :fallback="col.titleFallback" :content-key="`footer.${col.titleKey}`" :can-edit="canEdit" />
+                            <AddItemButton v-if="canEdit && !col.editor.creating.value" compact on-dark class="ml-auto" label="Ajouter un lien" @click="col.editor.startCreate" />
+                        </h2>
+                        <ItemEditor
+                            v-if="col.editor.creating.value"
+                            class="mb-3"
+                            title="Nouveau lien"
+                            compact
+                            :busy="col.editor.saving.value"
+                            @save="col.editor.createItem"
+                            @cancel="col.editor.cancelEdit"
+                        >
+                            <EditField v-model="col.editor.form.value.title" label="Libellé" />
+                            <EditField v-model="col.editor.form.value.link_url" label="Lien" placeholder="#contact ou https://…" />
+                        </ItemEditor>
+                        <ul class="grid gap-2.5">
+                            <li v-for="(link, index) in col.items()" :key="link.id ?? link.title" class="flex flex-wrap items-center gap-2">
+                                <ItemEditor
+                                    v-if="col.editor.editingId.value === link.id"
+                                    title="Modifier le lien"
+                                    compact
+                                    deletable
+                                    :busy="col.editor.saving.value"
+                                    @save="col.editor.saveItem(link)"
+                                    @cancel="col.editor.cancelEdit"
+                                    @delete="col.editor.deleteItem(link)"
+                                >
+                                    <EditField v-model="col.editor.form.value.title" label="Libellé" />
+                                    <EditField v-model="col.editor.form.value.link_url" label="Lien" placeholder="#contact ou https://…" />
+                                </ItemEditor>
+                                <template v-else>
+                                    <a :href="link.link_url ?? '#'" class="transition-colors hover:text-white">{{ link.title }}</a>
+                                    <ItemTools
+                                        v-if="canEdit && link.id"
+                                        :first="index === 0"
+                                        :last="index === col.items().length - 1"
+                                        @edit="col.editor.editItem(link)"
+                                        @up="col.editor.reorderItems(col.items(), index, -1)"
+                                        @down="col.editor.reorderItems(col.items(), index, 1)"
+                                    />
+                                </template>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
-            <div class="ft-bottom">
-                <p><EditableText :value="blocks?.copyright" fallback="© 2025 EDEN-UMG — École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés." content-key="footer.copyright" :can-edit="canEdit && canEditProtected" /></p>
+
+            <div class="mt-12 grid items-center gap-5 rounded-xl border border-white/10 bg-white/[0.04] p-6 lg:grid-cols-2 lg:gap-10">
+                <div>
+                    <h2 class="text-base font-semibold text-white">{{ t.newsletterTitle }}</h2>
+                    <p class="mt-1">{{ t.newsletterText }}</p>
+                </div>
+                <form class="grid gap-2" novalidate @submit.prevent="submitNewsletter">
+                    <label for="newsletter-email" class="sr-only">{{ t.email }}</label>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <input
+                            id="newsletter-email"
+                            v-model="newsletterForm.email"
+                            class="h-10 flex-1 rounded-md border border-white/20 bg-white/5 px-3 text-sm text-white outline-none placeholder:text-eden-100/50 focus-visible:border-gold-400 focus-visible:ring-[3px] focus-visible:ring-gold-400/30 aria-invalid:border-laterite-400"
+                            type="email"
+                            autocomplete="email"
+                            :placeholder="t.email"
+                            required
+                            :aria-invalid="newsletterForm.errors.email ? 'true' : null"
+                            aria-describedby="newsletter-error"
+                        >
+                        <button type="submit" :class="buttonVariants({ variant: 'inverse' })" :disabled="newsletterForm.processing">
+                            <span v-if="newsletterForm.processing" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+                            {{ newsletterForm.processing ? t.sending : t.subscribe }}
+                        </button>
+                    </div>
+                    <span v-if="newsletterForm.errors.email" id="newsletter-error" class="text-xs font-medium text-laterite-300" role="alert">{{ newsletterForm.errors.email }}</span>
+                </form>
+            </div>
+
+            <div class="mt-10 flex flex-wrap justify-between gap-x-6 gap-y-2 border-t border-white/10 pt-6 text-xs text-eden-100/60">
+                <p><EditableText :value="blocks?.copyright" fallback="© 2025 EDEN-UMG, École Doctorale Écosystèmes Naturels, Université de Mahajanga. Tous droits réservés." content-key="footer.copyright" :can-edit="canEdit && canEditProtected" /></p>
                 <p><EditableText :value="blocks?.credit" fallback="Conçu pour l'excellence académique" content-key="footer.credit" :can-edit="canEdit && canEditProtected" /></p>
             </div>
         </div>
+        <BrandStripe />
     </footer>
 </template>
