@@ -122,7 +122,7 @@
             <script>
                 setTimeout(function () { var s = document.getElementById('app-skeleton'); if (s) { s.remove(); } }, 10000);
             </script>
-        @elseif (! request()->is('me/*'))
+        @elseif (! request()->is('me/*', 'password/reset', 'password/reset/*'))
             {{-- Skeleton de premier chargement, retiré au montage de l'application --}}
             <div id="app-skeleton" class="fixed inset-0 z-[300] overflow-hidden bg-background transition-opacity duration-300" role="status" aria-label="Chargement de la page">
                 <div class="absolute top-0 left-0 h-0.5 w-2/5 bg-eden-600"></div>
