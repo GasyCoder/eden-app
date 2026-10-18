@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\UserInvitationMail;
 use App\Models\User;
 use App\Support\Paginated;
 use Illuminate\Http\RedirectResponse;
@@ -211,9 +212,7 @@ class UserController extends Controller
     {
         $url = route('invitation.accept.form', ['token' => $token]);
         $role = $user->isSuperAdmin() ? 'Admin' : 'Éditeur';
-        Mail::raw("Bonjour {$user->name},\n\nUn compte {$role} EDEN a été créé pour vous. Confirmez votre adresse et choisissez votre mot de passe via ce lien (valable 48 heures) :\n\n{$url}\n\nSi vous n’attendiez pas cette invitation, ignorez ce message.", function ($message) use ($user): void {
-            $message->to($user->email)->subject('Votre invitation à EDEN-UMG');
-        });
+        Mail::to($user->email, $user->name)->send(new UserInvitationMail($user->name, $role, $url));
     }
 
     private function authorizeAdmin(Request $request): void
