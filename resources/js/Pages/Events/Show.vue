@@ -48,6 +48,8 @@ const icsHref = computed(() => {
         <PageHeader :title="event.title" :lead="event.summary" :crumbs="[{ label: t('events'), href: path('events') }]">
             <div class="mt-6 flex flex-wrap gap-2">
                 <span v-if="event.status === 'cancelled'" :class="badgeVariants({ variant: 'destructive' })">{{ t('cancelled') }}</span>
+                <span v-else-if="event.status === 'completed'" :class="badgeVariants({ variant: 'success' })">{{ t('completed') }}</span>
+                <span v-else-if="event.status === 'archived'" :class="badgeVariants({ variant: 'outline' })">{{ t('archived') }}</span>
                 <span v-else-if="event.is_past" class="inline-flex rounded-md bg-white/10 px-2 py-0.5 text-xs font-medium">{{ t('past') }}</span>
                 <span class="inline-flex rounded-md bg-gold-400 px-2 py-0.5 text-xs font-semibold text-eden-950">{{ formatLabel }}</span>
             </div>
@@ -81,7 +83,7 @@ const icsHref = computed(() => {
                                 </div>
                             </div>
                         </dl>
-                        <div v-if="!event.is_past && event.status !== 'cancelled'" class="grid gap-2">
+                        <div v-if="!event.is_past && !['cancelled', 'completed', 'archived'].includes(event.status)" class="grid gap-2">
                             <a v-if="event.registration_url" :href="event.registration_url" :class="buttonVariants({ size: 'lg' })" target="_blank" rel="noopener noreferrer">
                                 {{ t('register') }} <ExternalLink aria-hidden="true" /><span class="sr-only">{{ t('newTab') }}</span>
                             </a>

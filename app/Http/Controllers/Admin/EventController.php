@@ -134,6 +134,8 @@ class EventController extends Controller
         return [
             'publish' => ['%d événement(s) publié(s).', fn (Collection $events) => $this->updateEach($events, ['status' => 'published'])],
             'draft' => ['%d événement(s) repassé(s) en brouillon.', fn (Collection $events) => $this->updateEach($events, ['status' => 'draft'])],
+            'complete' => ['%d événement(s) marqué(s) comme terminés.', fn (Collection $events) => $this->updateEach($events, ['status' => 'completed'])],
+            'archive' => ['%d événement(s) archivé(s).', fn (Collection $events) => $this->updateEach($events, ['status' => 'archived'])],
             'cancel' => ['%d événement(s) annulé(s).', fn (Collection $events) => $this->updateEach($events, ['status' => 'cancelled'])],
             'delete' => ['%d événement(s) supprimé(s).', fn (Collection $events) => $this->deleteEach($events)],
         ];

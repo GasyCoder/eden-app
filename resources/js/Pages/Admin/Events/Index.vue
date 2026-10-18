@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
-import { Ban, CalendarDays, CalendarPlus, CircleCheck, ExternalLink, FilePen, Pencil, SearchX, Trash2 } from '@lucide/vue';
+import { Archive, Ban, CalendarDays, CalendarPlus, CircleCheck, ExternalLink, FilePen, Pencil, SearchX, Trash2 } from '@lucide/vue';
 import { ref } from 'vue';
 import AdminPageHeader from '@/Components/Admin/Ui/AdminPageHeader.vue';
 import BulkActionBar from '@/Components/Admin/Ui/BulkActionBar.vue';
@@ -29,7 +29,7 @@ const { filters, loading, reset, isFiltered } = useListFilters('/admin/events', 
     period: props.filters.period || null,
 });
 
-const statusOptions = [{ value: null, label: 'Tous les statuts' }, { value: 'published', label: 'Publiés' }, { value: 'draft', label: 'Brouillons' }, { value: 'cancelled', label: 'Annulés' }];
+const statusOptions = [{ value: null, label: 'Tous les statuts' }, { value: 'published', label: 'Publiés' }, { value: 'completed', label: 'Terminés' }, { value: 'archived', label: 'Archivés' }, { value: 'draft', label: 'Brouillons' }, { value: 'cancelled', label: 'Annulés' }];
 const periodOptions = [{ value: null, label: 'Toutes les dates' }, { value: 'upcoming', label: 'À venir' }, { value: 'past', label: 'Passés' }];
 const formats = { in_person: 'Présentiel', online: 'En ligne', hybrid: 'Hybride' };
 const pendingDelete = ref(null);
@@ -52,6 +52,8 @@ const bulk = useBulkSelection(() => props.events.data);
 const bulkActions = [
     { action: 'publish', label: 'Publier', icon: CircleCheck },
     { action: 'draft', label: 'Brouillon', icon: FilePen },
+    { action: 'complete', label: 'Marquer terminés', icon: CircleCheck },
+    { action: 'archive', label: 'Archiver', icon: Archive },
     { action: 'cancel', label: 'Marquer annulés', icon: Ban, confirm: { title: 'Annuler les événements sélectionnés ?', description: (n) => `${n} événement(s) resteront visibles avec la mention « Annulé ».`, label: 'Marquer annulés' }, danger: false },
     { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les événements sélectionnés ?', description: (n) => `${n} événement(s) seront définitivement supprimés. Préférez « Marquer annulés » pour garder une trace.` } },
 ];

@@ -45,7 +45,13 @@ const form = useForm({
 
 useUnsavedGuard(form);
 
-const statusOptions = [{ value: 'draft', label: 'Brouillon' }, { value: 'published', label: 'Publié' }, { value: 'cancelled', label: 'Annulé (reste visible)' }];
+const statusOptions = [
+    { value: 'draft', label: 'Brouillon' },
+    { value: 'published', label: 'Publié' },
+    { value: 'completed', label: 'Terminé (reste visible)' },
+    { value: 'archived', label: 'Archivé (reste consultable)' },
+    { value: 'cancelled', label: 'Annulé (reste visible)' },
+];
 const formatOptions = [{ value: 'in_person', label: 'Présentiel' }, { value: 'online', label: 'En ligne' }, { value: 'hybrid', label: 'Hybride' }];
 const complete = computed(() => ({ fr: Boolean(form.title.fr), en: Boolean(form.title.en) }));
 const err = (field) => form.errors[`${field}.${locale.value}`] || (locale.value === 'en' ? '' : form.errors[`${field}.fr`]);
@@ -143,7 +149,7 @@ const destroy = () => router.delete(`/admin/events/${props.event.id}`, {
                     <section class="rounded-xl border bg-card p-5 text-card-foreground">
                         <h2 class="mb-4 text-base font-semibold">Publication</h2>
                         <div class="grid gap-4">
-                            <Field v-slot="{ id }" label="Statut" hint="« Annulé » garde l’événement visible avec la mention Annulé.">
+                            <Field v-slot="{ id }" label="Statut" hint="Les événements terminés et archivés restent consultables dans les événements passés.">
                                 <Select :id="id" v-model="form.status" :options="statusOptions" />
                             </Field>
                             <Switch v-model="form.is_featured" label="Mettre en avant" />
@@ -159,7 +165,7 @@ const destroy = () => router.delete(`/admin/events/${props.event.id}`, {
                     </section>
                     <section v-if="!isNew" class="rounded-xl border bg-card p-5 text-card-foreground border-laterite-200 dark:border-laterite-900">
                         <h2 class="text-base font-semibold">Supprimer</h2>
-                        <p class="text-sm text-muted-foreground">Préférez « Annulé » pour informer les participants.</p>
+                        <p class="text-sm text-muted-foreground">Marquez l’événement comme « Archivé » pour le conserver dans les événements passés.</p>
                         <button type="button" :class="buttonVariants({ variant: 'destructive-ghost', size: 'sm' })" @click="confirmDelete = true"><Trash2 aria-hidden="true" />Supprimer l’événement</button>
                     </section>
                 </aside>

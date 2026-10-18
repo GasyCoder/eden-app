@@ -15,7 +15,7 @@ class Event extends Model implements Newsletterable
 {
     use HasFactory, HasTranslations;
 
-    public const STATUSES = ['draft', 'published', 'cancelled'];
+    public const STATUSES = ['draft', 'published', 'completed', 'archived', 'cancelled'];
 
     public const FORMATS = ['in_person', 'online', 'hybrid'];
 
@@ -37,16 +37,17 @@ class Event extends Model implements Newsletterable
         ];
     }
 
-    /** Publiés, y compris annulés (affichés avec la mention « Annulé »). */
+    /** Publiés et états finaux consultables par le public. */
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->whereIn('status', ['published', 'cancelled']);
+        return $query->whereIn('status', ['published', 'cancelled', 'completed', 'archived']);
     }
 
     /** À venir ou en cours : la fin (ou le début) n'est pas passée. */
     public function scopeUpcoming(Builder $query): Builder
     {
-        return $query->where(function (Builder $query): void {
+        return $query->whereNotIn('status', ['completed', 'archived'])
+            ->where(function (Builder $query): void {
             $query->where('ends_at', '>=', now())
                 ->orWhere(fn (Builder $query) => $query->whereNull('ends_at')->where('starts_at', '>=', now()->startOfDay()));
         })->orderBy('starts_at');
@@ -56,13 +57,14 @@ class Event extends Model implements Newsletterable
     {
         return $query->where(function (Builder $query): void {
             $query->where('ends_at', '<', now())
-                ->orWhere(fn (Builder $query) => $query->whereNull('ends_at')->where('starts_at', '<', now()->startOfDay()));
+                ->orWhere(fn (Builder $query) => $query->whereNull('ends_at')->where('starts_at', '<', now()->startOfDay()))
+                ->orWhereIn('status', ['completed', 'archived']);
         })->orderByDesc('starts_at');
     }
 
     public function isPublic(): bool
     {
-        return in_array($this->status, ['published', 'cancelled'], true);
+        return in_array($this->status, ['published', 'cancelled', 'completed', 'archived'], true);
     }
 
     public function isPast(): bool

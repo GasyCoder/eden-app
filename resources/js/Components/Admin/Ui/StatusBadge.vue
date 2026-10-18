@@ -13,6 +13,7 @@ const map = {
     active: ['Active', 'success'],
     scheduled: ['Programmé', 'info'],
     draft: ['Brouillon', 'secondary'],
+    completed: ['Terminé', 'success'],
     archived: ['Archivé', 'outline'],
     expired: ['Terminée', 'outline'],
     cancelled: ['Annulé', 'destructive'],

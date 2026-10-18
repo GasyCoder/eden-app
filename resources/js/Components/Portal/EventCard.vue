@@ -15,6 +15,13 @@ const parts = computed(() => dateParts(props.event.starts_at, locale.value));
 const formatLabel = computed(() => ({ in_person: t('inPerson'), online: t('online'), hybrid: t('hybrid') }[props.event.format]));
 const formatIcon = computed(() => ({ in_person: MapPin, online: Globe, hybrid: MonitorSmartphone }[props.event.format] ?? MapPin));
 const cancelled = computed(() => props.event.status === 'cancelled');
+const statusBadge = computed(() => {
+    if (props.event.status === 'cancelled') return { label: t('cancelled'), variant: 'destructive' };
+    if (props.event.status === 'completed') return { label: t('completed'), variant: 'success' };
+    if (props.event.status === 'archived') return { label: t('archived'), variant: 'outline' };
+
+    return props.event.is_past ? { label: t('past'), variant: 'outline' } : null;
+});
 </script>
 
 <template>
@@ -25,7 +32,7 @@ const cancelled = computed(() => props.event.status === 'cancelled');
         </div>
         <div class="grid min-w-0 flex-1 gap-1.5">
             <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span v-if="cancelled" :class="badgeVariants({ variant: 'destructive' })">{{ t('cancelled') }}</span>
+                <span v-if="statusBadge" :class="badgeVariants({ variant: statusBadge.variant })">{{ statusBadge.label }}</span>
                 <time :datetime="event.starts_at">{{ formatEventRange(event, locale) }}</time>
             </div>
             <h3 :class="cn('text-base leading-snug font-semibold text-foreground', cancelled && 'line-through decoration-muted-foreground/60')">
