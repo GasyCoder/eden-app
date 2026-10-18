@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ConcealPrivateRoutes;
+use App\Http\Middleware\EnsureHtmlForDocumentNavigation;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             ConcealPrivateRoutes::class,
+            EnsureHtmlForDocumentNavigation::class,
             HandleInertiaRequests::class,
         ]);
 
