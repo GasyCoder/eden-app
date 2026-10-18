@@ -21,7 +21,7 @@ const props = defineProps({
 });
 
 const isNew = computed(() => !props.announcement.id);
-const t = useT();
+const { t } = useT();
 const locale = ref('fr');
 const form = useForm({
     title: { ...props.announcement.title },
