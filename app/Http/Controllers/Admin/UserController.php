@@ -74,7 +74,9 @@ class UserController extends Controller
         ]);
         $newRole = $data['role'] === 'admin' ? 'superadmin' : 'editor';
 
-        abort_if($request->user()->is($user) && $newRole !== 'superadmin', 422, 'Vous ne pouvez pas retirer votre propre rôle Admin.');
+        if ($request->user()->is($user) && $newRole !== 'superadmin') {
+            throw ValidationException::withMessages(['role' => 'Vous ne pouvez pas retirer votre propre rôle Admin.']);
+        }
 
         if ($user->isSuperAdmin() && $newRole !== 'superadmin' && User::query()->where('role', 'superadmin')->count() <= 1) {
             throw ValidationException::withMessages(['role' => 'Il doit rester au moins un compte Admin.']);

@@ -30,19 +30,33 @@ const showRequestError = (errors) => {
     const message = Object.values(errors ?? {}).flat().find((value) => typeof value === 'string');
     push(message || 'L’action n’a pas pu être effectuée. Réessayez.', 'error');
 };
+const showHttpError = (response) => {
+    push(`Le serveur n’a pas pu enregistrer les modifications (erreur ${response.status}). Réessayez.`, 'error');
+    return false;
+};
+const showNetworkError = () => {
+    push('Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.', 'error');
+    return false;
+};
 
 const invite = () => inviteForm.post('/admin/users', { preserveScroll: true, onSuccess: () => inviteForm.reset() });
 const openEdit = (user) => {
     editingUser.value = user;
     editForm.defaults({ name: user.name, email: user.email, role: user.role });
-    editForm.reset();
+    editForm.resetAndClearErrors();
     editOpen.value = true;
 };
-const saveEdit = () => editForm.patch(`/admin/users/${editingUser.value.id}`, {
-    preserveScroll: true,
-    onSuccess: () => { editOpen.value = false; editingUser.value = null; },
-    onError: showRequestError,
-});
+const saveEdit = () => {
+    if (!editingUser.value || editForm.processing) return;
+
+    editForm.patch(`/admin/users/${editingUser.value.id}`, {
+        preserveScroll: true,
+        onSuccess: () => { editOpen.value = false; editingUser.value = null; },
+        onError: showRequestError,
+        onHttpException: showHttpError,
+        onNetworkError: showNetworkError,
+    });
+};
 const changeRole = (user, role) => router.patch(`/admin/users/${user.id}`, {
     name: user.name, email: user.email, role,
 }, { preserveScroll: true, onError: showRequestError });
@@ -118,7 +132,7 @@ const removeUser = () => router.delete(`/admin/users/${pendingDelete.value.id}`,
         <Pagination v-if="users.meta.last_page > 1" :meta="users.meta" :links="users.links" preserve-scroll :labels="{ previous: 'Précédent', next: 'Suivant', info: `${users.meta.from} à ${users.meta.to} sur ${users.meta.total}` }" />
 
         <Dialog v-model:open="editOpen" title="Modifier l’utilisateur" :description="editingUser ? `Mettez à jour les informations de ${editingUser.name}.` : ''">
-            <form class="grid gap-4" @submit.prevent="saveEdit">
+            <form id="edit-user-form" class="grid gap-4" @submit.prevent="saveEdit">
                 <label class="grid gap-2 text-sm font-medium">Nom complet
                     <input v-model="editForm.name" :class="inputClass" autocomplete="name" required>
                     <span v-if="editForm.errors.name" class="text-xs text-destructive">{{ editForm.errors.name }}</span>
@@ -132,10 +146,11 @@ const removeUser = () => router.delete(`/admin/users/${pendingDelete.value.id}`,
                     <Select v-model="editForm.role" :options="roleOptions" aria-label="Rôle de l’utilisateur" />
                     <span v-if="editForm.errors.role" class="text-xs text-destructive">{{ editForm.errors.role }}</span>
                 </label>
+                <p v-if="editForm.hasErrors" class="text-sm text-destructive" role="alert">Vérifiez les informations signalées avant d’enregistrer.</p>
             </form>
             <template #footer>
                 <Button variant="outline" :disabled="editForm.processing" @click="editOpen = false">Annuler</Button>
-                <Button :loading="editForm.processing" @click="saveEdit">Enregistrer les modifications</Button>
+                <Button type="submit" form="edit-user-form" :loading="editForm.processing">Enregistrer les modifications</Button>
             </template>
         </Dialog>
 
