@@ -119,7 +119,7 @@ const removeUser = () => {
                         <div class="min-w-0"><p class="truncate text-sm font-medium">{{ user.name }}</p><p class="mt-0.5 break-all text-sm text-muted-foreground">{{ user.email }}</p></div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                        <span v-if="user.invitation_pending" class="inline-flex h-7 items-center rounded-full border border-amber-600/25 bg-amber-500/10 px-2.5 text-xs font-medium text-amber-800 dark:text-amber-300">Invitation en attente</span>
+                        <span v-if="user.invitation_pending && !user.email_verified" class="inline-flex h-7 items-center rounded-full border border-amber-600/25 bg-amber-500/10 px-2.5 text-xs font-medium text-amber-800 dark:text-amber-300">Invitation en attente</span>
                         <span v-else-if="user.email_verified" class="inline-flex h-7 items-center gap-1 rounded-full border border-emerald-600/25 bg-emerald-500/10 px-2.5 text-xs font-medium text-emerald-800 dark:text-emerald-300"><Check class="size-3.5" aria-hidden="true" />Adresse confirmée</span>
                         <Select :model-value="user.role" :options="roleOptions" :aria-label="`Rôle de ${user.name}`" size="sm" class="w-28" @update:model-value="changeRole(user, $event)" />
                         <div class="flex items-center gap-1 border-l pl-2">

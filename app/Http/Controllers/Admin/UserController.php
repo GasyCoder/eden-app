@@ -29,7 +29,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'role' => $user->role === 'superadmin' ? 'admin' : 'editor',
                 'email_verified' => $user->email_verified_at !== null,
-                'invitation_pending' => $user->invitation_token !== null,
+                'invitation_pending' => $user->email_verified_at === null && $user->invitation_token !== null,
                 'created_at' => $user->created_at?->format('d/m/Y'),
             ]),
         ]);

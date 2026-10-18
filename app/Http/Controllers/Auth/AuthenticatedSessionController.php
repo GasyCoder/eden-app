@@ -101,12 +101,24 @@ class AuthenticatedSessionController extends Controller
             throw ValidationException::withMessages(['code' => 'Le code saisi est incorrect.']);
         }
 
-        $user = User::query()->whereKey($userId)->where('is_admin', true)->first();
+        $user = User::query()
+            ->whereKey($userId)
+            ->where('email', $request->session()->get('login_otp_email'))
+            ->where('is_admin', true)
+            ->first();
 
         if (! $user) {
             $this->clearOtpChallenge($request);
             throw ValidationException::withMessages(['code' => 'Ce compte n’est plus disponible.']);
         }
+
+        // Le code valide prouve la possession de l’adresse destinataire.
+        // Clôturer aussi l’invitation si la confirmation passe par la connexion.
+        $user->forceFill([
+            'email_verified_at' => $user->email_verified_at ?? now(),
+            'invitation_token' => null,
+            'invitation_expires_at' => null,
+        ])->save();
 
         $remember = (bool) $request->session()->get('login_otp_remember', false);
         $this->clearOtpChallenge($request);
