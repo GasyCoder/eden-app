@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -72,7 +74,7 @@ class EventController extends Controller
     {
         $event->update($this->payload($request, $event));
 
-        return back(303)->with('success', 'Événement enregistré.'.$this->notifySubscribers($request, $event));
+        return to_route('admin.events.edit', $event, 303)->with('success', 'Événement enregistré.'.$this->notifySubscribers($request, $event));
     }
 
     public function destroy(Event $event): RedirectResponse
@@ -84,7 +86,7 @@ class EventController extends Controller
 
     private function payload(Request $request, ?Event $event = null): array
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             ...$this->translatableRules('title', required: true),
             ...$this->translatableRules('summary', max: 600),
             ...$this->translatableRules('body', html: true),
@@ -105,6 +107,14 @@ class EventController extends Controller
             'ends_at.after_or_equal' => 'La fin doit être postérieure au début.',
             'registration_url.url' => 'Indiquez une adresse complète commençant par https://.',
         ]);
+
+        if ($validator->fails()) {
+            throw (new ValidationException($validator))->redirectTo(
+                $event ? route('admin.events.edit', $event) : route('admin.events.create'),
+            );
+        }
+
+        $data = $validator->validated();
 
         return [
             'title' => $this->translated($data, 'title'),
