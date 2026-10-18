@@ -15,6 +15,7 @@ const props = defineProps({
     disabled: { type: Boolean, default: false },
     class: { type: [String, Array, Object], default: '' },
 });
+const emit = defineEmits(['click']);
 
 const tag = computed(() => {
     if (!props.href) {
@@ -35,6 +36,7 @@ const tag = computed(() => {
         :aria-busy="loading ? 'true' : undefined"
         :target="external ? '_blank' : undefined"
         :rel="external ? 'noopener noreferrer' : undefined"
+        @click="emit('click', $event)"
     >
         <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
         <slot />

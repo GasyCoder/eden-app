@@ -1,7 +1,7 @@
 <script setup>
 import { router, useForm } from '@inertiajs/vue3';
 import { Check, KeyRound, Pencil, Plus, Trash2, UserRound, UsersRound } from '@lucide/vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AdminPageHeader from '@/Components/Admin/Ui/AdminPageHeader.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Button from '@/Components/ui/Button.vue';
@@ -9,6 +9,7 @@ import ConfirmDialog from '@/Components/ui/ConfirmDialog.vue';
 import Dialog from '@/Components/ui/Dialog.vue';
 import Pagination from '@/Components/ui/Pagination.vue';
 import Select from '@/Components/ui/Select.vue';
+import { useToasts } from '@/Composables/useToasts';
 import { inputClass } from '@/lib/variants';
 
 const props = defineProps({ users: { type: Object, required: true } });
@@ -17,9 +18,18 @@ const editForm = useForm({ name: '', email: '', role: 'editor' });
 const editingUser = ref(null);
 const editOpen = ref(false);
 const pendingDelete = ref(null);
+const deleteDialogOpen = computed({
+    get: () => Boolean(pendingDelete.value),
+    set: (open) => { if (!open) pendingDelete.value = null; },
+});
 const deleting = ref(false);
 const sendingResetTo = ref(null);
+const { push } = useToasts();
 const roleOptions = [{ value: 'admin', label: 'Admin' }, { value: 'editor', label: 'Éditeur' }];
+const showRequestError = (errors) => {
+    const message = Object.values(errors ?? {}).flat().find((value) => typeof value === 'string');
+    push(message || 'L’action n’a pas pu être effectuée. Réessayez.', 'error');
+};
 
 const invite = () => inviteForm.post('/admin/users', { preserveScroll: true, onSuccess: () => inviteForm.reset() });
 const openEdit = (user) => {
@@ -31,10 +41,11 @@ const openEdit = (user) => {
 const saveEdit = () => editForm.patch(`/admin/users/${editingUser.value.id}`, {
     preserveScroll: true,
     onSuccess: () => { editOpen.value = false; editingUser.value = null; },
+    onError: showRequestError,
 });
 const changeRole = (user, role) => router.patch(`/admin/users/${user.id}`, {
     name: user.name, email: user.email, role,
-}, { preserveScroll: true });
+}, { preserveScroll: true, onError: showRequestError });
 const sendReset = (user) => router.post(`/admin/users/${user.id}/password-reset`, {}, {
     preserveScroll: true,
     onStart: () => { sendingResetTo.value = user.id; },
@@ -44,6 +55,7 @@ const removeUser = () => router.delete(`/admin/users/${pendingDelete.value.id}`,
     preserveScroll: true,
     onStart: () => { deleting.value = true; },
     onFinish: () => { deleting.value = false; pendingDelete.value = null; },
+    onError: showRequestError,
 });
 </script>
 
@@ -127,6 +139,6 @@ const removeUser = () => router.delete(`/admin/users/${pendingDelete.value.id}`,
             </template>
         </Dialog>
 
-        <ConfirmDialog :open="Boolean(pendingDelete)" title="Supprimer cet utilisateur ?" :description="pendingDelete ? `Le compte ${pendingDelete.email} sera supprimé.` : ''" :loading="deleting" @update:open="(value) => { if (!value) pendingDelete = null; }" @confirm="removeUser" />
+        <ConfirmDialog v-model:open="deleteDialogOpen" title="Supprimer cet utilisateur ?" :description="pendingDelete ? `Le compte ${pendingDelete.email} sera supprimé.` : ''" :loading="deleting" @confirm="removeUser" />
     </AdminLayout>
 </template>
