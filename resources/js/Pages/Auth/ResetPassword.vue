@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, KeyRound } from '@lucide/vue';
 import BrandStripe from '@/Components/Layout/BrandStripe.vue';
 import Button from '@/Components/ui/Button.vue';
+import PasswordInput from '@/Components/ui/PasswordInput.vue';
 import { inputClass } from '@/lib/variants';
 
 const props = defineProps({ token: { type: String, required: true }, email: { type: String, default: '' } });
@@ -24,13 +25,15 @@ const submit = () => form.post('/password/reset', { onFinish: () => form.reset('
                         <input v-model="form.email" :class="inputClass" type="email" autocomplete="email" required>
                         <span v-if="form.errors.email" class="text-xs font-medium text-destructive" role="alert">{{ form.errors.email }}</span>
                     </label>
-                    <label class="grid gap-2 text-sm font-medium">Nouveau mot de passe (12 caractères minimum)
-                        <input v-model="form.password" :class="inputClass" type="password" autocomplete="new-password" minlength="12" required>
+                    <div class="grid gap-2 text-sm font-medium">
+                        <label for="reset-password">Nouveau mot de passe (12 caractères minimum)</label>
+                        <PasswordInput id="reset-password" v-model="form.password" autocomplete="new-password" minlength="12" required />
                         <span v-if="form.errors.password" class="text-xs font-medium text-destructive" role="alert">{{ form.errors.password }}</span>
-                    </label>
-                    <label class="grid gap-2 text-sm font-medium">Confirmer le mot de passe
-                        <input v-model="form.password_confirmation" :class="inputClass" type="password" autocomplete="new-password" minlength="12" required>
-                    </label>
+                    </div>
+                    <div class="grid gap-2 text-sm font-medium">
+                        <label for="reset-password-confirmation">Confirmer le mot de passe</label>
+                        <PasswordInput id="reset-password-confirmation" v-model="form.password_confirmation" autocomplete="new-password" minlength="12" required />
+                    </div>
                     <Button type="submit" :loading="form.processing" class="w-full">Réinitialiser le mot de passe</Button>
                 </form>
                 <Link href="/me/login" class="mt-5 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft class="size-4" aria-hidden="true" />Retour à la connexion</Link>

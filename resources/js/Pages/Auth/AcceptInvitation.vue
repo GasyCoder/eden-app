@@ -1,6 +1,7 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
-import { buttonVariants, inputClass } from '@/lib/variants';
+import PasswordInput from '@/Components/ui/PasswordInput.vue';
+import { buttonVariants } from '@/lib/variants';
 
 const props = defineProps({ token: { type: String, required: true }, email: { type: String, default: null }, valid: { type: Boolean, default: false } });
 const form = useForm({ password: '', password_confirmation: '' });
@@ -16,13 +17,15 @@ const submit = () => form.post(`/invitation/${props.token}`);
                 <h1 class="mt-2 text-2xl font-semibold tracking-tight">Confirmez votre compte</h1>
                 <p class="mt-2 text-sm text-muted-foreground">Choisissez un mot de passe pour <strong class="break-all text-foreground">{{ email }}</strong>.</p>
                 <form class="mt-6 grid gap-4" @submit.prevent="submit">
-                    <label class="grid gap-1.5 text-sm font-medium">Mot de passe (12 caractères minimum)
-                        <input v-model="form.password" :class="inputClass" type="password" autocomplete="new-password" required minlength="12">
+                    <div class="grid gap-1.5 text-sm font-medium">
+                        <label for="invitation-password">Mot de passe (12 caractères minimum)</label>
+                        <PasswordInput id="invitation-password" v-model="form.password" autocomplete="new-password" required minlength="12" />
                         <span v-if="form.errors.password" class="text-xs text-destructive">{{ form.errors.password }}</span>
-                    </label>
-                    <label class="grid gap-1.5 text-sm font-medium">Confirmer le mot de passe
-                        <input v-model="form.password_confirmation" :class="inputClass" type="password" autocomplete="new-password" required minlength="12">
-                    </label>
+                    </div>
+                    <div class="grid gap-1.5 text-sm font-medium">
+                        <label for="invitation-password-confirmation">Confirmer le mot de passe</label>
+                        <PasswordInput id="invitation-password-confirmation" v-model="form.password_confirmation" autocomplete="new-password" required minlength="12" />
+                    </div>
                     <p v-if="form.errors.token" class="text-sm text-destructive" role="alert">{{ form.errors.token }}</p>
                     <button :class="buttonVariants()" :disabled="form.processing">{{ form.processing ? 'Confirmation…' : 'Confirmer et créer mon mot de passe' }}</button>
                 </form>

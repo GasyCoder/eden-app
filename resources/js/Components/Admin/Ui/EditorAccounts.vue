@@ -5,6 +5,7 @@ import { ref } from 'vue';
 import ConfirmDialog from '@/Components/ui/ConfirmDialog.vue';
 import EmptyState from '@/Components/ui/EmptyState.vue';
 import Field from '@/Components/ui/Field.vue';
+import PasswordInput from '@/Components/ui/PasswordInput.vue';
 import { cn } from '@/lib/utils';
 import { buttonVariants, inputClass } from '@/lib/variants';
 
@@ -59,8 +60,8 @@ const confirmDelete = () => router.delete(`/me/users/${pendingDelete.value.id}`,
             <div class="grid items-start gap-4 sm:grid-cols-2 sm:gap-x-5">
                 <Field v-slot="{ id, invalid }" label="Nom" :error="createForm.errors.name"><input :id="id" v-model="createForm.name" autocomplete="off" required :class="inputClass" :aria-invalid="invalid"></Field>
                 <Field v-slot="{ id, invalid }" label="Adresse email" :error="createForm.errors.email"><input :id="id" v-model="createForm.email" type="email" autocomplete="off" required :class="inputClass" :aria-invalid="invalid"></Field>
-                <Field v-slot="{ id, invalid }" label="Mot de passe provisoire" :error="createForm.errors.password"><input :id="id" v-model="createForm.password" type="password" autocomplete="new-password" required :class="inputClass" :aria-invalid="invalid"></Field>
-                <Field v-slot="{ id }" label="Confirmation"><input :id="id" v-model="createForm.password_confirmation" type="password" autocomplete="new-password" required :class="inputClass"></Field>
+                <Field v-slot="{ id, invalid }" label="Mot de passe provisoire" :error="createForm.errors.password"><PasswordInput :id="id" v-model="createForm.password" autocomplete="new-password" required :aria-invalid="invalid" /></Field>
+                <Field v-slot="{ id }" label="Confirmation"><PasswordInput :id="id" v-model="createForm.password_confirmation" autocomplete="new-password" required /></Field>
             </div>
             <p class="text-xs text-muted-foreground">Transmettez ce mot de passe à la personne : elle pourra le changer depuis son profil.</p>
             <div class="flex flex-wrap justify-end gap-2">
@@ -76,8 +77,8 @@ const confirmDelete = () => router.delete(`/me/users/${pendingDelete.value.id}`,
                     <div class="grid items-start gap-4 sm:grid-cols-2 sm:gap-x-5">
                         <Field v-slot="{ id, invalid }" label="Nom" :error="updateForm.errors.name"><input :id="id" v-model="updateForm.name" required :class="inputClass" :aria-invalid="invalid"></Field>
                         <Field v-slot="{ id, invalid }" label="Adresse email" :error="updateForm.errors.email"><input :id="id" v-model="updateForm.email" type="email" required :class="inputClass" :aria-invalid="invalid"></Field>
-                        <Field v-slot="{ id, invalid }" label="Nouveau mot de passe" optional :error="updateForm.errors.password"><input :id="id" v-model="updateForm.password" type="password" autocomplete="new-password" :class="inputClass" :aria-invalid="invalid"></Field>
-                        <Field v-slot="{ id }" label="Confirmation"><input :id="id" v-model="updateForm.password_confirmation" type="password" autocomplete="new-password" :class="inputClass"></Field>
+                        <Field v-slot="{ id, invalid }" label="Nouveau mot de passe" optional :error="updateForm.errors.password"><PasswordInput :id="id" v-model="updateForm.password" autocomplete="new-password" :aria-invalid="invalid" /></Field>
+                        <Field v-slot="{ id }" label="Confirmation"><PasswordInput :id="id" v-model="updateForm.password_confirmation" autocomplete="new-password" /></Field>
                     </div>
                     <div class="flex flex-wrap justify-end gap-2">
                         <button type="button" :class="buttonVariants({ variant: 'outline' })" :disabled="updateForm.processing" @click="editingId = null">Annuler</button>

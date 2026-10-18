@@ -1,9 +1,10 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, Eye, EyeOff, MailCheck } from '@lucide/vue';
+import { ArrowLeft, MailCheck } from '@lucide/vue';
 import { nextTick, onMounted, ref } from 'vue';
 import BrandStripe from '@/Components/Layout/BrandStripe.vue';
 import Toast from '@/Components/Toast.vue';
+import PasswordInput from '@/Components/ui/PasswordInput.vue';
 import { useToasts } from '@/Composables/useToasts';
 import { cn } from '@/lib/utils';
 import { buttonVariants, inputClass } from '@/lib/variants';
@@ -13,7 +14,6 @@ const props = defineProps({
     otpEmail: { type: String, default: '' },
 });
 
-const showPassword = ref(false);
 const { push } = useToasts();
 const otpDigits = ref(Array(6).fill(''));
 const otpInputs = ref([]);
@@ -106,19 +106,7 @@ onMounted(() => {
 
                     <div class="grid gap-2">
                         <label class="text-sm font-medium" for="password">Mot de passe</label>
-                        <div class="relative">
-                            <input id="password" v-model="form.password" :class="cn(inputClass, 'pr-11')" :type="showPassword ? 'text' : 'password'" autocomplete="current-password" required :aria-invalid="form.errors.password ? 'true' : null" aria-describedby="password-error">
-                            <button
-                                type="button"
-                                :class="cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground')"
-                                :aria-label="showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
-                                :aria-pressed="showPassword ? 'true' : 'false'"
-                                @click="showPassword = !showPassword"
-                            >
-                                <EyeOff v-if="showPassword" aria-hidden="true" />
-                                <Eye v-else aria-hidden="true" />
-                            </button>
-                        </div>
+                        <PasswordInput id="password" v-model="form.password" autocomplete="current-password" required :aria-invalid="form.errors.password ? 'true' : null" aria-describedby="password-error" />
                         <p v-if="form.errors.password" id="password-error" class="text-xs font-medium text-destructive" role="alert">{{ form.errors.password }}</p>
                     </div>
 

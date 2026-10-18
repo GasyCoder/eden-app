@@ -2,6 +2,7 @@
 import { useForm, usePage } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import PasswordInput from '@/Components/ui/PasswordInput.vue';
 import { badgeVariants, buttonVariants, inputClass } from '@/lib/variants';
 import { cn } from '@/lib/utils';
 
@@ -186,17 +187,17 @@ onBeforeUnmount(() => {
                         <div class="grid items-start gap-4 sm:grid-cols-2 sm:gap-x-5">
                             <div class="grid min-w-0 content-start gap-2 sm:col-span-2">
                                 <label class="text-sm font-medium" for="current-password">Mot de passe actuel</label>
-                                <input id="current-password" v-model="passwordForm.current_password" type="password" autocomplete="current-password" required :class="inputClass" :aria-invalid="passwordForm.errors.current_password ? 'true' : null">
+                                <PasswordInput id="current-password" v-model="passwordForm.current_password" autocomplete="current-password" required :aria-invalid="passwordForm.errors.current_password ? 'true' : null" />
                                 <span v-if="passwordForm.errors.current_password" class="text-xs font-medium text-destructive" role="alert">{{ passwordForm.errors.current_password }}</span>
                             </div>
                             <div class="grid min-w-0 content-start gap-2">
                                 <label class="text-sm font-medium" for="new-password">Nouveau mot de passe</label>
-                                <input id="new-password" v-model="passwordForm.password" type="password" autocomplete="new-password" required :class="inputClass" :aria-invalid="passwordForm.errors.password ? 'true' : null">
+                                <PasswordInput id="new-password" v-model="passwordForm.password" autocomplete="new-password" required :aria-invalid="passwordForm.errors.password ? 'true' : null" />
                                 <span v-if="passwordForm.errors.password" class="text-xs font-medium text-destructive" role="alert">{{ passwordForm.errors.password }}</span>
                             </div>
                             <div class="grid min-w-0 content-start gap-2">
                                 <label class="text-sm font-medium" for="confirm-password">Confirmer le nouveau mot de passe</label>
-                                <input id="confirm-password" v-model="passwordForm.password_confirmation" type="password" autocomplete="new-password" required :class="inputClass">
+                                <PasswordInput id="confirm-password" v-model="passwordForm.password_confirmation" autocomplete="new-password" required />
                             </div>
                         </div>
                         <div class="flex flex-wrap items-center justify-end gap-2">
