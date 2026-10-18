@@ -4,6 +4,7 @@ import { BookOpenText, Download, Eye, FileText } from '@lucide/vue';
 import { computed } from 'vue';
 import IssueCard from '@/Components/Portal/IssueCard.vue';
 import IssueCover from '@/Components/Portal/IssueCover.vue';
+import PdfReader from '@/Components/Portal/PdfReader.vue';
 import ShareButtons from '@/Components/Portal/ShareButtons.vue';
 import StatBars from '@/Components/Portal/StatBars.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
@@ -56,7 +57,7 @@ const pageTitle = computed(() => `${props.journal.title} ${props.issue.label}`);
                         <p v-if="issue.excerpt" class="mt-5 max-w-2xl leading-relaxed text-pretty">{{ issue.excerpt }}</p>
                         <div class="mt-7 flex flex-wrap gap-3">
                             <a v-if="issue.pdf_url" href="#lecture" :class="buttonVariants({ size: 'lg' })"><BookOpenText aria-hidden="true" />{{ t('readOnline') }}</a>
-                            <a v-if="issue.pdf_url" :href="issue.pdf_url" :class="buttonVariants({ variant: 'outline', size: 'lg' })" :download="isLocalPdf ? `${journal.slug}-${issue.slug}.pdf` : undefined" target="_blank" rel="noopener">
+                            <a v-if="issue.pdf_url" :href="issue.pdf_url" :class="buttonVariants({ variant: 'outline', size: 'lg' })" :download="isLocalPdf ? `${journal.slug}-${issue.slug}.pdf` : undefined">
                                 <Download aria-hidden="true" />{{ t('downloadPdf') }}
                             </a>
                         </div>
@@ -107,7 +108,7 @@ const pageTitle = computed(() => `${props.journal.title} ${props.issue.label}`);
                 </section>
                 <section v-if="issue.pdf_url" class="grid gap-3">
                     <h2 class="text-base font-semibold">{{ t('readIssue') }}</h2>
-                    <a :href="issue.pdf_url" class="group flex items-center gap-3 rounded-lg bg-muted p-3 text-sm transition-colors hover:bg-accent" target="_blank" rel="noopener">
+                    <a :href="issue.pdf_url" class="group flex items-center gap-3 rounded-lg bg-muted p-3 text-sm transition-colors hover:bg-accent">
                         <span class="grid size-10 shrink-0 place-items-center rounded-md bg-laterite-600 text-white"><FileText class="size-5" aria-hidden="true" /></span>
                         <span class="grid min-w-0">
                             <span class="font-medium group-hover:text-eden-700 dark:group-hover:text-eden-300">{{ t('downloadPdf') }}</span>
@@ -123,10 +124,20 @@ const pageTitle = computed(() => `${props.journal.title} ${props.issue.label}`);
             <div :class="containerClass">
                 <div class="flex flex-wrap items-end justify-between gap-4">
                     <h2 id="reader-title" class="text-2xl font-semibold tracking-tight">{{ t('readOnline') }}</h2>
-                    <a :href="issue.pdf_url" :class="buttonVariants({ variant: 'outline' })" target="_blank" rel="noopener"><Download aria-hidden="true" />{{ t('downloadPdf') }}</a>
+                    <a :href="issue.pdf_url" :class="buttonVariants({ variant: 'outline' })" :download="isLocalPdf ? `${journal.slug}-${issue.slug}.pdf` : undefined"><Download aria-hidden="true" />{{ t('downloadPdf') }}</a>
                 </div>
-                <div class="mt-6 overflow-hidden rounded-xl bg-background shadow-sm">
-                    <iframe :src="`${issue.pdf_url}#view=FitH`" :title="t('pdfViewer')" class="block h-[80vh] min-h-[32rem] w-full" loading="lazy"></iframe>
+                <div class="mt-6">
+                    <PdfReader
+                        :src="issue.pdf_url"
+                        :title="t('pdfViewer')"
+                        :download-label="t('downloadPdf')"
+                        :open-label="t('openPdf')"
+                        :page-label="t('pdfPage', ':current', ':total')"
+                        :previous-label="t('previous')"
+                        :next-label="t('next')"
+                        :loading-label="t('pdfLoading')"
+                        :error-label="t('pdfLoadError')"
+                    />
                 </div>
             </div>
         </section>
