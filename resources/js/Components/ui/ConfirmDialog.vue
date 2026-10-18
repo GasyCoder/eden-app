@@ -1,6 +1,6 @@
 <script setup>
 import { TriangleAlert } from '@lucide/vue';
-import { AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle } from 'reka-ui';
+import { AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogOverlay, AlertDialogPortal, AlertDialogRoot, AlertDialogTitle } from 'reka-ui';
 import { buttonVariants } from '@/lib/variants';
 
 // Confirmation d'une action irréversible (AlertDialog : pas de fermeture au clic extérieur).
@@ -16,9 +16,9 @@ defineProps({
 const emit = defineEmits(['confirm']);
 const open = defineModel('open', { type: Boolean, default: false });
 
-const confirm = (event) => {
-    event.preventDefault();
+const confirm = () => {
     emit('confirm');
+    open.value = false;
 };
 </script>
 
@@ -37,10 +37,10 @@ const confirm = (event) => {
                 </div>
                 <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                     <AlertDialogCancel :class="buttonVariants({ variant: 'outline' })" :disabled="loading">{{ cancelLabel }}</AlertDialogCancel>
-                    <AlertDialogAction :class="buttonVariants({ variant: destructive ? 'destructive' : 'default' })" :disabled="loading" @click="confirm">
+                    <button type="button" :class="buttonVariants({ variant: destructive ? 'destructive' : 'default' })" :disabled="loading" @click="confirm">
                         <span v-if="loading" class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
                         {{ confirmLabel }}
-                    </AlertDialogAction>
+                    </button>
                 </div>
             </AlertDialogContent>
         </AlertDialogPortal>
