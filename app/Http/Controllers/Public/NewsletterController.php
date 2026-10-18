@@ -26,7 +26,7 @@ class NewsletterController extends Controller
             'locale' => ContentLocale::fromRequest($request),
         ]);
 
-        if (! $subscription->wasRecentlyCreated && $subscription->status !== 'pending') {
+        if ($subscription->trashed() || (! $subscription->wasRecentlyCreated && $subscription->status !== 'pending')) {
             throw ValidationException::withMessages(['email' => 'Cette adresse possède déjà un abonnement ou une demande. Contactez l’EDEN pour toute modification.']);
         }
 

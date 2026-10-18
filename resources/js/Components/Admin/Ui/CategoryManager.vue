@@ -26,7 +26,7 @@ const startEdit = (category) => {
     editForm.clearErrors();
 };
 
-const save = (category) => editForm.put(`/admin/post-categories/${category.id}`, {
+const save = (category) => editForm.transform((data) => ({ ...data, _method: 'PATCH' })).post(`/admin/post-categories/${category.id}`, {
     preserveScroll: true,
     onSuccess: () => { editingId.value = null; },
 });
@@ -37,7 +37,7 @@ const remove = (category) => {
         : `Supprimer la catégorie « ${category.name} » ?`;
 
     if (window.confirm(warning)) {
-        router.delete(`/admin/post-categories/${category.id}`, { preserveScroll: true });
+        router.post(`/admin/post-categories/${category.id}`, { _method: 'DELETE' }, { preserveScroll: true });
     }
 };
 </script>

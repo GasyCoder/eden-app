@@ -6,10 +6,12 @@ use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PostCategory extends Model
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     protected $fillable = ['slug', 'name', 'position'];
 

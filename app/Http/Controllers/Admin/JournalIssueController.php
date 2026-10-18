@@ -131,7 +131,7 @@ class JournalIssueController extends Controller
             'pdf_url.regex' => 'Lien PDF attendu : fichier téléversé ou adresse https://.',
         ]);
 
-        $duplicate = $journal->issues()
+        $duplicate = $journal->issues()->withTrashed()
             ->where('number', $data['number'])->where('year', $data['year'])
             ->when($issue, fn ($query) => $query->whereKeyNot($issue->id))
             ->exists();
@@ -184,7 +184,7 @@ class JournalIssueController extends Controller
         $slug = $base;
         $suffix = 2;
 
-        while ($journal->issues()->where('slug', $slug)->when($issue, fn ($query) => $query->whereKeyNot($issue->id))->exists()) {
+        while ($journal->issues()->withTrashed()->where('slug', $slug)->when($issue, fn ($query) => $query->whereKeyNot($issue->id))->exists()) {
             $slug = "{$base}-{$suffix}";
             $suffix++;
         }

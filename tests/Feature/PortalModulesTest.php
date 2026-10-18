@@ -155,7 +155,9 @@ test('deleting a category keeps its posts', function () {
 
     $this->actingAs($editor)->delete("/admin/post-categories/{$category->id}")->assertRedirect();
 
-    expect($post->fresh()->post_category_id)->toBeNull();
+    expect($post->fresh()->post_category_id)->toBe($category->id)
+        ->and($post->fresh()->category)->toBeNull();
+    $this->assertSoftDeleted($category);
 });
 
 /* ─── Revues ──────────────────────────────────────────────── */

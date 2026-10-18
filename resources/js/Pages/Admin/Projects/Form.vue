@@ -255,6 +255,6 @@ const card = 'rounded-xl border bg-card p-5 text-card-foreground';
             </div>
         </form>
 
-        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer ce projet ?" description="Il sera définitivement retiré du site." :loading="deleting" @confirm="destroy" />
+        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer ce projet ?" description="Il sera retiré du site et placé dans la corbeille." :loading="deleting" @confirm="destroy" />
     </AdminLayout>
 </template>

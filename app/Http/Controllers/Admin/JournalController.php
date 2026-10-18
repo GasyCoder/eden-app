@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -74,7 +75,7 @@ class JournalController extends Controller
 
     public function destroy(Journal $journal): RedirectResponse
     {
-        $journal->delete();
+        DB::transaction(fn () => $journal->delete());
 
         return to_route('admin.journals.index')->with('success', 'Revue supprimée.');
     }

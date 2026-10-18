@@ -4,8 +4,8 @@ use App\Models\ContentItem;
 use App\Models\Project;
 
 test('project migration never associates unrelated translations by their position', function () {
-    Project::query()->delete();
-    ContentItem::query()->where('collection_key', 'projects')->delete();
+    Project::withTrashed()->forceDelete();
+    ContentItem::withTrashed()->where('collection_key', 'projects')->forceDelete();
     ContentItem::create(['collection_key' => 'projects', 'locale' => 'fr', 'title' => 'COFFEA DECARYANA CASE STUDY', 'description' => 'Texte français conservé', 'position' => 0, 'is_active' => true]);
     ContentItem::create(['collection_key' => 'projects', 'locale' => 'en', 'title' => 'BIODIVERS-BOENY', 'description' => 'Independent English project', 'position' => 0, 'is_active' => true]);
     ContentItem::create(['collection_key' => 'projects', 'locale' => 'fr', 'title' => 'BRIDGE-COFFEA', 'description' => 'Version française', 'position' => 1, 'is_active' => true]);
@@ -27,8 +27,8 @@ test('project migration never associates unrelated translations by their positio
 });
 
 test('project migration enriches a single canonical ravenala while preserving edited content', function () {
-    Project::query()->delete();
-    ContentItem::query()->where('collection_key', 'projects')->delete();
+    Project::withTrashed()->forceDelete();
+    ContentItem::withTrashed()->where('collection_key', 'projects')->forceDelete();
     ContentItem::create(['collection_key' => 'projects', 'locale' => 'fr', 'title' => 'Projet RAVENALA', 'description' => 'Résumé de production', 'image' => '/storage/ravenala.jpg', 'link_url' => 'https://eden.mahajanga-univ.mg/projets/ravenala', 'position' => 1, 'is_active' => false]);
 
     $migration = require database_path('migrations/2026_10_18_000002_copy_projects_and_ravenala.php');

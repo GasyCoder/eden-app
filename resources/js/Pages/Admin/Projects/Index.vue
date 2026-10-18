@@ -63,7 +63,7 @@ const bulkActions = [
     { action: 'draft', label: 'Brouillon', icon: FilePen },
     { action: 'feature', label: 'Mettre en avant', icon: Star },
     { action: 'unfeature', label: 'Retirer la mise en avant', icon: StarOff },
-    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les projets sélectionnés ?', description: (n) => `${n} projet(s) seront définitivement supprimés, page détaillée comprise.` } },
+    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les projets sélectionnés ?', description: (n) => `${n} projet(s) seront placés dans la corbeille, page détaillée comprise.` } },
 ];
 </script>
 

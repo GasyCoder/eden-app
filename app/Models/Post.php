@@ -12,11 +12,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Post extends Model implements Newsletterable
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     public const STATUSES = ['draft', 'published', 'archived'];
 
@@ -71,7 +73,7 @@ class Post extends Model implements Newsletterable
 
     public function isPublic(): bool
     {
-        return in_array($this->status, ['published', 'archived'], true) && $this->published_at !== null && $this->published_at->lte(now());
+        return ! $this->trashed() && in_array($this->status, ['published', 'archived'], true) && $this->published_at !== null && $this->published_at->lte(now());
     }
 
     public function authorLabel(): ?string

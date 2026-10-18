@@ -7,6 +7,7 @@ use App\Services\ImageVariantService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -16,6 +17,7 @@ use Illuminate\Support\Str;
 class Project extends Model
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     public const STATUSES = ['draft', 'published'];
 
@@ -58,7 +60,7 @@ class Project extends Model
 
     public function isPublic(): bool
     {
-        return $this->status === 'published';
+        return ! $this->trashed() && $this->status === 'published';
     }
 
     public function period(): ?string

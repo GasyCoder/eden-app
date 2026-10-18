@@ -55,7 +55,7 @@ const bulkActions = [
     { action: 'complete', label: 'Marquer terminés', icon: CircleCheck },
     { action: 'archive', label: 'Archiver', icon: Archive },
     { action: 'cancel', label: 'Marquer annulés', icon: Ban, confirm: { title: 'Annuler les événements sélectionnés ?', description: (n) => `${n} événement(s) resteront visibles avec la mention « Annulé ».`, label: 'Marquer annulés' }, danger: false },
-    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les événements sélectionnés ?', description: (n) => `${n} événement(s) seront définitivement supprimés. Préférez « Marquer annulés » pour garder une trace.` } },
+    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les événements sélectionnés ?', description: (n) => `${n} événement(s) seront placés dans la corbeille. Préférez « Marquer annulés » pour garder une trace.` } },
 ];
 </script>
 
@@ -128,7 +128,7 @@ const bulkActions = [
         <ConfirmDialog
             :open="Boolean(pendingDelete)"
             title="Supprimer cet événement ?"
-            :description="pendingDelete ? `« ${pendingDelete.title} » sera définitivement supprimé. Pour le garder visible, passez-le plutôt en « Annulé ».` : ''"
+            :description="pendingDelete ? `« ${pendingDelete.title} » sera placé dans la corbeille. Pour le garder visible, passez-le plutôt en « Annulé ».` : ''"
             :loading="deleting"
             @update:open="(value) => { if (!value) pendingDelete = null; }"
             @confirm="confirmDelete"

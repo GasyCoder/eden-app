@@ -43,7 +43,8 @@ test('admin can delete another account using a POST with a DELETE override', fun
         '_method' => 'DELETE',
     ])->assertRedirect('/admin/users')->assertSessionHas('success', 'Utilisateur supprimé.');
 
-    $this->assertModelMissing($editor);
+    $this->assertSoftDeleted($editor);
+    expect(User::find($editor->id))->toBeNull();
 });
 
 test('invalid edits return validation errors without changing the account', function () {

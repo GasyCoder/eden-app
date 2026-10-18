@@ -101,7 +101,10 @@ class ContentRevisionController extends Controller
 
         $snapshot = $revision->before;
 
-        $item = ContentItem::query()->find($snapshot['id']) ?? new ContentItem();
+        $item = ContentItem::withTrashed()->find($snapshot['id']) ?? new ContentItem;
+        if ($item->exists && $item->trashed()) {
+            $item->restore();
+        }
         $item->forceFill(Arr::only($snapshot, [
             'id',
             'collection_key',

@@ -161,6 +161,6 @@ const removeUser = () => {
             </template>
         </Dialog>
 
-        <ConfirmDialog v-model:open="deleteDialogOpen" title="Supprimer cet utilisateur ?" :description="pendingDelete ? `Le compte ${pendingDelete.email} sera supprimé.` : ''" :loading="deleting" @confirm="removeUser" />
+        <ConfirmDialog v-model:open="deleteDialogOpen" title="Supprimer cet utilisateur ?" :description="pendingDelete ? `Le compte ${pendingDelete.email} sera désactivé et placé dans la corbeille.` : ''" :loading="deleting" @confirm="removeUser" />
     </AdminLayout>
 </template>

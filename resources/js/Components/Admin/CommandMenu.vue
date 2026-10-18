@@ -1,6 +1,6 @@
 <script setup>
 import { router, usePage } from '@inertiajs/vue3';
-import { CalendarDays, CalendarPlus, ExternalLink, FilePlus2, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, Mail, Megaphone, MegaphoneOff, Newspaper, Search, Settings, UserPlus, UserRound } from '@lucide/vue';
+import { CalendarDays, CalendarPlus, ExternalLink, FilePlus2, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, Mail, Megaphone, MegaphoneOff, Newspaper, Search, Settings, Trash2, UserPlus, UserRound } from '@lucide/vue';
 import { DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle, VisuallyHidden } from 'reka-ui';
 import { computed, nextTick, ref, watch } from 'vue';
 
@@ -21,6 +21,7 @@ const commands = [
     { group: 'Créer', label: 'Nouvelle annonce', href: '/admin/announcements/create', icon: Megaphone, keywords: 'popup bandeau alerte' },
     { group: 'Aller à', label: 'Tableau de bord', href: '/admin', icon: LayoutDashboard },
     { group: 'Aller à', label: 'Actualités', href: '/admin/posts', icon: Newspaper },
+    { group: 'Aller à', label: 'Corbeille', href: '/admin/trash', icon: Trash2, keywords: 'supprimés restaurer récupérer' },
     { group: 'Aller à', label: 'Brouillons d’actualités', href: '/admin/posts?status=draft', icon: Newspaper, keywords: 'draft' },
     { group: 'Aller à', label: 'Événements', href: '/admin/events', icon: CalendarDays },
     { group: 'Aller à', label: 'Revues', href: '/admin/journals', icon: LibraryBig, keywords: 'matoy numéros' },

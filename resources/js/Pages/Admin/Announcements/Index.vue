@@ -61,7 +61,7 @@ const bulkActions = [
     { action: 'publish', label: 'Publier', icon: CircleCheck },
     { action: 'archive', label: 'Archiver', icon: Archive },
     { action: 'draft', label: 'Brouillon', icon: FilePen },
-    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les annonces sélectionnées ?', description: (n) => `${n} annonce(s) seront définitivement supprimées. Préférez « Archiver » pour les conserver.` } },
+    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les annonces sélectionnées ?', description: (n) => `${n} annonce(s) seront placées dans la corbeille. Préférez « Archiver » pour les conserver.` } },
 ];
 </script>
 
@@ -125,7 +125,7 @@ const bulkActions = [
         <ConfirmDialog
             :open="Boolean(pendingDelete)"
             title="Supprimer cette annonce ?"
-            :description="pendingDelete ? `« ${pendingDelete.title} » sera définitivement supprimée. Pour l’arrêter en la conservant, archivez-la.` : ''"
+            :description="pendingDelete ? `« ${pendingDelete.title} » sera placée dans la corbeille. Pour l’arrêter en la conservant, archivez-la.` : ''"
             :loading="deleting"
             @update:open="(value) => { if (!value) pendingDelete = null; }"
             @confirm="confirmDelete"

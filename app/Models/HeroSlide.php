@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Diapositive du héro de l'accueil, éventuellement reliée à un contenu du site.
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class HeroSlide extends Model
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     /** Type de lien => modèle relié (null : aucun lien ou adresse libre). */
     public const LINK_TYPES = [

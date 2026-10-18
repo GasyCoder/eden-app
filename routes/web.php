@@ -16,8 +16,9 @@ use App\Http\Controllers\Admin\PostCategoryController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Admin\SiteSettingsController;
-use App\Http\Controllers\Admin\VisitorPopupController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VisitorPopupController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProfileController;
@@ -117,6 +118,9 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function (): void {
     // Espace d'administration des modules éditoriaux
     Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+    Route::post('/trash/{type}/{id}/restore', [TrashController::class, 'restore'])->whereNumber('id')->name('trash.restore');
+    Route::delete('/trash/{type}/{id}', [TrashController::class, 'destroy'])->whereNumber('id')->name('trash.destroy');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');

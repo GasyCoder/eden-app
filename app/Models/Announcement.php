@@ -7,10 +7,12 @@ use App\Support\EditorialDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Announcement extends Model
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     public const TYPES = ['info', 'event', 'important', 'maintenance', 'urgent'];
 

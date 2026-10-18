@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -17,6 +18,7 @@ use Illuminate\Support\Str;
 class Journal extends Model
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     /** active = publiée et en activité ; archived = visible mais plus éditée. */
     public const STATUSES = ['draft', 'active', 'archived'];
@@ -37,6 +39,30 @@ class Journal extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (self $journal): void {
+            if ($journal->isForceDeleting()) {
+                $journal->issues()->withTrashed()->get()->each->forceDelete();
+
+                return;
+            }
+
+            $journal->issues()->get()->each(function (JournalIssue $issue): void {
+                $issue->forceFill(['deleted_with_journal' => true])->saveQuietly();
+                $issue->delete();
+            });
+        });
+
+        static::restored(function (self $journal): void {
+            $journal->issues()->onlyTrashed()->where('deleted_with_journal', true)->get()
+                ->each(function (JournalIssue $issue): void {
+                    $issue->forceFill(['deleted_with_journal' => false]);
+                    $issue->restore();
+                });
+        });
+    }
+
     public function issues(): HasMany
     {
         return $this->hasMany(JournalIssue::class);
@@ -54,7 +80,7 @@ class Journal extends Model
 
     public function isPublic(): bool
     {
-        return in_array($this->status, ['active', 'archived'], true);
+        return ! $this->trashed() && in_array($this->status, ['active', 'archived'], true);
     }
 
     public function toCard(?string $locale = null): array

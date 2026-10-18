@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -21,6 +22,7 @@ use Illuminate\Support\Str;
 class JournalIssue extends Model implements Newsletterable
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     public const STATUSES = ['draft', 'published'];
 
@@ -54,6 +56,7 @@ class JournalIssue extends Model implements Newsletterable
             'pdf_size' => 'integer',
             'page_count' => 'integer',
             'published_at' => 'datetime',
+            'deleted_with_journal' => 'boolean',
         ];
     }
 
@@ -76,7 +79,7 @@ class JournalIssue extends Model implements Newsletterable
 
     public function isPublic(): bool
     {
-        return $this->status === 'published' && $this->published_at !== null && $this->published_at->lte(now());
+        return ! $this->trashed() && $this->status === 'published' && $this->published_at !== null && $this->published_at->lte(now());
     }
 
     /** « N° 01 · 2026 » */

@@ -1,14 +1,16 @@
 <script setup>
 import { router, useForm } from '@inertiajs/vue3';
-import { ExternalLink, Trash2 } from '@lucide/vue';
+import { ExternalLink, Plus, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import NotifySubscribersField from '@/Components/Admin/Ui/NotifySubscribersField.vue';
 import AdminPageHeader from '@/Components/Admin/Ui/AdminPageHeader.vue';
+import CreatePostCategoryDialog from '@/Components/Admin/Ui/CreatePostCategoryDialog.vue';
 import ImageField from '@/Components/Admin/Ui/ImageField.vue';
 import LocaleTabs from '@/Components/Admin/Ui/LocaleTabs.vue';
 import RichTextEditor from '@/Components/Admin/Ui/RichTextEditor.vue';
 import StatusBadge from '@/Components/Admin/Ui/StatusBadge.vue';
 import ConfirmDialog from '@/Components/ui/ConfirmDialog.vue';
+import Button from '@/Components/ui/Button.vue';
 import Field from '@/Components/ui/Field.vue';
 import Select from '@/Components/ui/Select.vue';
 import Switch from '@/Components/ui/Switch.vue';
@@ -44,7 +46,13 @@ const form = useForm({
 
 useUnsavedGuard(form);
 
-const categoryOptions = computed(() => [{ value: null, label: 'Sans catégorie' }, ...props.categories.map((c) => ({ value: c.id, label: c.name }))]);
+const categoryDialogOpen = ref(false);
+const addedCategories = ref([]);
+const categoryOptions = computed(() => [{ value: null, label: 'Sans catégorie' }, ...[...props.categories, ...addedCategories.value.filter((category) => !props.categories.some((existing) => existing.id === category.id))].map((c) => ({ value: c.id, label: c.name }))]);
+const categoryCreated = (category) => {
+    addedCategories.value.push(category);
+    form.post_category_id = category.id;
+};
 const statusOptions = [{ value: 'draft', label: 'Brouillon' }, { value: 'published', label: 'Publié' }, { value: 'archived', label: 'Archivé' }];
 const saveLabel = computed(() => {
     if (form.status === 'archived') return props.post.status === 'archived' ? 'Enregistrer' : 'Archiver';
@@ -153,8 +161,9 @@ const destroy = () => router.delete(`/admin/posts/${props.post.id}`, {
                     <section class="rounded-xl border bg-card p-5 text-card-foreground">
                         <h2 class="mb-4 text-base font-semibold">Classement</h2>
                         <div class="grid gap-4">
-                            <Field v-slot="{ id }" label="Catégorie" :error="form.errors.post_category_id">
-                                <Select :id="id" v-model="form.post_category_id" :options="categoryOptions" />
+                            <Field label="Catégorie" :error="form.errors.post_category_id">
+                                <template #aside><Button variant="outline" size="icon-sm" title="Ajouter une catégorie" aria-label="Ajouter une catégorie sans quitter le formulaire" @click="categoryDialogOpen = true"><Plus aria-hidden="true" /></Button></template>
+                                <template #default="{ id }"><Select :id="id" v-model="form.post_category_id" :options="categoryOptions" /></template>
                             </Field>
                             <Field v-slot="{ id, describedBy }" label="Auteur affiché" optional hint="Par défaut : votre nom." :error="form.errors.author_name">
                                 <input :id="id" v-model="form.author_name" :class="inputClass" :aria-describedby="describedBy">
@@ -168,13 +177,14 @@ const destroy = () => router.delete(`/admin/posts/${props.post.id}`, {
 
                     <section v-if="!isNew" class="rounded-xl border bg-card p-5 text-card-foreground border-laterite-200 dark:border-laterite-900">
                         <h2 class="text-base font-semibold">Supprimer</h2>
-                        <p class="text-sm text-muted-foreground">L’actualité disparaît du site. Action définitive.</p>
+                        <p class="text-sm text-muted-foreground">L’actualité disparaît du site. Vous pourrez la restaurer depuis la corbeille.</p>
                         <button type="button" :class="buttonVariants({ variant: 'destructive-ghost', size: 'sm' })" @click="confirmDelete = true"><Trash2 aria-hidden="true" />Supprimer l’actualité</button>
                     </section>
                 </aside>
             </div>
         </form>
 
-        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette actualité ?" description="Elle sera définitivement retirée du site." :loading="deleting" @confirm="destroy" />
+        <CreatePostCategoryDialog v-model:open="categoryDialogOpen" @created="categoryCreated" />
+        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette actualité ?" description="Elle sera retirée du site et placée dans la corbeille." :loading="deleting" @confirm="destroy" />
     </AdminLayout>
 </template>

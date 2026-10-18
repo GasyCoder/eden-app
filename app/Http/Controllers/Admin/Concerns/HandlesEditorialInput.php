@@ -6,6 +6,7 @@ use App\Services\ContentSanitizer;
 use App\Services\RichTextSanitizer;
 use App\Support\ContentLocale;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 /**
@@ -64,7 +65,12 @@ trait HandlesEditorialInput
         $slug = $base;
         $suffix = 2;
 
-        while ($modelClass::query()
+        $query = $modelClass::query();
+        if (in_array(SoftDeletes::class, class_uses_recursive($modelClass), true)) {
+            $query->withTrashed();
+        }
+
+        while ((clone $query)
             ->where('slug', $slug)
             ->when($ignore, fn ($query) => $query->whereKeyNot($ignore->getKey()))
             ->exists()) {

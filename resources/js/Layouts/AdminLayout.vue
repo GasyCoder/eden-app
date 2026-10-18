@@ -1,6 +1,6 @@
 <script setup>
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { CalendarDays, ChevronsUpDown, ExternalLink, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, LogOut, Mail, Megaphone, Menu, Newspaper, PanelsTopLeft, Search, Settings, UserRound, UsersRound } from '@lucide/vue';
+import { CalendarDays, ChevronsUpDown, ExternalLink, FolderKanban, GalleryHorizontal, LayoutDashboard, LibraryBig, LogOut, Mail, Megaphone, Menu, Newspaper, PanelsTopLeft, Search, Settings, Trash2, UserRound, UsersRound } from '@lucide/vue';
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuSeparator, DropdownMenuTrigger } from 'reka-ui';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import CommandMenu from '@/Components/Admin/CommandMenu.vue';
@@ -34,6 +34,7 @@ const sections = computed(() => [
         { label: 'Projets', href: '/admin/projects', icon: FolderKanban, match: /^\/admin\/projects/ },
         { label: 'Revues', href: '/admin/journals', icon: LibraryBig, match: /^\/admin\/journals/ },
         { label: 'Annonces', href: '/admin/announcements', icon: Megaphone, match: /^\/admin\/announcements/ },
+        { label: 'Corbeille', href: '/admin/trash', icon: Trash2, match: /^\/admin\/trash/ },
     ] },
     { label: 'Communication', items: [
         { label: 'Newsletter', href: '/admin/newsletter', icon: Mail, match: /^\/admin\/newsletter/ },

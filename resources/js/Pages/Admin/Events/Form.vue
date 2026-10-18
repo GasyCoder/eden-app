@@ -172,6 +172,6 @@ const destroy = () => router.delete(`/admin/events/${props.event.id}`, {
             </div>
         </form>
 
-        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cet événement ?" description="Il sera définitivement retiré du site." :loading="deleting" @confirm="destroy" />
+        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cet événement ?" description="Il sera retiré du site et placé dans la corbeille." :loading="deleting" @confirm="destroy" />
     </AdminLayout>
 </template>

@@ -195,6 +195,6 @@ const destroy = () => router.delete(`/admin/announcements/${props.announcement.i
             </div>
         </form>
 
-        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette annonce ?" description="Elle sera définitivement supprimée." :loading="deleting" @confirm="destroy" />
+        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette annonce ?" description="Elle sera placée dans la corbeille." :loading="deleting" @confirm="destroy" />
     </AdminLayout>
 </template>

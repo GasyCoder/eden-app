@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class NewsletterSubscription extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     public const STATUSES = ['pending', 'pending_approval', 'subscribed', 'rejected', 'unsubscribed'];
 
@@ -70,15 +72,15 @@ class NewsletterSubscription extends Model
         $email = mb_strtolower(trim($email));
 
         // Reconnaît aussi une éventuelle ancienne adresse enregistrée avec des majuscules.
-        $existing = self::query()->whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
+        $existing = self::withTrashed()->whereRaw('LOWER(TRIM(email)) = ?', [$email])->first();
 
-        return $existing ?? self::query()->createOrFirst(['email' => $email],
+        return $existing ?? self::withTrashed()->createOrFirst(['email' => $email],
             collect($attributes)->only(['name', 'locale', 'source'])->filter(fn ($value) => $value !== null && $value !== '')->all());
     }
 
     public function isActive(): bool
     {
-        return $this->status === 'subscribed' && $this->approved_at !== null
+        return ! $this->trashed() && $this->status === 'subscribed' && $this->approved_at !== null
             && ($this->email_verified_at !== null || $this->admin_confirmed_at !== null);
     }
 

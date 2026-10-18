@@ -10,10 +10,12 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model implements Newsletterable
 {
     use HasFactory, HasTranslations;
+    use SoftDeletes;
 
     public const STATUSES = ['draft', 'published', 'completed', 'archived', 'cancelled'];
 
@@ -48,9 +50,9 @@ class Event extends Model implements Newsletterable
     {
         return $query->whereNotIn('status', ['completed', 'archived'])
             ->where(function (Builder $query): void {
-            $query->where('ends_at', '>=', now())
-                ->orWhere(fn (Builder $query) => $query->whereNull('ends_at')->where('starts_at', '>=', now()->startOfDay()));
-        })->orderBy('starts_at');
+                $query->where('ends_at', '>=', now())
+                    ->orWhere(fn (Builder $query) => $query->whereNull('ends_at')->where('starts_at', '>=', now()->startOfDay()));
+            })->orderBy('starts_at');
     }
 
     public function scopePast(Builder $query): Builder
@@ -64,7 +66,7 @@ class Event extends Model implements Newsletterable
 
     public function isPublic(): bool
     {
-        return in_array($this->status, ['published', 'cancelled', 'completed', 'archived'], true);
+        return ! $this->trashed() && in_array($this->status, ['published', 'cancelled', 'completed', 'archived'], true);
     }
 
     public function isPast(): bool

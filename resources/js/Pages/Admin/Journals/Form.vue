@@ -161,6 +161,6 @@ const destroy = () => router.delete(`/admin/journals/${props.journal.id}`, {
             </div>
         </form>
 
-        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette revue ?" description="Elle sera définitivement retirée du catalogue." :loading="deleting" @confirm="destroy" />
+        <ConfirmDialog v-model:open="confirmDelete" title="Supprimer cette revue ?" description="La revue et ses numéros seront placés dans la corbeille." :loading="deleting" @confirm="destroy" />
     </AdminLayout>
 </template>

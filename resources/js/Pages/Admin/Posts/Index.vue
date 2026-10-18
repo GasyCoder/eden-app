@@ -59,7 +59,7 @@ const bulkActions = [
     { action: 'archive', label: 'Archiver', icon: Archive },
     { action: 'feature', label: 'À la une', icon: Star },
     { action: 'unfeature', label: 'Retirer de la une', icon: StarOff },
-    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les actualités sélectionnées ?', description: (n) => `${n} actualité(s) seront définitivement supprimées. Pour les masquer sans les perdre, repassez-les en brouillon.` } },
+    { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les actualités sélectionnées ?', description: (n) => `${n} actualité(s) seront placées dans la corbeille. Pour les masquer sans les perdre, repassez-les en brouillon.` } },
 ];
 </script>
 
@@ -132,7 +132,7 @@ const bulkActions = [
         <ConfirmDialog
             :open="Boolean(pendingDelete)"
             title="Supprimer cette actualité ?"
-            :description="pendingDelete ? `« ${pendingDelete.title} » sera définitivement supprimée.` : ''"
+            :description="pendingDelete ? `« ${pendingDelete.title} » sera placée dans la corbeille.` : ''"
             :loading="deleting"
             @update:open="(value) => { if (!value) pendingDelete = null; }"
             @confirm="confirmDelete"
