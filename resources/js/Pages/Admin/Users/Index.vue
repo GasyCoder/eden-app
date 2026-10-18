@@ -31,7 +31,7 @@ const showRequestError = (errors) => {
     push(message || 'L’action n’a pas pu être effectuée. Réessayez.', 'error');
 };
 const showHttpError = (response) => {
-    push(`Le serveur n’a pas pu enregistrer les modifications (erreur ${response.status}). Réessayez.`, 'error');
+    push(`Le serveur n’a pas pu effectuer cette action (erreur ${response.status}). Réessayez.`, 'error');
     return false;
 };
 const showNetworkError = () => {
@@ -49,7 +49,7 @@ const openEdit = (user) => {
 const saveEdit = () => {
     if (!editingUser.value || editForm.processing) return;
 
-    editForm.patch(`/admin/users/${editingUser.value.id}`, {
+    editForm.transform((data) => ({ ...data, _method: 'PATCH' })).post(`/admin/users/${editingUser.value.id}`, {
         preserveScroll: true,
         onSuccess: () => { editOpen.value = false; editingUser.value = null; },
         onError: showRequestError,
@@ -57,20 +57,27 @@ const saveEdit = () => {
         onNetworkError: showNetworkError,
     });
 };
-const changeRole = (user, role) => router.patch(`/admin/users/${user.id}`, {
-    name: user.name, email: user.email, role,
-}, { preserveScroll: true, onError: showRequestError });
+const changeRole = (user, role) => router.post(`/admin/users/${user.id}`, {
+    _method: 'PATCH', name: user.name, email: user.email, role,
+}, { preserveScroll: true, onError: showRequestError, onHttpException: showHttpError, onNetworkError: showNetworkError });
 const sendReset = (user) => router.post(`/admin/users/${user.id}/password-reset`, {}, {
     preserveScroll: true,
     onStart: () => { sendingResetTo.value = user.id; },
     onFinish: () => { sendingResetTo.value = null; },
 });
-const removeUser = () => router.delete(`/admin/users/${pendingDelete.value.id}`, {
-    preserveScroll: true,
-    onStart: () => { deleting.value = true; },
-    onFinish: () => { deleting.value = false; pendingDelete.value = null; },
-    onError: showRequestError,
-});
+const removeUser = () => {
+    const userId = pendingDelete.value?.id;
+    if (!userId || deleting.value) return;
+
+    router.post(`/admin/users/${userId}`, { _method: 'DELETE' }, {
+        preserveScroll: true,
+        onStart: () => { deleting.value = true; },
+        onFinish: () => { deleting.value = false; pendingDelete.value = null; },
+        onError: showRequestError,
+        onHttpException: showHttpError,
+        onNetworkError: showNetworkError,
+    });
+};
 </script>
 
 <template>
