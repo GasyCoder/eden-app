@@ -35,6 +35,7 @@ createInertiaApp({
 
                     return !path.startsWith('/admin/content-')
                         && !path.startsWith('/admin/uploads')
+                        && !path.startsWith('/me/login')
                         && path !== '/me/settings';
                 };
 
