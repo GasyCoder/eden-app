@@ -1,12 +1,12 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { Eye } from '@lucide/vue';
+import { Archive, Eye } from '@lucide/vue';
 import PostCard from '@/Components/Portal/PostCard.vue';
 import ShareButtons from '@/Components/Portal/ShareButtons.vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { formatDate, useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import { buttonVariants, containerClass } from '@/lib/variants';
+import { badgeVariants, buttonVariants, containerClass } from '@/lib/variants';
 
 defineProps({
     post: { type: Object, required: true },
@@ -24,6 +24,10 @@ const { t, path, locale } = useT();
     <PublicLayout :editable="false">
         <article class="pb-20">
             <header class="mx-auto max-w-3xl px-4 pt-12 pb-10 sm:px-6 lg:pt-16">
+                <div v-if="post.status === 'archived'" class="mb-6 grid justify-items-start gap-2 rounded-lg border bg-muted/50 p-4" role="status">
+                    <span :class="badgeVariants({ variant: 'secondary' })"><Archive class="size-3" aria-hidden="true" />{{ t('archivedPost') }}</span>
+                    <p class="text-sm text-muted-foreground">{{ t('archivedPostNotice') }}</p>
+                </div>
                 <div v-if="!post.is_public" class="mb-6 flex items-start gap-3 rounded-lg border border-gold-300 bg-gold-50 p-4 text-sm text-gold-900 dark:border-gold-800 dark:bg-gold-950 dark:text-gold-200" role="status">
                     <Eye class="mt-0.5 size-4 shrink-0" aria-hidden="true" /><span>{{ t('draftPreview') }}</span>
                 </div>

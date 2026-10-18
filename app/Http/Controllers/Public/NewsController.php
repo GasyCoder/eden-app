@@ -22,7 +22,7 @@ class NewsController extends Controller
         $search = trim($request->string('q')->toString());
         $isFiltered = $category !== '' || $search !== '';
 
-        $query = Post::query()->published()->with('category', 'author')
+        $query = Post::query()->visible()->with('category', 'author')
             ->when($category !== '', fn (Builder $query) => $query->whereHas('category', fn (Builder $query) => $query->where('slug', $category)))
             ->when($search !== '', fn (Builder $query) => $query->where(function (Builder $query) use ($search, $locale): void {
                 foreach (array_unique([$locale, ContentLocale::DEFAULT]) as $lang) {
@@ -35,7 +35,7 @@ class NewsController extends Controller
         $featured = null;
 
         if (! $isFiltered && $request->integer('page', 1) === 1) {
-            $featured = (clone $query)->where('is_featured', true)->latestPublished()->first();
+            $featured = (clone $query)->where('status', 'published')->where('is_featured', true)->latestPublished()->first();
         }
 
         $posts = (clone $query)
@@ -47,7 +47,7 @@ class NewsController extends Controller
             'featured' => $featured?->toCard($locale),
             'posts' => Paginated::from($posts, fn (Post $post) => $post->toCard($locale)),
             'categories' => PostCategory::query()
-                ->withCount(['posts' => fn (Builder $query) => $query->published()])
+                ->withCount(['posts' => fn (Builder $query) => $query->visible()])
                 ->orderBy('position')->orderBy('id')->get()
                 ->filter(fn (PostCategory $category) => $category->posts_count > 0)
                 ->map(fn (PostCategory $category) => [...$category->toOption($locale), 'count' => $category->posts_count])

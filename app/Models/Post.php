@@ -18,7 +18,7 @@ class Post extends Model implements Newsletterable
 {
     use HasFactory, HasTranslations;
 
-    public const STATUSES = ['draft', 'published'];
+    public const STATUSES = ['draft', 'published', 'archived'];
 
     protected $fillable = [
         'slug', 'title', 'excerpt', 'body', 'cover_image', 'post_category_id', 'author_id', 'author_name',
@@ -56,6 +56,14 @@ class Post extends Model implements Newsletterable
             ->where('published_at', '<=', now());
     }
 
+    /** Actualités publiées ou archivées consultables à leur date de publication. */
+    public function scopeVisible(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['published', 'archived'])
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
+    }
+
     public function scopeLatestPublished(Builder $query): Builder
     {
         return $query->orderByDesc('published_at')->orderByDesc('id');
@@ -63,7 +71,7 @@ class Post extends Model implements Newsletterable
 
     public function isPublic(): bool
     {
-        return $this->status === 'published' && $this->published_at !== null && $this->published_at->lte(now());
+        return in_array($this->status, ['published', 'archived'], true) && $this->published_at !== null && $this->published_at->lte(now());
     }
 
     public function authorLabel(): ?string
@@ -97,6 +105,7 @@ class Post extends Model implements Newsletterable
             'author' => $this->authorLabel(),
             'published_at' => $this->published_at?->toIso8601String(),
             'is_featured' => $this->is_featured,
+            'status' => $this->status,
             'reading_minutes' => $this->readingMinutes($locale),
         ];
     }

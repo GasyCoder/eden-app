@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
-import { CircleCheck, ExternalLink, FilePen, FilePlus2, Newspaper, Pencil, SearchX, Star, StarOff, Tags, Trash2 } from '@lucide/vue';
+import { Archive, CircleCheck, ExternalLink, FilePen, FilePlus2, Newspaper, Pencil, SearchX, Star, StarOff, Tags, Trash2 } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import AdminPageHeader from '@/Components/Admin/Ui/AdminPageHeader.vue';
 import BulkActionBar from '@/Components/Admin/Ui/BulkActionBar.vue';
@@ -31,7 +31,7 @@ const { filters, loading, reset, isFiltered } = useListFilters('/admin/posts', {
     category: props.filters.category ?? null,
 });
 
-const statusOptions = [{ value: null, label: 'Tous les statuts' }, { value: 'published', label: 'Publiés' }, { value: 'draft', label: 'Brouillons' }];
+const statusOptions = [{ value: null, label: 'Tous les statuts' }, { value: 'published', label: 'Publiés' }, { value: 'draft', label: 'Brouillons' }, { value: 'archived', label: 'Archivés' }];
 const categoryOptions = computed(() => [{ value: null, label: 'Toutes les catégories' }, ...props.categories.map((c) => ({ value: c.id, label: c.name }))]);
 const categoriesOpen = ref(false);
 const pendingDelete = ref(null);
@@ -56,6 +56,7 @@ const bulk = useBulkSelection(() => props.posts.data);
 const bulkActions = [
     { action: 'publish', label: 'Publier', icon: CircleCheck },
     { action: 'draft', label: 'Brouillon', icon: FilePen },
+    { action: 'archive', label: 'Archiver', icon: Archive },
     { action: 'feature', label: 'À la une', icon: Star },
     { action: 'unfeature', label: 'Retirer de la une', icon: StarOff },
     { action: 'delete', label: 'Supprimer', icon: Trash2, danger: true, confirm: { title: 'Supprimer les actualités sélectionnées ?', description: (n) => `${n} actualité(s) seront définitivement supprimées. Pour les masquer sans les perdre, repassez-les en brouillon.` } },

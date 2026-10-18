@@ -45,7 +45,11 @@ const form = useForm({
 useUnsavedGuard(form);
 
 const categoryOptions = computed(() => [{ value: null, label: 'Sans catégorie' }, ...props.categories.map((c) => ({ value: c.id, label: c.name }))]);
-const statusOptions = [{ value: 'draft', label: 'Brouillon' }, { value: 'published', label: 'Publié' }];
+const statusOptions = [{ value: 'draft', label: 'Brouillon' }, { value: 'published', label: 'Publié' }, { value: 'archived', label: 'Archivé' }];
+const saveLabel = computed(() => {
+    if (form.status === 'archived') return props.post.status === 'archived' ? 'Enregistrer' : 'Archiver';
+    return form.status === 'published' && !isNew.value ? 'Mettre à jour' : 'Publier';
+});
 const complete = computed(() => ({ fr: Boolean(form.title.fr), en: Boolean(form.title.en) }));
 const err = (field) => form.errors[`${field}.${locale.value}`] || (locale.value === 'en' ? '' : form.errors[`${field}.fr`]);
 const confirmDelete = ref(false);
@@ -77,11 +81,11 @@ const destroy = () => router.delete(`/admin/posts/${props.post.id}`, {
             <AdminPageHeader :title="isNew ? 'Nouvelle actualité' : (post.title.fr || 'Actualité')" back-href="/admin/posts" back-label="Actualités">
                 <template #badges><StatusBadge v-if="!isNew" :status="post.status" /></template>
                 <template #actions>
-                    <a v-if="publicUrl" :href="publicUrl" target="_blank" rel="noopener noreferrer" :class="buttonVariants({ variant: 'ghost' })"><ExternalLink aria-hidden="true" />{{ post.status === 'published' ? 'Voir' : 'Aperçu' }}</a>
-                    <button v-if="form.status !== 'published'" type="button" :class="buttonVariants({ variant: 'outline' })" :disabled="form.processing" @click="submit('draft')">Enregistrer le brouillon</button>
-                    <button type="button" :class="buttonVariants()" :disabled="form.processing" @click="submit('published')">
+                    <a v-if="publicUrl" :href="publicUrl" target="_blank" rel="noopener noreferrer" :class="buttonVariants({ variant: 'ghost' })"><ExternalLink aria-hidden="true" />{{ post.status === 'draft' ? 'Aperçu' : 'Voir' }}</a>
+                    <button v-if="form.status === 'draft'" type="button" :class="buttonVariants({ variant: 'outline' })" :disabled="form.processing" @click="submit('draft')">Enregistrer le brouillon</button>
+                    <button type="button" :class="buttonVariants()" :disabled="form.processing" @click="submit(form.status === 'draft' ? 'published' : null)">
                         <span v-if="form.processing" class="inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
-                        {{ form.status === 'published' && !isNew ? 'Mettre à jour' : 'Publier' }}
+                        {{ saveLabel }}
                     </button>
                 </template>
             </AdminPageHeader>
@@ -134,17 +138,17 @@ const destroy = () => router.delete(`/admin/posts/${props.post.id}`, {
                     <section class="rounded-xl border bg-card p-5 text-card-foreground">
                         <h2 class="mb-4 text-base font-semibold">Publication</h2>
                         <div class="grid gap-4">
-                            <Field v-slot="{ id }" label="Statut">
+                            <Field v-slot="{ id }" label="Statut" hint="Une actualité archivée reste consultable sur le site avec le badge « Archivé ». Elle n’est plus mise en avant sur l’accueil.">
                                 <Select :id="id" v-model="form.status" :options="statusOptions" />
                             </Field>
                             <Field v-slot="{ id, invalid, describedBy }" label="Date de publication" optional hint="Heure de Madagascar. Une date future programme la publication." :error="form.errors.published_at">
                                 <input :id="id" v-model="form.published_at" type="datetime-local" :class="inputClass" :aria-invalid="invalid" :aria-describedby="describedBy">
                             </Field>
-                            <Switch v-model="form.is_featured" label="Mettre à la une" description="Affichée en grand sur la page Actualités et en premier sur l’accueil." />
+                            <Switch v-model="form.is_featured" :disabled="form.status === 'archived'" label="Mettre à la une" :description="form.status === 'archived' ? 'Les actualités archivées ne sont plus mises en avant.' : 'Affichée en grand sur la page Actualités et en premier sur l’accueil.'" />
                         </div>
                     </section>
 
-                    <NotifySubscribersField v-model="form.notify_subscribers" :newsletter="newsletter" :published="form.status === 'published'" noun="l’actualité" />
+                    <NotifySubscribersField v-if="form.status !== 'archived'" v-model="form.notify_subscribers" :newsletter="newsletter" :published="form.status === 'published'" noun="l’actualité" />
 
                     <section class="rounded-xl border bg-card p-5 text-card-foreground">
                         <h2 class="mb-4 text-base font-semibold">Classement</h2>

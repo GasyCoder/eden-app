@@ -1,5 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { Archive } from '@lucide/vue';
 import { formatDate, useT } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { badgeVariants } from '@/lib/variants';
@@ -26,7 +27,8 @@ const { t, path, locale } = useT();
         </div>
         <div class="grid gap-2.5">
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                <span v-if="featured || featuredBadge" :class="badgeVariants({ variant: 'warning' })">{{ t('featured') }}</span>
+                <span v-if="(featured || featuredBadge) && post.status !== 'archived'" :class="badgeVariants({ variant: 'warning' })">{{ t('featured') }}</span>
+                <span v-if="post.status === 'archived'" :class="badgeVariants({ variant: 'secondary' })"><Archive class="size-3" aria-hidden="true" />{{ t('archivedPost') }}</span>
                 <span v-if="post.category" class="font-semibold text-eden-700 dark:text-eden-300">{{ post.category.name }}</span>
                 <span v-if="post.category" aria-hidden="true">·</span>
                 <time :datetime="post.published_at">{{ formatDate(post.published_at, locale) }}</time>

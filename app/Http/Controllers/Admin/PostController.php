@@ -14,13 +14,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PostController extends Controller
 {
-    use HandlesBulkActions, HandlesEditorialInput, NotifiesSubscribers;
+    use HandlesBulkActions {
+        bulk as private performBulk;
+    }
+    use HandlesEditorialInput, NotifiesSubscribers;
 
     public function index(Request $request): Response
     {
@@ -58,9 +63,15 @@ class PostController extends Controller
     {
         $post = Post::create([...$this->payload($request), 'author_id' => $request->user()->id]);
 
-        $notice = $this->notifySubscribers($request, $post);
+        $notice = $post->status === 'archived' ? '' : $this->notifySubscribers($request, $post);
 
-        return to_route('admin.posts.edit', $post)->with('success', ($post->status === 'published' ? 'Actualité publiée.' : 'Brouillon enregistré.').$notice);
+        $message = match ($post->status) {
+            'published' => 'Actualité publiée.',
+            'archived' => 'Actualité archivée.',
+            default => 'Brouillon enregistré.',
+        };
+
+        return to_route('admin.posts.edit', $post)->with('success', $message.$notice);
     }
 
     public function edit(Post $post): Response
@@ -77,7 +88,9 @@ class PostController extends Controller
     {
         $post->update($this->payload($request, $post));
 
-        return back(303)->with('success', 'Actualité enregistrée.'.$this->notifySubscribers($request, $post));
+        $message = $post->status === 'archived' ? 'Actualité archivée.' : 'Actualité enregistrée.'.$this->notifySubscribers($request, $post);
+
+        return to_route('admin.posts.edit', $post, 303)->with('success', $message);
     }
 
     public function destroy(Post $post): RedirectResponse
@@ -87,9 +100,14 @@ class PostController extends Controller
         return to_route('admin.posts.index')->with('success', 'Actualité supprimée.');
     }
 
+    public function bulk(Request $request): RedirectResponse
+    {
+        return $this->performBulk($request)->setTargetUrl(route('admin.posts.index'));
+    }
+
     private function payload(Request $request, ?Post $post = null): array
     {
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             ...$this->translatableRules('title', required: true),
             ...$this->translatableRules('excerpt', max: 600),
             ...$this->translatableRules('body', html: true),
@@ -106,10 +124,17 @@ class PostController extends Controller
             'title.fr.required' => 'Le titre en français est obligatoire.',
         ]);
 
+        if ($validator->fails()) {
+            throw (new ValidationException($validator))->redirectTo(
+                $post ? route('admin.posts.edit', $post) : route('admin.posts.create'),
+            );
+        }
+
+        $data = $validator->validated();
         $publishedAt = EditorialDate::fromInput($data['published_at'] ?? null);
 
-        // Publier sans date = publier maintenant
-        if ($data['status'] === 'published' && ! $publishedAt) {
+        // Une archive reste consultable, avec sa date d’origine si elle existe.
+        if (in_array($data['status'], ['published', 'archived'], true) && ! $publishedAt) {
             $publishedAt = $post?->published_at ?? now();
         }
 
@@ -151,6 +176,7 @@ class PostController extends Controller
         return [
             'publish' => ['%d actualité(s) publiée(s).', fn (Collection $posts) => $this->updateEach($posts, fn (Post $post) => ['status' => 'published', 'published_at' => $post->published_at ?? now()])],
             'draft' => ['%d actualité(s) repassée(s) en brouillon.', fn (Collection $posts) => $this->updateEach($posts, ['status' => 'draft'])],
+            'archive' => ['%d actualité(s) archivée(s).', fn (Collection $posts) => $this->updateEach($posts, fn (Post $post) => ['status' => 'archived', 'published_at' => $post->published_at ?? now()])],
             'feature' => ['%d actualité(s) mise(s) à la une.', fn (Collection $posts) => $this->updateEach($posts, ['is_featured' => true])],
             'unfeature' => ['%d actualité(s) retirée(s) de la une.', fn (Collection $posts) => $this->updateEach($posts, ['is_featured' => false])],
             'delete' => ['%d actualité(s) supprimée(s).', fn (Collection $posts) => $this->deleteEach($posts)],
