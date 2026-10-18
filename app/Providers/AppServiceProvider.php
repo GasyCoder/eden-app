@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Mail\ResetPasswordMail;
 use App\Support\PagePerformanceSettings;
 use App\Support\SeoSettings;
 use App\Support\ThemeSettings;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,6 +28,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        ResetPassword::toMailUsing(function ($notifiable, string $token): ResetPasswordMail {
+            $url = route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ]);
+            $expiresInMinutes = (int) config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
+
+            return (new ResetPasswordMail($notifiable->name, $url, $expiresInMinutes))
+                ->to($notifiable->getEmailForPasswordReset(), $notifiable->name);
+        });
+
         RateLimiter::for('admin-login', function (Request $request): array {
             $email = $request->input('email');
             $email = is_string($email) ? mb_strtolower(trim($email)) : '';
