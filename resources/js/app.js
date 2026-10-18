@@ -22,6 +22,7 @@ createInertiaApp({
             setup() {
                 const loading = ref(false);
                 const progress = ref(null);
+                const loadingVariant = ref(window.location.pathname.startsWith('/admin') ? 'admin' : 'public');
                 let delayTimer = null;
                 let finishTimer = null;
 
@@ -32,6 +33,7 @@ createInertiaApp({
 
                     const visitUrl = event.detail?.visit?.url?.toString?.() ?? '';
                     const path = new URL(visitUrl, window.location.origin).pathname;
+                    loadingVariant.value = path.startsWith('/admin') ? 'admin' : 'public';
 
                     return !path.startsWith('/admin/content-')
                         && !path.startsWith('/admin/uploads')
@@ -81,6 +83,7 @@ createInertiaApp({
                 return () => [
                     h(App, props),
                     h(PageLoadingSkeleton, {
+                        variant: loadingVariant.value,
                         show: loading.value,
                         progress: progress.value,
                     }),
