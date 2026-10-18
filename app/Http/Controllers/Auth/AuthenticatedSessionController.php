@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginOtpMail;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,9 +66,7 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         try {
-            Mail::raw("Bonjour {$user->name},\n\nVotre code de vérification EDEN est : {$code}\n\nIl est valable pendant 10 minutes. Si vous n’êtes pas à l’origine de cette connexion, ignorez ce message et changez votre mot de passe.", function ($message) use ($user): void {
-                $message->to($user->email)->subject('Code de vérification EDEN-UMG');
-            });
+            Mail::to($user->email, $user->name)->send(new LoginOtpMail($user->name, $code));
         } catch (Throwable $exception) {
             $this->clearOtpChallenge($request);
             report($exception);
@@ -135,9 +134,7 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         try {
-            Mail::raw("Bonjour {$user->name},\n\nVotre nouveau code de vérification EDEN est : {$code}\n\nIl est valable pendant 10 minutes.", function ($message) use ($user): void {
-                $message->to($user->email)->subject('Nouveau code de vérification EDEN-UMG');
-            });
+            Mail::to($user->email, $user->name)->send(new LoginOtpMail($user->name, $code, resent: true));
         } catch (Throwable $exception) {
             report($exception);
             throw ValidationException::withMessages(['code' => 'Le code n’a pas pu être envoyé. Réessayez plus tard.']);
